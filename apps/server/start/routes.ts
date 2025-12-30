@@ -16,6 +16,10 @@ const UsersController = () => import('#controllers/users_controller')
 const InvitesController = () => import('#controllers/invites_controller')
 const RolesController = () => import('#controllers/roles_controller')
 const AccountsController = () => import('#controllers/accounts_controller')
+const TransactionsController = () => import('#controllers/transactions_controller')
+const TransactionCategoriesController = () =>
+  import('#controllers/transaction_categories_controller')
+const TransactionAccountsController = () => import('#controllers/transaction_accounts_controller')
 
 router.get('/health', [HealthChecksController])
 router.post('/api/session', [SessionController, 'store'])
@@ -61,6 +65,27 @@ router
         router.post('/passwords', [AccountsController, 'changePassword'])
       })
       .prefix('/accounts')
+
+    router
+      .group(() => {
+        router.get('/', [TransactionsController, 'index'])
+        router.post('/', [TransactionsController, 'store'])
+        router.get('/:id', [TransactionsController, 'show'])
+      })
+      .prefix('/transactions')
+
+    router
+      .group(() => {
+        router.get('/', [TransactionCategoriesController, 'all'])
+        router.get('/:id', [TransactionCategoriesController, 'getDefaultAccounts'])
+      })
+      .prefix('/transaction-categories')
+
+    router
+      .group(() => {
+        router.get('/', [TransactionAccountsController, 'all'])
+      })
+      .prefix('/transaction-accounts')
   })
   .prefix('/api')
   .middleware([middleware.auth({ guards: ['api'] }), middleware.bouncer()])

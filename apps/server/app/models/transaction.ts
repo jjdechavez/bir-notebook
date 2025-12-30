@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm'
 import User from './user.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { toCents } from '@bir-notebook/shared/helpers/currency'
@@ -66,4 +66,14 @@ export default class Transaction extends BaseModel {
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+
+  @computed()
+  get vatAmount() {
+    let vatAmount = 0
+    if (this.vatType === 'vat_standard') {
+      vatAmount = this.amount * 0.12
+    }
+
+    return vatAmount
+  }
 }
