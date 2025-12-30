@@ -22,6 +22,10 @@
     "./models/account": {
       "types": "./src/models/account.ts",
       "import": "./dist/src/models/account.js"
+    },
+    "./models/transaction": {
+      "types": "./src/models/transaction.ts",
+      "import": "./dist/src/models/transaction.js"
     }
   }
 }
