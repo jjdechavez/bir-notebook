@@ -1,0 +1,14 @@
+{
+  "name": "bir-notebook",
+  "version": "1.0.0",
+  "description": "Template for TanStack Router + Adonis Tuyau",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "John Jerald De Chavez",
+  "license": "MIT",
+  "dependencies": {
+    "tsr-adonis-template": "link:"
+  }
+}
