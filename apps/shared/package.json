@@ -26,6 +26,10 @@
     "./models/transaction": {
       "types": "./src/models/transaction.ts",
       "import": "./dist/src/models/transaction.js"
+    },
+    "./helpers/currency": {
+      "types": "./src/helpers/currency.ts",
+      "import": "./dist/src/helpers/currency.js"
     }
   }
 }

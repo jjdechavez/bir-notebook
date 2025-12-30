@@ -7,3 +7,12 @@ export const transactionCategoryBookTypes = {
 
 export type TransactionCategoryBookType =
   (typeof transactionCategoryBookTypes)[keyof typeof transactionCategoryBookTypes];
+
+export const transactionVatTypes = {
+  vatExempt: "vat_exempt",
+  vatZero: "vat_zero",
+  vatStandard: "vat_standard",
+} as const;
+
+export type TransactionVatType =
+  (typeof transactionVatTypes)[keyof typeof transactionVatTypes];
