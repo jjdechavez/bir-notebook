@@ -41,7 +41,7 @@ const question = (query) =>
         k.includes("@acme/shared"),
       );
       oldKeys.forEach((k) => delete json.dependencies[k]);
-      json.dependencies[fullServerName] = "workspace:*";
+      json.dependencies[fullSharedName] = "workspace:*";
     }
   });
 

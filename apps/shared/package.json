@@ -18,6 +18,10 @@
     "./models/invite": {
       "types": "./src/models/invite.ts",
       "import": "./dist/src/models/invite.js"
+    },
+    "./models/account": {
+      "types": "./src/models/account.ts",
+      "import": "./dist/src/models/account.js"
     }
   }
 }
