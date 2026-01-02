@@ -8,18 +8,33 @@ export default class extends BaseSeeder {
 
     const roles = await Role.fetchOrCreateMany('name', rawRoles)
 
-    const email = 'admin@acme.com'
+    const adminEmail = 'admin@acme.com'
     const admin = await User.findBy({
-      email,
+      email: adminEmail,
     })
 
     if (!admin) {
       await User.create({
-        email,
+        email: adminEmail,
         password: 'admin@Acme',
         firstName: 'Admin',
         lastName: 'Acme',
         roleId: roles.find((role) => role.name === 'Admin')!.id,
+      })
+    }
+
+    const userEmail = 'user@acme.com'
+    const user = await User.findBy({
+      email: userEmail,
+    })
+
+    if (!user) {
+      await User.create({
+        email: userEmail,
+        password: 'user@Acme',
+        firstName: 'John',
+        lastName: 'Acme',
+        roleId: roles.find((role) => role.name === 'User')!.id,
       })
     }
   }
