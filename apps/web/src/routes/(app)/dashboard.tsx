@@ -6,6 +6,9 @@ import { TransactionCard } from '@/components/transaction-summary-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TransactionForm } from '@/components/transaction-form'
 import { TransactionList } from '@/components/transaction-list'
+import { useQuery } from '@tanstack/react-query'
+import { tuyau } from '@/main'
+import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
 
 export const Route = createFileRoute('/(app)/dashboard')({
   component: DashboardComponent,
@@ -23,7 +26,7 @@ function DashboardComponent() {
         Welcome back, {user?.firstName} {user?.lastName}
       </h1>
       <div className="space-y-6">
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Manage your transactions with BIR-compliant record keeping
         </p>
 
@@ -36,24 +39,31 @@ function DashboardComponent() {
 }
 
 function TransactionSummary() {
+  const { data } = useQuery(
+    tuyau.api.transactions.summary.$get.queryOptions({}),
+  )
+  const totalIncome = data?.totalIncome || 0
+  const totalExpenses = data?.totalExpenses || 0
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <TransactionCard
         title="Total Income"
-        description={'PHP 0.00'}
+        description={formatCentsToCurrency(data?.totalIncome || 0)}
         icon={TrendingUp}
       />
       <TransactionCard
         title="Total Expenses"
-        description={'PHP 0.00'}
+        description={formatCentsToCurrency(data?.totalExpenses || 0)}
         icon={TrendingDown}
         variant="expense"
       />
       <TransactionCard
         title="Net Income"
-        description={'PHP 0.00'}
+        description={formatCentsToCurrency(data?.netIncome || 0)}
         icon={FileText}
-        variant={0 > 0 ? 'passiveNetIncome' : 'negativeNetIncome'}
+        variant={
+          totalIncome > totalExpenses ? 'passiveNetIncome' : 'negativeNetIncome'
+        }
       />
       <TransactionCard
         title="Categories"
@@ -67,7 +77,7 @@ function TransactionSummary() {
 
 function TransactionMain() {
   return (
-      <Tabs defaultValue="create" className="space-y-6">
+    <Tabs defaultValue="create" className="space-y-6">
       <TabsList>
         <TabsTrigger value="create">Create Transaction</TabsTrigger>
         <TabsTrigger value="list">Transaction List</TabsTrigger>

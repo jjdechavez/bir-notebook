@@ -6,11 +6,11 @@ import type { LucideIcon } from 'lucide-react'
 const transactionCardVariants = cva('', {
   variants: {
     variant: {
-      income: 'text-green-600',
-      expense: 'text-red-600',
-      passiveNetIncome: "text-green-600",
-      negativeNetIncome: "text-green-600",
-      categories: "text-purple-600"
+      income: 'text-green-600 dark:text-green-500',
+      expense: 'text-red-600 dark:text-red-500',
+      passiveNetIncome: 'text-green-600 dark:text-green-500',
+      negativeNetIncome: 'text-red-600 dark:text-red-500',
+      categories: 'text-purple-600 dark:text-purple-500',
     },
   },
   defaultVariants: {
@@ -33,7 +33,7 @@ export function TransactionCard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-sm font-medium text-foreground">{title}</p>
             <p
               className={cn(
                 'text-2xl font-bold',

@@ -68,4 +68,8 @@ export default class TransactionsController {
       data: new TransactionDto(transaction).toJson(),
     }
   }
+
+  async summary({ auth }: HttpContext) {
+    return await this.transactionService.summary(auth.user!.id)
+  }
 }

@@ -1,7 +1,10 @@
 import Transaction from '#models/transaction'
 import TransactionCategory from '#models/transaction_category'
 import { CreateTransactionPayload } from '#validators/transaction'
-import { transactionVatTypes } from '@bir-notebook/shared/models/transaction'
+import {
+  transactionCategoryBookTypes,
+  transactionVatTypes,
+} from '@bir-notebook/shared/models/transaction'
 import { DateTime } from 'luxon'
 
 export class TransactionService {
@@ -75,5 +78,28 @@ export class TransactionService {
       })
       .where('id', id)
       .first()
+  }
+
+  async summary(userId: number) {
+    const totalIncomeAmount = await Transaction.query()
+      .sum('amount')
+      .where('bookType', transactionCategoryBookTypes.cashReceiptJournal)
+      .andWhere('userId', userId)
+
+    const totalIncome = +totalIncomeAmount[0].$extras.sum
+
+    const totalExpensesAmount = await Transaction.query()
+      .sum('amount')
+      .where('bookType', transactionCategoryBookTypes.cashDisbursementJournal)
+      .andWhere('userId', userId)
+
+    const totalExpenses = +totalExpensesAmount[0].$extras.sum
+
+    const netIncome = totalIncome - totalExpenses
+    return {
+      totalIncome,
+      totalExpenses,
+      netIncome,
+    }
   }
 }

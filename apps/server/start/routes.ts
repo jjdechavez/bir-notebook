@@ -70,6 +70,8 @@ router
       .group(() => {
         router.get('/', [TransactionsController, 'index'])
         router.post('/', [TransactionsController, 'store'])
+        router.get('/summary', [TransactionsController, 'summary'])
+
         router.get('/:id', [TransactionsController, 'show'])
       })
       .prefix('/transactions')
