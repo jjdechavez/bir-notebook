@@ -10,13 +10,14 @@ import Transaction from '#models/transaction'
 export default class TransactionsController {
   constructor(protected transactionService: TransactionService) {}
 
-  async index({ request }: HttpContext) {
+  async index({ request, auth }: HttpContext) {
+    const userId = auth.user!.id
     const {
       page = 1,
       limit = 10,
       ...filters
     } = await request.validateUsing(transactionListValidator)
-    const result = await this.transactionService.paginate(page, limit, filters)
+    const result = await this.transactionService.paginate(page, limit, { ...filters, userId })
     const resultJson = result.toJSON()
 
     return {
