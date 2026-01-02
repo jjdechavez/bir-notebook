@@ -2,6 +2,7 @@
   "name": "@bir-notebook/shared",
   "version": "1.0.0",
   "description": "Shared core utilities for the monorepo",
+  "type": "module",
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc"

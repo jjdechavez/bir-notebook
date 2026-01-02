@@ -14,7 +14,7 @@ export function fromCentsToPrice(cents: number = 0) {
  * @param currency The currency code (e.g., 'USD').
  * @returns A formatted currency string.
  **/
-export function format(
+export function formatToCurrency(
   cents: number,
   locale: string = "en-PH",
   currency: string = "PHP",
