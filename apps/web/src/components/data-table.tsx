@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
             {columns.map((_, cIndex) => (
               <TableCell key={`skeleton-column-${cIndex}`}>
                 <div>
-                  <div className="h-4 rounded bg-gray-200 dark:bg-zinc-800" />
+                  <div className="h-4 rounded bg-muted" />
                 </div>
               </TableCell>
             ))}
@@ -103,13 +103,17 @@ export function DataTable<TData, TValue>({
     rowContent = (
       <>
         {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+          <TableRow
+            key={row.id}
+            data-state={row.getIsSelected() && 'selected'}
+            className="hover:bg-muted/50"
+          >
             {row.getVisibleCells().map((cell) => {
               const actionColumn = cell.column.id === 'actions'
               return (
                 <TableCell
                   key={cell.id}
-                  className={cn(actionColumn && 'text-right')}
+                  className={cn(actionColumn && 'text-right', 'p-3')}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
@@ -133,7 +137,7 @@ export function DataTable<TData, TValue>({
     <div className={cn(className)} {...props}>
       <div className="overflow-hidden rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

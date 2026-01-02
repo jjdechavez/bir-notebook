@@ -12,6 +12,111 @@ import {
   transactionCategoryBookTypeOptions,
   transactionVatTypeOptions,
 } from '@bir-notebook/shared/models/transaction'
+import {
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+} from '@tanstack/react-table'
+import type { Transaction } from '@/types/transaction'
+import { useFilters } from '@/hooks/use-filters'
+import { DataTable } from './data-table'
+import { DEFAULT_LIST_META } from '@/lib/api'
+
+const columns: ColumnDef<Transaction>[] = [
+  {
+    header: 'Date',
+    cell: ({ row }) => new Date(row.original.transactionDate).toLocaleString(),
+  },
+  {
+    header: 'Description',
+    cell: ({ row }) => {
+      const transaction = row.original
+      return (
+        <div>
+          <p className="font-medium">{transaction.description}</p>
+          <p className="text-sm text-muted-foreground">ID: {transaction.id}</p>
+        </div>
+      )
+    },
+  },
+  {
+    header: 'Category',
+    cell: ({ row }) => row.original.category?.name || 'N/A',
+  },
+  {
+    header: 'Book',
+    cell: ({ row }) => (
+      <Badge variant="outline">
+        {formatOption(
+          transactionCategoryBookTypeOptions,
+          row.original.bookType,
+        )}
+      </Badge>
+    ),
+  },
+  {
+    header: 'Debit Account',
+    cell: ({ row }) => {
+      const transaction = row.original
+      return (
+        <div className="text-sm">
+          <p className="font-medium">{transaction.debitAccount?.name}</p>
+          <p className="text-muted-foreground">
+            {transaction.debitAccount?.code}
+          </p>
+        </div>
+      )
+    },
+  },
+  {
+    header: 'Credit Account',
+    cell: ({ row }) => {
+      const transaction = row.original
+      return (
+        <div className="text-sm">
+          <p className="font-medium">{transaction.creditAccount?.name}</p>
+          <p className="text-muted-foreground">
+            {transaction.creditAccount?.code}
+          </p>
+        </div>
+      )
+    },
+  },
+  {
+    header: 'Amount',
+    cell: ({ row }) => (
+      <span className="text-right font-medium">
+        {formatCentsToCurrency(row.original.amount)}
+      </span>
+    ),
+  },
+  {
+    header: 'VAT',
+    cell: ({ row }) => {
+      const transaction = row.original
+      return (
+        <>
+          <Badge
+            variant={
+              transaction.vatType === 'vat_standard' ? 'default' : 'secondary'
+            }
+          >
+            {formatOption(transactionVatTypeOptions, transaction.vatType)}
+          </Badge>
+          {transaction.vatAmount > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatCentsToCurrency(transaction.vatAmount)}
+            </p>
+          )}
+        </>
+      )
+    },
+  },
+  {
+    header: 'Reference',
+    accessorKey: 'referenceNumber',
+  },
+]
 
 export function TransactionList() {
   const [filters, setFilters] = useState({
@@ -24,11 +129,37 @@ export function TransactionList() {
     search: '',
   })
 
-  const {
-    data: transactionsData,
-    isLoading,
-    error,
-  } = useQuery(tuyau.api.transactions.$get.queryOptions({ payload: filters }))
+  const { data: transactionsData, status } = useQuery(
+    tuyau.api.transactions.$get.queryOptions({ payload: filters }),
+  )
+
+  const table = useReactTable({
+    data: transactionsData?.data || [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    rowCount: Number(transactionsData?.meta.total || 0),
+    state: {
+      pagination: {
+        pageIndex: filters.page,
+        pageSize: filters.limit,
+      },
+    },
+    onPaginationChange: (pagination) => {
+      setFilters(
+        typeof pagination === 'function'
+          ? pagination({
+              pageIndex: filters.page,
+              pageSize: filters.limit,
+            })
+          : pagination,
+      )
+    },
+    enableColumnFilters: false,
+    filterFns: {
+      fuzzy: () => true,
+    },
+  })
 
   const handlePageChange = (newPage: number) => {
     setFilters((prev) => ({ ...prev, page: newPage }))
@@ -38,224 +169,50 @@ export function TransactionList() {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }))
   }
 
-  if (isLoading) return <div>Loading transactions...</div>
-  if (error) return <div>Error loading transactions</div>
-
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Transactions</span>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search transactions..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Book Type
-              </label>
-              <select
-                value={filters.bookType}
-                onChange={(e) => handleFilterChange('bookType', e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="">All Books</option>
-                <option value="cash_receipt">Cash Receipts</option>
-                <option value="cash_disbursement">Cash Disbursements</option>
-                <option value="general_journal">General Journal</option>
-                <option value="ledger">General Ledger</option>
-              </select>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium mb-2">Book Type</label>
+          <select
+            value={filters.bookType}
+            onChange={(e) => handleFilterChange('bookType', e.target.value)}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="">All Books</option>
+            <option value="cash_receipt">Cash Receipts</option>
+            <option value="cash_disbursement">Cash Disbursements</option>
+            <option value="general_journal">General Journal</option>
+            <option value="ledger">General Ledger</option>
+          </select>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Date From
-              </label>
-              <Input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-              />
-            </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Date From</label>
+          <Input
+            type="date"
+            value={filters.dateFrom}
+            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+          />
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Date To</label>
-              <Input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-              />
-            </div>
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Date To</label>
+          <Input
+            type="date"
+            value={filters.dateTo}
+            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+          />
+        </div>
+      </div>
 
-          {/* Transactions Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3">Date</th>
-                  <th className="text-left p-3">Description</th>
-                  <th className="text-left p-3">Category</th>
-                  <th className="text-left p-3">Book</th>
-                  <th className="text-left p-3">Debit Account</th>
-                  <th className="text-left p-3">Credit Account</th>
-                  <th className="text-right p-3">Amount</th>
-                  <th className="text-left p-3">VAT</th>
-                  <th className="text-left p-3">Reference</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactionsData?.data?.map((transaction) => (
-                  <tr
-                    key={transaction.id}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <td className="p-3">
-                      {new Date(
-                        transaction.transactionDate,
-                      ).toLocaleDateString()}
-                    </td>
-                    <td className="p-3">
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-gray-500">
-                          ID: {transaction.id}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      {transaction.category?.name || 'N/A'}
-                    </td>
-                    <td className="p-3">
-                      <Badge variant="outline">
-                        {formatOption(
-                          transactionCategoryBookTypeOptions,
-                          transaction.bookType,
-                        )}
-                      </Badge>
-                    </td>
-                    <td className="p-3">
-                      <div className="text-sm">
-                        <p className="font-medium">
-                          {transaction.debitAccount?.name}
-                        </p>
-                        <p className="text-gray-500">
-                          {transaction.debitAccount?.code}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <div className="text-sm">
-                        <p className="font-medium">
-                          {transaction.creditAccount?.name}
-                        </p>
-                        <p className="text-gray-500">
-                          {transaction.creditAccount?.code}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-3 text-right font-medium">
-                      {formatCentsToCurrency(transaction.amount)}
-                    </td>
-                    <td className="p-3">
-                      <Badge
-                        variant={
-                          transaction.vatType === 'vat_standard'
-                            ? 'default'
-                            : 'secondary'
-                        }
-                      >
-                        {formatOption(
-                          transactionVatTypeOptions,
-                          transaction.vatType,
-                        )}
-                      </Badge>
-                      {transaction.vatAmount > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {formatCentsToCurrency(transaction.vatAmount)}
-                        </p>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {transaction.referenceNumber || '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {transactionsData?.meta && (
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-600">
-                Showing{' '}
-                {(transactionsData.meta.currentPage - 1) *
-                  transactionsData.meta.perPage +
-                  1}{' '}
-                to{' '}
-                {Math.min(
-                  transactionsData.meta.currentPage *
-                    transactionsData.meta.perPage,
-                  transactionsData.meta.total,
-                )}{' '}
-                of {transactionsData.meta.total} transactions
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handlePageChange(transactionsData.meta.currentPage - 1)
-                  }
-                  disabled={transactionsData.meta.currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-
-                <span className="text-sm">
-                  Page {transactionsData.meta.currentPage} of{' '}
-                  {transactionsData.meta.lastPage}
-                </span>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handlePageChange(transactionsData.meta.currentPage + 1)
-                  }
-                  disabled={
-                    transactionsData.meta.currentPage ===
-                    transactionsData.meta.lastPage
-                  }
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <DataTable
+        columns={columns}
+        className="mt-8"
+        meta={transactionsData?.meta || DEFAULT_LIST_META}
+        table={table}
+        dataStatus={status}
+      />
     </div>
   )
 }

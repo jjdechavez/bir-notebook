@@ -80,7 +80,7 @@ function TransactionMain() {
     <Tabs defaultValue="create" className="space-y-6">
       <TabsList>
         <TabsTrigger value="create">Create Transaction</TabsTrigger>
-        <TabsTrigger value="list">Transaction List</TabsTrigger>
+        <TabsTrigger value="list">Transactions</TabsTrigger>
       </TabsList>
 
       <TabsContent value="create">
