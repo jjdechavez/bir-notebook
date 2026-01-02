@@ -11,9 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
-import { Route as DemoTableRouteImport } from './routes/demo/table'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
+import { Route as appTransactionsRouteImport } from './routes/(app)/transactions'
 import { Route as appSettingsRouteImport } from './routes/(app)/settings'
 import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
 import { Route as appSettingsIndexRouteImport } from './routes/(app)/settings.index'
@@ -31,20 +30,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoTableRoute = DemoTableRouteImport.update({
-  id: '/demo/table',
-  path: '/demo/table',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const publicLoginRoute = publicLoginRouteImport.update({
   id: '/(public)/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const appTransactionsRoute = appTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => appRouteRoute,
 } as any)
 const appSettingsRoute = appSettingsRouteImport.update({
   id: '/settings',
@@ -87,9 +81,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof appDashboardRoute
   '/settings': typeof appSettingsRouteWithChildren
+  '/transactions': typeof appTransactionsRoute
   '/login': typeof publicLoginRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
   '/settings/users': typeof appSettingsUsersRoute
@@ -99,9 +92,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof appDashboardRoute
+  '/transactions': typeof appTransactionsRoute
   '/login': typeof publicLoginRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
   '/settings/users': typeof appSettingsUsersRoute
@@ -114,9 +106,8 @@ export interface FileRoutesById {
   '/(app)': typeof appRouteRouteWithChildren
   '/(app)/dashboard': typeof appDashboardRoute
   '/(app)/settings': typeof appSettingsRouteWithChildren
+  '/(app)/transactions': typeof appTransactionsRoute
   '/(public)/login': typeof publicLoginRoute
-  '/demo/table': typeof DemoTableRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/(app)/settings/accounts': typeof appSettingsAccountsRoute
   '/(app)/settings/invites': typeof appSettingsInvitesRoute
   '/(app)/settings/users': typeof appSettingsUsersRoute
@@ -129,9 +120,8 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/settings'
+    | '/transactions'
     | '/login'
-    | '/demo/table'
-    | '/demo/tanstack-query'
     | '/settings/accounts'
     | '/settings/invites'
     | '/settings/users'
@@ -141,9 +131,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/transactions'
     | '/login'
-    | '/demo/table'
-    | '/demo/tanstack-query'
     | '/settings/accounts'
     | '/settings/invites'
     | '/settings/users'
@@ -155,9 +144,8 @@ export interface FileRouteTypes {
     | '/(app)'
     | '/(app)/dashboard'
     | '/(app)/settings'
+    | '/(app)/transactions'
     | '/(public)/login'
-    | '/demo/table'
-    | '/demo/tanstack-query'
     | '/(app)/settings/accounts'
     | '/(app)/settings/invites'
     | '/(app)/settings/users'
@@ -169,8 +157,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   appRouteRoute: typeof appRouteRouteWithChildren
   publicLoginRoute: typeof publicLoginRoute
-  DemoTableRoute: typeof DemoTableRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   publicInvitesInviteIdConfirmRoute: typeof publicInvitesInviteIdConfirmRoute
 }
 
@@ -190,26 +176,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/table': {
-      id: '/demo/table'
-      path: '/demo/table'
-      fullPath: '/demo/table'
-      preLoaderRoute: typeof DemoTableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/(public)/login': {
       id: '/(public)/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof publicLoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(app)/transactions': {
+      id: '/(app)/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof appTransactionsRouteImport
+      parentRoute: typeof appRouteRoute
     }
     '/(app)/settings': {
       id: '/(app)/settings'
@@ -284,11 +263,13 @@ const appSettingsRouteWithChildren = appSettingsRoute._addFileChildren(
 interface appRouteRouteChildren {
   appDashboardRoute: typeof appDashboardRoute
   appSettingsRoute: typeof appSettingsRouteWithChildren
+  appTransactionsRoute: typeof appTransactionsRoute
 }
 
 const appRouteRouteChildren: appRouteRouteChildren = {
   appDashboardRoute: appDashboardRoute,
   appSettingsRoute: appSettingsRouteWithChildren,
+  appTransactionsRoute: appTransactionsRoute,
 }
 
 const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
@@ -299,8 +280,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   appRouteRoute: appRouteRouteWithChildren,
   publicLoginRoute: publicLoginRoute,
-  DemoTableRoute: DemoTableRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   publicInvitesInviteIdConfirmRoute: publicInvitesInviteIdConfirmRoute,
 }
 export const routeTree = rootRouteImport

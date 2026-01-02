@@ -118,6 +118,9 @@ importers:
       '@bir-notebook/server':
         specifier: workspace:*
         version: link:../server
+      '@bir-notebook/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.68.0(react@19.2.1))
