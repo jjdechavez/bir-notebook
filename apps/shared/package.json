@@ -31,6 +31,10 @@
     "./helpers/currency": {
       "types": "./src/helpers/currency.ts",
       "import": "./dist/src/helpers/currency.js"
+    },
+    "./models/common": {
+      "types": "./src/models/common.ts",
+      "import": "./dist/src/models/common.js"
     }
   }
 }

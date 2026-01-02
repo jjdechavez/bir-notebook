@@ -14,7 +14,7 @@ export function fromCentsToPrice(cents: number = 0) {
  * @param currency The currency code (e.g., 'USD').
  * @returns A formatted currency string.
  **/
-export function formatToCurrency(
+export function formatCentsToCurrency(
   cents: number,
   locale: string = "en-PH",
   currency: string = "PHP",
@@ -24,4 +24,16 @@ export function formatToCurrency(
     style: "currency",
     currency,
   }).format(price);
+}
+
+
+export function formatAmountToCurrency(
+  amount: number,
+  locale: string = "en-PH",
+  currency: string = "PHP",
+) {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+  }).format(amount);
 }
