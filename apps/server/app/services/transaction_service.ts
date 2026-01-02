@@ -1,6 +1,7 @@
 import Transaction from '#models/transaction'
 import TransactionCategory from '#models/transaction_category'
 import { CreateTransactionPayload } from '#validators/transaction'
+import { transactionVatTypes } from '@bir-notebook/shared/models/transaction'
 import { DateTime } from 'luxon'
 
 export class TransactionService {
@@ -31,7 +32,7 @@ export class TransactionService {
       creditAccountId: data.creditAccountId,
       bookType,
       referenceNumber: data.referenceNumber,
-      vatType: data.vatType || 'vat_exempt',
+      vatType: data.vatType || transactionVatTypes.vatExempt,
     })
 
     return {
