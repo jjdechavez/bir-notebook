@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
-import { Route as appTransactionsRouteImport } from './routes/(app)/transactions'
 import { Route as appSettingsRouteImport } from './routes/(app)/settings'
 import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
 import { Route as appSettingsIndexRouteImport } from './routes/(app)/settings.index'
@@ -34,11 +33,6 @@ const publicLoginRoute = publicLoginRouteImport.update({
   id: '/(public)/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any)
-const appTransactionsRoute = appTransactionsRouteImport.update({
-  id: '/transactions',
-  path: '/transactions',
-  getParentRoute: () => appRouteRoute,
 } as any)
 const appSettingsRoute = appSettingsRouteImport.update({
   id: '/settings',
@@ -81,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof appDashboardRoute
   '/settings': typeof appSettingsRouteWithChildren
-  '/transactions': typeof appTransactionsRoute
   '/login': typeof publicLoginRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
@@ -92,7 +85,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof appDashboardRoute
-  '/transactions': typeof appTransactionsRoute
   '/login': typeof publicLoginRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
@@ -106,7 +98,6 @@ export interface FileRoutesById {
   '/(app)': typeof appRouteRouteWithChildren
   '/(app)/dashboard': typeof appDashboardRoute
   '/(app)/settings': typeof appSettingsRouteWithChildren
-  '/(app)/transactions': typeof appTransactionsRoute
   '/(public)/login': typeof publicLoginRoute
   '/(app)/settings/accounts': typeof appSettingsAccountsRoute
   '/(app)/settings/invites': typeof appSettingsInvitesRoute
@@ -120,7 +111,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/settings'
-    | '/transactions'
     | '/login'
     | '/settings/accounts'
     | '/settings/invites'
@@ -131,7 +121,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
-    | '/transactions'
     | '/login'
     | '/settings/accounts'
     | '/settings/invites'
@@ -144,7 +133,6 @@ export interface FileRouteTypes {
     | '/(app)'
     | '/(app)/dashboard'
     | '/(app)/settings'
-    | '/(app)/transactions'
     | '/(public)/login'
     | '/(app)/settings/accounts'
     | '/(app)/settings/invites'
@@ -182,13 +170,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof publicLoginRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/(app)/transactions': {
-      id: '/(app)/transactions'
-      path: '/transactions'
-      fullPath: '/transactions'
-      preLoaderRoute: typeof appTransactionsRouteImport
-      parentRoute: typeof appRouteRoute
     }
     '/(app)/settings': {
       id: '/(app)/settings'
@@ -263,13 +244,11 @@ const appSettingsRouteWithChildren = appSettingsRoute._addFileChildren(
 interface appRouteRouteChildren {
   appDashboardRoute: typeof appDashboardRoute
   appSettingsRoute: typeof appSettingsRouteWithChildren
-  appTransactionsRoute: typeof appTransactionsRoute
 }
 
 const appRouteRouteChildren: appRouteRouteChildren = {
   appDashboardRoute: appDashboardRoute,
   appSettingsRoute: appSettingsRouteWithChildren,
-  appTransactionsRoute: appTransactionsRoute,
 }
 
 const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
