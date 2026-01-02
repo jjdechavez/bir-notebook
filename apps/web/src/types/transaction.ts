@@ -1,5 +1,5 @@
 import type { tuyau } from '@/main'
-import type { InferResponseType } from '@tuyau/react-query'
+import type { InferRequestType, InferResponseType } from '@tuyau/react-query'
 
 export type Transaction = InferResponseType<
   (typeof tuyau.api)['transactions']['$get']
@@ -12,3 +12,7 @@ export type TransactionCategory = InferResponseType<
 export type TransactionAccount = InferResponseType<
   (typeof tuyau.api)['transaction-accounts']['$get']
 >['data'][number]
+
+export type TransactionSearch = InferRequestType<
+  (typeof tuyau.api)['transactions']['$get']
+>
