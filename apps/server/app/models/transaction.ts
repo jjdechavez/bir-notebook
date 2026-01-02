@@ -8,6 +8,7 @@ import Account from './account.js'
 import {
   type TransactionVatType,
   type TransactionCategoryBookType,
+  calculateVatAmount,
 } from '@bir-notebook/shared/models/transaction'
 
 export default class Transaction extends BaseModel {
@@ -69,11 +70,6 @@ export default class Transaction extends BaseModel {
 
   @computed()
   get vatAmount() {
-    let vatAmount = 0
-    if (this.vatType === 'vat_standard') {
-      vatAmount = this.amount * 0.12
-    }
-
-    return vatAmount
+    return calculateVatAmount(this.amount, this.vatType)
   }
 }

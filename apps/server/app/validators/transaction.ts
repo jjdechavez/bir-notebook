@@ -15,9 +15,9 @@ export const createTransactionValidator = vine.compile(
         .first()
       return !!exist
     }),
-    amount: vine.number().positive().decimal([2, 2]),
+    amount: vine.number().positive(),
     description: vine.string().maxLength(500),
-    transactionDate: vine.date(),
+    transactionDate: vine.date({ formats: ['YYYY-MM-DD', 'x'] }),
     debitAccountId: vine.number().exists(async (db, value) => {
       const exist = await db.from('accounts').where('id', value).whereNull('deleted_at').first()
       return !!exist
