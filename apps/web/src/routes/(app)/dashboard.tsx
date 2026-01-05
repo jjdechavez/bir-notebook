@@ -28,6 +28,7 @@ import { tuyau } from '@/main'
 import type { Transaction, TransactionSearch } from '@/types/transaction'
 import { useAuth } from '@/lib/auth'
 import { useFilters } from '@/hooks/use-filters'
+import { CreateTransaction } from '@/components/create-transaction'
 
 export const Route = createFileRoute('/(app)/dashboard')({
   component: DashboardComponent,
@@ -227,8 +228,9 @@ export function TransactionList() {
 
   return (
     <>
-      <div className="flex">
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Transactions</h1>
+        <CreateTransaction />
       </div>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
