@@ -34,6 +34,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { toast } from 'sonner'
 
+const defaultValues: TransactionFormData = {
+  categoryId: 0,
+  amount: 0,
+  description: '',
+  transactionDate: new Date().toISOString().split('T')[0],
+  debitAccountId: 0,
+  creditAccountId: 0,
+  referenceNumber: '',
+  vatType: transactionVatTypes.vatExempt,
+}
+
 interface CreateTransactionProps {
   children?: React.ReactNode
   onSuccess?: () => void
@@ -47,52 +58,35 @@ export function CreateTransaction({
   const [open, setOpen] = useState(false)
   const isMobile = useIsMobile()
 
+  const form = useForm({
+    resolver: zodResolver(transactionSchema),
+    defaultValues,
+  })
+
   const createTransaction = useMutation(
     tuyau.api.transactions.$post.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: tuyau.api.transactions.$get.pathKey(),
         })
+
+        form.reset(defaultValues)
+        setOpen(false)
+        onSuccess?.()
       },
     }),
   )
-
-  const form = useForm({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      categoryId: 0,
-      amount: 0,
-      description: '',
-      transactionDate: new Date().toISOString().split('T')[0],
-      debitAccountId: 0,
-      creditAccountId: 0,
-      referenceNumber: '',
-      vatType: transactionVatTypes.vatExempt,
-    },
-  })
 
   const formData = form.watch()
   const isValid = form.formState.isValid
 
   const onSubmit = async (data: TransactionFormData) => {
-    toast.promise(
-      async () =>
-        createTransaction.mutateAsync(
-          { payload: data },
-          {
-            onSuccess: () => {
-              form.reset()
-              setOpen(false)
-              onSuccess?.()
-            },
-          },
-        ),
-      {
+    toast
+      .promise(createTransaction.mutateAsync({ payload: data }), {
         loading: 'Creating transaction...',
-        success: () => 'Created successfully',
+        success: () => 'Transaction created successfully',
         error: () => 'Failed to create transaction',
-      },
-    )
+      })
   }
 
   const trigger = children || (
@@ -132,8 +126,12 @@ export function CreateTransaction({
                 Cancel
               </Button>
             </DrawerClose>
-            <Button type="submit" form="transaction-form">
-              Create
+            <Button
+              type="submit"
+              form="transaction-form"
+              disabled={createTransaction.isPending}
+            >
+              {createTransaction.isPending ? 'Creating...' : 'Create'}
             </Button>
           </DrawerFooter>
         </DrawerContent>
@@ -157,14 +155,19 @@ export function CreateTransaction({
             <TransactionPreview formData={formData} isValid={isValid} />
           </div>
         </div>
+
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="secondary">
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit" form="transaction-form">
-            Create
+          <Button
+            type="submit"
+            form="transaction-form"
+            disabled={createTransaction.isPending}
+          >
+            {createTransaction.isPending ? 'Creating...' : 'Create'}
           </Button>
         </DialogFooter>
       </DialogContent>
