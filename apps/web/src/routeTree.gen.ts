@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as appSettingsRouteImport } from './routes/(app)/settings'
 import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
+import { Route as appBooksRouteImport } from './routes/(app)/books'
 import { Route as appSettingsIndexRouteImport } from './routes/(app)/settings.index'
 import { Route as appSettingsUsersRouteImport } from './routes/(app)/settings.users'
 import { Route as appSettingsInvitesRouteImport } from './routes/(app)/settings.invites'
@@ -42,6 +43,11 @@ const appSettingsRoute = appSettingsRouteImport.update({
 const appDashboardRoute = appDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => appRouteRoute,
+} as any)
+const appBooksRoute = appBooksRouteImport.update({
+  id: '/books',
+  path: '/books',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appSettingsIndexRoute = appSettingsIndexRouteImport.update({
@@ -73,6 +79,7 @@ const publicInvitesInviteIdConfirmRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/books': typeof appBooksRoute
   '/dashboard': typeof appDashboardRoute
   '/settings': typeof appSettingsRouteWithChildren
   '/login': typeof publicLoginRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/books': typeof appBooksRoute
   '/dashboard': typeof appDashboardRoute
   '/login': typeof publicLoginRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(app)': typeof appRouteRouteWithChildren
+  '/(app)/books': typeof appBooksRoute
   '/(app)/dashboard': typeof appDashboardRoute
   '/(app)/settings': typeof appSettingsRouteWithChildren
   '/(public)/login': typeof publicLoginRoute
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/books'
     | '/dashboard'
     | '/settings'
     | '/login'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/books'
     | '/dashboard'
     | '/login'
     | '/settings/accounts'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/(app)'
+    | '/(app)/books'
     | '/(app)/dashboard'
     | '/(app)/settings'
     | '/(public)/login'
@@ -183,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof appDashboardRouteImport
+      parentRoute: typeof appRouteRoute
+    }
+    '/(app)/books': {
+      id: '/(app)/books'
+      path: '/books'
+      fullPath: '/books'
+      preLoaderRoute: typeof appBooksRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/settings/': {
@@ -242,11 +261,13 @@ const appSettingsRouteWithChildren = appSettingsRoute._addFileChildren(
 )
 
 interface appRouteRouteChildren {
+  appBooksRoute: typeof appBooksRoute
   appDashboardRoute: typeof appDashboardRoute
   appSettingsRoute: typeof appSettingsRouteWithChildren
 }
 
 const appRouteRouteChildren: appRouteRouteChildren = {
+  appBooksRoute: appBooksRoute,
   appDashboardRoute: appDashboardRoute,
   appSettingsRoute: appSettingsRouteWithChildren,
 }

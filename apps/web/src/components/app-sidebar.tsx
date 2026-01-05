@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {
+  IconBook,
   IconCamera,
   IconDashboard,
   IconDatabase,
@@ -36,6 +37,11 @@ const data = {
       title: 'Dashboard',
       url: '/dashboard',
       icon: IconDashboard,
+    },
+    {
+      title: 'Books',
+      url: '/books',
+      icon: IconBook,
     },
     {
       title: 'Settings',
