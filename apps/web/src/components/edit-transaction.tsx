@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -9,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Drawer,
@@ -18,7 +16,6 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from '@/components/ui/drawer'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -28,61 +25,61 @@ import {
   type TransactionFormData,
 } from './transaction-form'
 import { TransactionPreview } from './transaction-preview'
-import { Edit } from 'lucide-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { toast } from 'sonner'
+import type { Transaction } from '@/types/transaction'
+import { fromCentsToPrice } from '@bir-notebook/shared/helpers/currency'
 
 interface EditTransactionProps {
-  children?: React.ReactNode
-  transactionId: number
+  open: boolean
+  transaction: Transaction
   onSuccess?: () => void
+  onToggleOpen: () => void
 }
 
 export function EditTransaction({
-  children,
-  transactionId,
+  transaction,
   onSuccess,
+  open,
+  onToggleOpen,
 }: EditTransactionProps) {
   const queryClient = useQueryClient()
-  const [open, setOpen] = useState(false)
   const isMobile = useIsMobile()
 
-  // Get transaction data
-  const { data: transaction, isLoading: isLoadingTransaction } = useQuery(
-    tuyau.api.transactions({ id: transactionId }).$get.queryOptions(),
-    { enabled: !!transactionId }
-  )
-
-  // Update mutation
   const updateTransaction = useMutation(
-    tuyau.api.transactions({ id: transactionId }).$put.mutationOptions({
+    tuyau.api.transactions({ id: transaction.id }).$put.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: tuyau.api.transactions.$get.pathKey(),
         })
         queryClient.invalidateQueries({
-          queryKey: tuyau.api.transactions({ id: transactionId }).$get.pathKey(),
+          queryKey: tuyau.api
+            .transactions({ id: transaction.id })
+            .$get.pathKey(),
         })
+
+        onSuccess?.()
       },
     }),
   )
 
-  // Form default values from transaction data
   const getDefaultValues = (): TransactionFormData => {
     if (transaction) {
       return {
         categoryId: transaction.categoryId,
-        amount: transaction.amount,
+        amount: fromCentsToPrice(transaction.amount),
         description: transaction.description,
-        transactionDate: new Date(transaction.transactionDate).toISOString().split('T')[0],
+        transactionDate: new Date(transaction.transactionDate)
+          .toISOString()
+          .split('T')[0],
         debitAccountId: transaction.debitAccountId,
         creditAccountId: transaction.creditAccountId,
         referenceNumber: transaction.referenceNumber || '',
         vatType: transaction.vatType,
       }
     }
-    
+
     // Fallback values (shouldn't be used when transaction is loaded)
     return {
       categoryId: 0,
@@ -101,66 +98,39 @@ export function EditTransaction({
     defaultValues: getDefaultValues(),
   })
 
-  // Reset form when transaction data loads
-  React.useEffect(() => {
-    if (transaction && !isLoadingTransaction) {
-      form.reset(getDefaultValues())
-    }
-  }, [transaction, isLoadingTransaction, form])
-
   const formData = form.watch()
   const isValid = form.formState.isValid
 
   const onSubmit = async (data: TransactionFormData) => {
-    toast.promise(
-      updateTransaction.mutateAsync({ payload: data }),
-      {
-        loading: 'Updating transaction...',
-        success: () => 'Transaction updated successfully',
-        error: () => 'Failed to update transaction',
-      },
-    ).then(() => {
-      setOpen(false)
-      onSuccess?.()
+    toast.promise(updateTransaction.mutateAsync({ payload: data }), {
+      loading: 'Updating transaction...',
+      success: () => 'Transaction updated successfully',
+      error: () => 'Failed to update transaction',
     })
   }
 
-  const trigger = children || (
-    <Button variant="outline" size="sm">
-      <Edit className="h-4 w-4 mr-2" />
-      Edit
-    </Button>
-  )
-
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <Drawer open={open} onOpenChange={(isOpen) => !isOpen && onToggleOpen()}>
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
             <DrawerTitle>Edit Transaction</DrawerTitle>
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto px-4 pb-4">
-            {isLoadingTransaction ? (
-              <div className="flex items-center justify-center py-8">
-                <p>Loading transaction...</p>
-              </div>
-            ) : (
-              <Tabs defaultValue="form" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="form">Form</TabsTrigger>
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="form" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="form">Form</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="form" className="mt-4">
-                  <TransactionForm form={form} onSubmit={onSubmit} />
-                </TabsContent>
+              <TabsContent value="form" className="mt-4">
+                <TransactionForm form={form} onSubmit={onSubmit} />
+              </TabsContent>
 
-                <TabsContent value="preview" className="mt-4">
-                  <TransactionPreview formData={formData} isValid={isValid} />
-                </TabsContent>
-              </Tabs>
-            )}
+              <TabsContent value="preview" className="mt-4">
+                <TransactionPreview formData={formData} isValid={isValid} />
+              </TabsContent>
+            </Tabs>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
@@ -168,10 +138,10 @@ export function EditTransaction({
                 Cancel
               </Button>
             </DrawerClose>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               form="transaction-form"
-              disabled={updateTransaction.isPending || isLoadingTransaction}
+              disabled={updateTransaction.isPending}
             >
               {updateTransaction.isPending ? 'Updating...' : 'Update'}
             </Button>
@@ -182,44 +152,37 @@ export function EditTransaction({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onToggleOpen()}>
       <DialogContent className="sm:max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Transaction</DialogTitle>
         </DialogHeader>
 
-        {isLoadingTransaction ? (
-          <div className="flex items-center justify-center py-16">
-            <p>Loading transaction...</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <TransactionForm form={form} onSubmit={onSubmit} />
-              </div>
-              <div className="lg:sticky lg:top-0">
-                <TransactionPreview formData={formData} isValid={isValid} />
-              </div>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <TransactionForm form={form} onSubmit={onSubmit} />
             </div>
-            
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
-                </Button>
-              </DialogClose>
-              <Button 
-                type="submit" 
-                form="transaction-form"
-                disabled={updateTransaction.isPending || isLoadingTransaction}
-              >
-                {updateTransaction.isPending ? 'Updating...' : 'Update'}
+            <div className="lg:sticky lg:top-0">
+              <TransactionPreview formData={formData} isValid={isValid} />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Cancel
               </Button>
-            </DialogFooter>
-          </>
-        )}
+            </DialogClose>
+            <Button
+              type="submit"
+              form="transaction-form"
+              disabled={updateTransaction.isPending}
+            >
+              {updateTransaction.isPending ? 'Updating...' : 'Update'}
+            </Button>
+          </DialogFooter>
+        </>
       </DialogContent>
     </Dialog>
   )

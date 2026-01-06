@@ -29,6 +29,8 @@ import type { Transaction, TransactionSearch } from '@/types/transaction'
 import { useAuth } from '@/lib/auth'
 import { useFilters } from '@/hooks/use-filters'
 import { CreateTransaction } from '@/components/create-transaction'
+import { useState } from 'react'
+import { EditTransaction } from '@/components/edit-transaction'
 
 export const Route = createFileRoute('/(app)/dashboard')({
   component: DashboardComponent,
@@ -102,10 +104,13 @@ const columns: ColumnDef<Transaction>[] = [
   },
   {
     header: 'Description',
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const transaction = row.original
       return (
-        <div>
+        <div
+          className="text-primary underline-offset-4 hover:underline"
+          onClick={() => table.options.meta?.setEdit?.(row.original)}
+        >
           <p className="font-medium">{transaction.description}</p>
           <p className="text-sm text-muted-foreground">ID: {transaction.id}</p>
         </div>
@@ -197,6 +202,8 @@ export function TransactionList() {
   const { data: transactionsData, status } = useQuery(
     tuyau.api.transactions.$get.queryOptions({ payload: filters }),
   )
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null)
 
   const table = useReactTable({
     data: transactionsData?.data || [],
@@ -223,6 +230,9 @@ export function TransactionList() {
     enableColumnFilters: false,
     filterFns: {
       fuzzy: () => true,
+    },
+    meta: {
+      setEdit: (data) => setSelectedTransaction(data),
     },
   })
 
@@ -281,6 +291,14 @@ export function TransactionList() {
           dataStatus={status}
         />
       </div>
+      {!selectedTransaction ? null : (
+        <EditTransaction
+          transaction={selectedTransaction}
+          open={!!selectedTransaction}
+          onToggleOpen={() => setSelectedTransaction(null)}
+          onSuccess={() => setSelectedTransaction(null)}
+        />
+      )}
     </>
   )
 }
