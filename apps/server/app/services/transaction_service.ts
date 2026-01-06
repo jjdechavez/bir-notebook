@@ -1,6 +1,6 @@
 import Transaction from '#models/transaction'
 import TransactionCategory from '#models/transaction_category'
-import { CreateTransactionPayload } from '#validators/transaction'
+import { CreateTransactionPayload, UpdateTransactionData } from '#validators/transaction'
 import {
   transactionCategoryBookTypes,
   transactionVatTypes,
@@ -101,5 +101,36 @@ export class TransactionService {
       totalExpenses,
       netIncome,
     }
+  }
+
+  async updateTransaction(id: number, updateWith: UpdateTransactionData) {
+    const transaction = await Transaction.find(id)
+    if (!transaction) {
+      return { status: 'not_found', message: 'Transaction not found' } as const
+    }
+
+    const category = await TransactionCategory.find(updateWith.categoryId)
+    if (!category) {
+      return { status: 'not_found', message: 'Transaction category not found' } as const
+    }
+
+    if (updateWith.debitAccountId === updateWith.creditAccountId) {
+      return {
+        status: 'bad_request',
+        message: 'Debit and credit accounts must be different',
+      } as const
+    }
+
+    transaction.merge({
+      ...updateWith,
+      bookType: category.bookType,
+      transactionDate: DateTime.fromJSDate(updateWith.transactionDate),
+    })
+
+    await transaction.save()
+    return {
+      status: 'updated',
+      data: transaction,
+    } as const
   }
 }

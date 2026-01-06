@@ -73,6 +73,7 @@ router
         router.get('/summary', [TransactionsController, 'summary'])
 
         router.get('/:id', [TransactionsController, 'show'])
+        router.put('/:id', [TransactionsController, 'update'])
       })
       .prefix('/transactions')
 
