@@ -43,12 +43,20 @@ export function TransactionForm({ form, ...props }: TransactionFormProps) {
   const { data: defaultAccounts } = useQuery(
     tuyau.api['transaction-categories']({
       id: categoryId,
-    }).$get.queryOptions({}, { enabled: !!categoryId }),
+    }).$get.queryOptions(
+      {
+        params: {
+          id: categoryId,
+        },
+      },
+      {
+        enabled: !!categoryId,
+      },
+    ),
   )
 
-  // Auto-fill default accounts when category changes
   useEffect(() => {
-    if (defaultAccounts && form.watch('debitAccountId') === 0) {
+    if (defaultAccounts) {
       form.setValue('debitAccountId', defaultAccounts.debitAccountId)
       form.setValue('creditAccountId', defaultAccounts.creditAccountId)
     }
