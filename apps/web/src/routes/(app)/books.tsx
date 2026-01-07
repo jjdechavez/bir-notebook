@@ -13,8 +13,10 @@ import { tuyau } from '@/main'
 import { useFilters } from '@/hooks/use-filters'
 import type { Transaction, TransactionSearch } from '@/types/transaction'
 import type { PaginationState } from '@tanstack/react-table'
-import { transactionCategoryBookTypes } from '@bir-notebook/shared/models/transaction'
-import { BookExport } from '@/components/book-export'
+import {
+  transactionCategoryBookTypes,
+  type TransactionCategoryBookType,
+} from '@bir-notebook/shared/models/transaction'
 
 export const Route = createFileRoute('/(app)/books')({
   component: BooksPage,
@@ -59,16 +61,13 @@ const bookTypes = [
 function BooksPage() {
   const { filters, setFilters } = useFilters(Route.id)
 
-  // {
-  //     dateFrom: new Date().toISOString().split('T')[0], // First day of current month
-  //     dateTo: new Date().toISOString().split('T')[0], // Today
-  //     search: '',
-  //   }
   const { data: transactionsData } = useSuspenseQuery(
     tuyau.api.transactions.$get.queryOptions({
       payload: {
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
+        bookType:
+          filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
       },
     }),
   )
@@ -84,14 +83,12 @@ function BooksPage() {
       {} as Record<string, Transaction[]>,
     ) || {}
 
-  console.log(transactionsByBook)
-
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold">BIR Books of Accounts</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-muted-foreground mt-2">
           View and manage your BIR-compliant books of accounts with proper
           transaction recording
         </p>
@@ -154,6 +151,9 @@ function BooksPage() {
       <Tabs
         defaultValue={transactionCategoryBookTypes.cashReceiptJournal}
         className="space-y-4"
+        onValueChange={(value) =>
+          setFilters({ bookType: value as TransactionCategoryBookType })
+        }
       >
         <TabsList className="grid w-full grid-cols-4">
           {bookTypes.map((book) => (
