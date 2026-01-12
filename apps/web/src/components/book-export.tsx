@@ -12,7 +12,6 @@ interface BookExportProps {
 }
 
 export function BookExport({
-  bookType,
   title,
   transactions,
   dateFrom,
