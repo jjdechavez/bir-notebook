@@ -1,57 +1,58 @@
-# Multi-stage build for server app
-# Stage 1: Build the application
-FROM node:18-alpine AS builder
+# --- Stage 1: Base ---
+FROM node:22-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
 
+# --- Stage 2: Builder ---
+FROM base AS builder
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/shared/package.json ./apps/shared/
+COPY apps/server/package.json ./apps/server/
 
-# Install all dependencies (including dev for building)
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Install ALL dependencies (including devDeps)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Copy source code
-COPY . .
+COPY apps/shared ./apps/shared
+COPY apps/server ./apps/server
 
-# Build the application
-RUN pnpm run build
+# Build everything
+RUN pnpm --filter @bir-notebook/shared build
+RUN pnpm --filter @bir-notebook/server build
 
-# Stage 2: Runtime image
-FROM node:18-alpine AS runner
-
+# --- Stage 3: Production Isolation ---
+FROM base AS extract
 WORKDIR /app
 
-# Copy package files for production dependencies
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/server/package.json ./apps/server/
+COPY apps/shared/package.json ./apps/shared/
 
-# Install only production dependencies
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile && pnpm store prune
+# 1. pnpm deploy creates a standalone folder with PHYSICAL copies of node_modules
+# It also resolves the @bir-notebook/shared workspace dependency into a real folder
+RUN pnpm --filter @bir-notebook/server --prod deploy /app/isolated
 
-# Copy built application from builder stage
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/start ./start
-COPY --from=builder /app/config ./config
-COPY --from=builder /app/database ./database
-COPY --from=builder /app/app ./app
-COPY --from=builder /app/ace.js ./
-COPY --from=builder /app/adonisrc.ts ./
-COPY --from=builder /app/tsconfig.json ./
+# 2. Copy the compiled Adonis code (the 'build' directory) into the isolated folder
+# This merges the compiled JS files with the production node_modules
+COPY --from=builder /app/apps/server/build /app/isolated/build
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S adonis -u 1001
+# --- Stage 4: Final Runner ---
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 
-# Change ownership
-RUN chown -R adonis:nodejs /app
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S adonis -u 1001 -G nodejs
+
+# Copy the entire isolated folder from the extract stage
+COPY --from=extract --chown=adonis:nodejs /app/isolated ./
+
 USER adonis
 
-# Expose port
+# AdonisJS v6 compiled entry point
 EXPOSE 3333
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node ace health:check || exit 1
-
-# Start the application
-CMD ["node", "bin/server.js"]
+# We run from the root of the isolated folder, calling the compiled server
+CMD ["node", "build/bin/server.js"]

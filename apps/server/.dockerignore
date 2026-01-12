@@ -8,3 +8,9 @@ coverage
 *.log
 .DS_Store
 .vscode
+**/node_modules
+apps/**/node_modules
+apps/**/build
+apps/**/dist
+.git
+.pnpm-store
