@@ -1,0 +1,10 @@
+node_modules
+.pnpm
+build
+.env
+.env.*
+tests
+coverage
+*.log
+.DS_Store
+.vscode
