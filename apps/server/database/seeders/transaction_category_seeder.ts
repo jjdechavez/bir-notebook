@@ -252,6 +252,6 @@ export default class TransactionCategorySeeder extends BaseSeeder {
     ]
 
     // Create categories using fetchOrCreateMany to avoid duplicates
-    await TransactionCategory.fetchOrCreateMany('name', categories)
+    await TransactionCategory.fetchOrCreateMany('name', categories as TransactionCategory[])
   }
 }

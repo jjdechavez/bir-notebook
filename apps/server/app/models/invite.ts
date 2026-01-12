@@ -3,7 +3,7 @@ import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import Role from './role.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
-import { type InviteStatus } from '@acme/shared/models/invite'
+import { type InviteStatus } from '@bir-notebook/shared/models/invite'
 
 export default class Invite extends BaseModel {
   @column({ isPrimary: true })

@@ -2,7 +2,7 @@ import Invite from '#models/invite'
 import User from '#models/user'
 import { inject } from '@adonisjs/core'
 import { HttpContext } from '@adonisjs/core/http'
-import { InviteCompleteResult, InviteConfirmResult } from '@acme/shared/models/invite'
+import { InviteCompleteResult, InviteConfirmResult } from '@bir-notebook/shared/models/invite'
 import { DateTime } from 'luxon'
 
 @inject()

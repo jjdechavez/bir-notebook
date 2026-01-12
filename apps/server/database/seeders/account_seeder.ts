@@ -16,7 +16,7 @@ export default class AccountSeeder extends BaseSeeder {
       { code: '1304', name: 'Furniture & Fixtures', type: 'asset' },
       { code: '1401', name: 'Prepaid Rent', type: 'asset' },
       { code: '1402', name: 'Prepaid Insurance', type: 'asset' },
-      
+
       // LIABILITIES
       { code: '2101', name: 'Accounts Payable', type: 'liability' },
       { code: '2102', name: 'Accrued Expenses', type: 'liability' },
@@ -25,13 +25,13 @@ export default class AccountSeeder extends BaseSeeder {
       { code: '2105', name: 'Withholding Tax Payable', type: 'liability' },
       { code: '2201', name: 'Notes Payable', type: 'liability' },
       { code: '2301', name: 'Loans Payable', type: 'liability' },
-      
+
       // EQUITY
       { code: '3101', name: 'Owner\'s Capital', type: 'equity' },
       { code: '3102', name: 'Owner\'s Drawings', type: 'equity' },
       { code: '3201', name: 'Retained Earnings', type: 'equity' },
       { code: '3301', name: 'Income Summary', type: 'equity' },
-      
+
       // REVENUE
       { code: '4101', name: 'Sales Revenue', type: 'revenue' },
       { code: '4102', name: 'Service Revenue', type: 'revenue' },
@@ -41,7 +41,7 @@ export default class AccountSeeder extends BaseSeeder {
       { code: '4106', name: 'Rental Income', type: 'revenue' },
       { code: '4107', name: 'Interest Income', type: 'revenue' },
       { code: '4108', name: 'Other Income', type: 'revenue' },
-      
+
       // EXPENSES
       { code: '5101', name: 'Cost of Goods Sold', type: 'expense' },
       { code: '5201', name: 'Salaries & Wages', type: 'expense' },
@@ -73,6 +73,6 @@ export default class AccountSeeder extends BaseSeeder {
     ]
 
     // Create accounts using fetchOrCreateMany to avoid duplicates
-    await Account.fetchOrCreateMany('code', accounts)
+    await Account.fetchOrCreateMany('code', accounts as Account[])
   }
 }
