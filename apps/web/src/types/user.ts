@@ -6,5 +6,6 @@ export type User = InferResponseType<
 >['data'][number]
 
 export type UserInput = InferRequestType<
-  (typeof tuyau.api.users[':id']['$put'])
+  // @ts-ignore
+  (typeof tuyau.api.users)[':id']['$put']
 >

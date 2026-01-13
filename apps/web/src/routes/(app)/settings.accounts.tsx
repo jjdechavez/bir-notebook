@@ -160,7 +160,7 @@ function ChangePassword() {
     defaultValues: {
       currentPassword: '',
       newPassword: '',
-      new_password_confirmation: '',
+      newPassword_confirmation: '',
     },
   })
 
@@ -176,9 +176,9 @@ function ChangePassword() {
             }>
           }
           value.errors.forEach((err) => {
-            form.setError(err.field, { message: err.message })
+            form.setError(err.field as keyof ChangePasswordInput, { message: err.message })
             if (err.meta?.otherField) {
-              form.setError(err.meta.otherField, {
+              form.setError(err.meta.otherField as keyof ChangePasswordInput, {
                 message: 'New password and confirm password must be the same',
               })
             }

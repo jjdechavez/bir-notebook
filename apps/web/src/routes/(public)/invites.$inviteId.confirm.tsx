@@ -79,26 +79,26 @@ function AccountForm({ invite }: { invite: Invite }) {
       },
       onError(error) {
         if (error instanceof TuyauHTTPError) {
-          error.value.errors.forEach(
-            (error: {
+          const value = error.value as {
+            errors: Array<{
               message: string
-              rule: string
               field: string
               meta?: { otherField: string }
-            }) => {
-              form.setError(error.field as keyof InviteCompleteInput, {
-                message: error.message,
-              })
-              if (error.meta?.otherField) {
-                form.setError(
-                  error.meta.otherField as keyof InviteCompleteInput,
-                  {
-                    message: error.message,
-                  },
-                )
-              }
-            },
-          )
+            }>
+          }
+          value.errors.forEach((error) => {
+            form.setError(error.field as keyof InviteCompleteInput, {
+              message: error.message,
+            })
+            if (error.meta?.otherField) {
+              form.setError(
+                error.meta.otherField as keyof InviteCompleteInput,
+                {
+                  message: error.message,
+                },
+              )
+            }
+          })
         }
       },
     }),

@@ -46,7 +46,7 @@ function LoginComponent() {
     },
   })
 
-  const [error, setError] = useState<string | null>(null)
+  const [_, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isAuthenticated) {
