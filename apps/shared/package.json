@@ -5,36 +5,42 @@
   "type": "module",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc"
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
-  "dependencies": {
-    "@types/node": "^25.0.3",
-    "typescript": "^5.9.3"
-  },
   "exports": {
     "./models/invite": {
-      "types": "./src/models/invite.d.ts",
-      "import": "./dist/src/models/invite.js"
+      "types": "./dist/models/invite.d.ts",
+      "import": "./dist/models/invite.js",
+      "require": "./dist/models/invite.cjs"
     },
     "./models/account": {
-      "types": "./src/models/account.d.ts",
-      "import": "./dist/src/models/account.js"
+      "types": "./dist/models/account.d.ts",
+      "import": "./dist/models/account.js",
+      "require": "./dist/models/account.cjs"
     },
     "./models/transaction": {
-      "types": "./src/models/transaction.d.ts",
-      "import": "./dist/src/models/transaction.js"
+      "types": "./dist/models/transaction.d.ts",
+      "import": "./dist/models/transaction.js",
+      "require": "./dist/models/transaction.cjs"
     },
     "./helpers/currency": {
-      "types": "./src/helpers/currency.d.ts",
-      "import": "./dist/src/helpers/currency.js"
+      "types": "./dist/helpers/currency.d.ts",
+      "import": "./dist/helpers/currency.js",
+      "require": "./dist/helpers/currency.cjs"
     },
     "./models/common": {
-      "types": "./src/models/common.d.ts",
-      "import": "./dist/src/models/common.js"
+      "types": "./dist/models/common.d.ts",
+      "import": "./dist/models/common.js",
+      "require": "./dist/models/common.cjs"
     }
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.7",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   }
 }
