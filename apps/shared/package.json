@@ -17,23 +17,23 @@
   },
   "exports": {
     "./models/invite": {
-      "types": "./src/models/invite.ts",
+      "types": "./src/models/invite.d.ts",
       "import": "./dist/src/models/invite.js"
     },
     "./models/account": {
-      "types": "./src/models/account.ts",
+      "types": "./src/models/account.d.ts",
       "import": "./dist/src/models/account.js"
     },
     "./models/transaction": {
-      "types": "./src/models/transaction.ts",
+      "types": "./src/models/transaction.d.ts",
       "import": "./dist/src/models/transaction.js"
     },
     "./helpers/currency": {
-      "types": "./src/helpers/currency.ts",
+      "types": "./src/helpers/currency.d.ts",
       "import": "./dist/src/helpers/currency.js"
     },
     "./models/common": {
-      "types": "./src/models/common.ts",
+      "types": "./src/models/common.d.ts",
       "import": "./dist/src/models/common.js"
     }
   }
