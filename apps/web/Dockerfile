@@ -1,40 +1,39 @@
-# Multi-stage build for web app
-# Stage 1: Build the application
-FROM node:18-alpine AS builder
+# --- Stage 1: Build Stage ---
+FROM node:22-alpine AS builder
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
+# 1. Copy workspace manifests
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/shared/package.json ./apps/shared/
+COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
 
-# Install all dependencies (including dev)
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# 2. Install dependencies (Cached)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Copy source code
-COPY . .
+# 3. Copy source code
+COPY apps/shared ./apps/shared
+COPY apps/server ./apps/server
+COPY apps/web ./apps/web
 
-# Build the application
-RUN pnpm run build
+RUN cd apps/server && NODE_ENV=development node ace tuyau:generate
 
-# Stage 2: Serve the application
-FROM node:18-alpine AS runner
+# 4. Build the shared package and then the web app
+RUN pnpm --filter @bir-notebook/shared build
+RUN pnpm --filter @bir-notebook/web build
 
-WORKDIR /app
+# --- Stage 2: Serve Stage ---
+FROM nginx:alpine AS runner
 
-# Install a lightweight static server
-RUN npm install -g serve
+# Copy built files
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist ./dist
+# REPLACE the main config instead of adding to conf.d
+COPY apps/web/nginx.conf /etc/nginx/nginx.conf
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S app -u 1001
-RUN chown -R app:nodejs /app
-USER app
-
-# Expose port
 EXPOSE 3000
-
-# Start the server
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["nginx", "-g", "daemon off;"]
