@@ -24,6 +24,8 @@ RUN cd apps/server && NODE_ENV=development node ace tuyau:generate
 
 # 4. Build the shared package and then the web app
 RUN pnpm --filter @bir-notebook/shared build
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm --filter @bir-notebook/web build
 
 # --- Stage 2: Serve Stage ---
