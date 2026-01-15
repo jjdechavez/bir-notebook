@@ -1,0 +1,73 @@
+name: Release Version
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on v1.0, v2.1.3, etc.
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Version
+        id: get_version
+        # This turns 'refs/tags/v1.0.0' into 'v1.0.0'
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build & Push Web (Notice the build-args)
+      - name: Build Web
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=${{ secrets.API_URL }}
+          tags: |
+            ghcr.io/${{ github.repository }}-web:latest
+            ghcr.io/${{ github.repository }}-web:${{ steps.get_version.outputs.VERSION }}
+
+      # Build & Push Server
+      - name: Build Server
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-server:latest
+            ghcr.io/${{ github.repository }}-server:${{ steps.get_version.outputs.VERSION }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Hetzner
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          ssh root@${{ secrets.HETZNER_HOST }} << EOF
+            cd /opt/bir-notebook
+            
+            # Update VERSION in .env for docker-compose
+            sed -i "s/^APP_VERSION=.*/APP_VERSION=$VERSION/" .env || echo "APP_VERSION=$VERSION" >> .env
+            
+            # Update Server Secrets in .env
+            echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d
+            docker system prune -f
+          EOF

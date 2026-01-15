@@ -1,0 +1,124 @@
+# name: Deploy to Hetzner
+# on:
+#   push:
+#     branches: [production]
+
+# env:
+#   REGISTRY: ghcr.io
+#   IMAGE_NAME_SERVER: ${{ github.repository }}-server
+#   IMAGE_NAME_WEB: ${{ github.repository }}-web
+
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
+#       packages: write
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Log in to GHCR
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ${{ env.REGISTRY }}
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+
+#       - name: Build and push Server
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           file: apps/server/Dockerfile
+#           push: true
+#           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_SERVER }}:latest
+
+#       - name: Build and push Web
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           file: apps/web/Dockerfile
+#           push: true
+#           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}:latest
+    
+#   deploy:
+#     needs: build-and-push
+#     runs-on: ubuntu-latest
+#     environment: production
+    
+#     steps:
+#       - name: Setup SSH
+#         run: |
+#           mkdir -p ~/.ssh
+#           echo "${{ secrets.HETZNER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+#           chmod 600 ~/.ssh/id_rsa
+#           ssh-keyscan -H ${{ secrets.HETZNER_HOST }} >> ~/.ssh/known_hosts
+
+#       - name: Deploy to Hetzner
+#         run: |
+#           ssh root@${{ secrets.HETZNER_HOST }} << 'EOF'
+#             set -e
+#             cd /opt/bir-notebook
+            
+#             echo "🚀 Starting deployment..."
+                        
+#             # Pull latest changes
+#             echo "📥 Pulling latest changes..."
+#             git pull origin production
+
+#             echo "📝 Updating environment variables..."
+#             cat << ENV > .env
+#           DB_USER=${{ secrets.DB_USER }}
+#           DB_DATABASE=${{ secrets.DB_DATABASE }}
+#           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+#           APP_KEY=${{ secrets.APP_KEY }}
+#           ENV
+            
+#             # Stop existing services
+#             echo "⏹️ Stopping existing services..."
+#             docker-compose -f docker-compose.prod.yml down
+            
+#             # Build and start services
+#             echo "🔨 Building and starting services..."
+#             docker-compose -f docker-compose.prod.yml build
+#             docker-compose -f docker-compose.prod.yml up -d
+            
+#             # Wait for services to be ready
+#             echo "⏳ Waiting for services to be ready..."
+#             sleep 30
+            
+#             # Run database migrations
+#             echo "🗄️ Running database migrations..."
+#             docker-compose -f docker-compose.prod.yml exec server node ace migration:run
+            
+#             # Check service health
+#             echo "🏥 Checking service health..."
+#             if curl -f http://localhost:3333/health; then
+#               echo "✅ Backend is healthy"
+#             else
+#               echo "❌ Backend health check failed"
+#               exit 1
+#             fi
+            
+#             if curl -f http://localhost:3000/health; then
+#               echo "✅ Frontend is healthy"
+#             else
+#               echo "❌ Frontend health check failed"
+#               exit 1
+#             fi
+            
+#             echo "🎉 Deployment completed successfully!"
+            
+#             # Clean up old images
+#             docker system prune -f
+#           EOF
+
+#       - name: Notify deployment
+#         if: always()
+#         run: |
+#           if [ ${{ job.status }} == 'success' ]; then
+#             echo "✅ Deployment to Hetzner completed successfully!"
+#           else
+#             echo "❌ Deployment to Hetzner failed!"
+#           fi
