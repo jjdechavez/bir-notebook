@@ -72,3 +72,79 @@ Depreciation → Auto-assigned to General Journal
 - **Error Prevention**: Form validation, preview before submission
 - **Audit Trail**: Immutable transactions with user tracking
 - **Real-time Updates**: React Query for cache management
+
+## DevOps Architecture:
+- **Container Registry**: GitHub Container Registry (GHCR) for image management
+- **CI/CD Pipeline**: GitHub Actions with automated build and deployment
+- **Tag-based Releases**: Semantic versioning with `v*` tags for production
+- **Multi-environment Support**: 
+  - Production: Tagged releases (v1.0.0, v1.0.1, etc.)
+  - Staging: `latest` tag (TODO - planned feature)
+- **Zero-downtime Deployment**: Rolling updates via Docker Compose
+- **Optimized Docker Builds**: Multi-stage builds with production-only dependencies
+- **Container Security**: Non-root users, minimal attack surfaces
+- **Health Monitoring**: Built-in health checks for all services
+
+### Deployment Workflow:
+1. **Development**: Push to feature branches → Build validation only
+2. **Production**: Create tag `v*` → Build & push images → Deploy to Hetzner
+3. **Staging**: Push to main branch → Update `latest` tag → Deploy (TODO)
+
+### Docker Optimization Strategy:
+- **Server Dockerfile**: 4-stage build (base → builder → extract → runner)
+  - Production isolation via `pnpm deploy` command
+  - 70%+ image size reduction (673MB → ~200MB)
+  - Optimized for AdonisJS v6 and Node.js 22
+- **Web Dockerfile**: 2-stage build (builder → runner)
+  - Nginx optimization for static asset serving
+  - Corepack for consistent package manager versions
+  - Build-time API URL configuration
+
+### Infrastructure Management:
+- **Hetzner CPX11**: 2 vCPU, 4GB RAM, 40GB SSD (€4.50/month)
+- **Docker Compose**: Service orchestration with health checks
+- **Database**: PostgreSQL with persistent volumes and backup strategy
+- **Caching**: Redis for session management and query optimization
+- **Monitoring**: Health endpoints + container status monitoring
+
+### Build & Deployment Commands:
+```bash
+# Local development
+docker-compose -f docker-compose.dev.yml up -d
+
+# Production build
+docker build -t bir-notebook-server ./apps/server
+docker build -t bir-notebook-web ./apps/web
+
+# Release deployment (automated via GitHub Actions)
+git tag v1.0.0
+git push origin v1.0.0  # Triggers deployment
+```
+
+### Environment Variables:
+```bash
+# Production (.env)
+APP_VERSION=1.0.0
+NODE_ENV=production
+DB_USER=bir_user
+DB_PASSWORD=<secure-password>
+DB_DATABASE=bir_notebook
+LOG_LEVEL=info
+
+# GitHub Secrets
+HETZNER_HOST=<server-ip>
+HETZNER_SSH_PRIVATE_KEY=<ssh-key>
+APP_KEY=<adonis-secret>
+VITE_API_URL=https://yourdomain.com
+```
+
+### Image Registry Usage:
+```bash
+# Pull latest images
+docker pull ghcr.io/jjdechavez/bir-notebook-server:latest
+docker pull ghcr.io/jjdechavez/bir-notebook-web:latest
+
+# Pull specific version
+docker pull ghcr.io/jjdechavez/bir-notebook-server:v1.0.0
+docker pull ghcr.io/jjdechavez/bir-notebook-web:v1.0.0
+```

@@ -60,3 +60,35 @@ Depreciation → Auto-assigned to General Journal
 - **Error Prevention**: Form validation, preview before submission
 - **Audit Trail**: Immutable transactions with user tracking
 - **Real-time Updates**: React Query for cache management
+
+## DevOps Architecture:
+- **Container Registry**: GitHub Container Registry (GHCR) for image management
+- **CI/CD Pipeline**: GitHub Actions with automated build and deployment
+- **Tag-based Releases**: Semantic versioning with `v*` tags
+- **Multi-environment Support**: 
+  - Production: Tagged releases (v1.0.0, v1.0.1, etc.)
+  - Staging: `latest` tag (TODO - planned feature)
+- **Zero-downtime Deployment**: Rolling updates via Docker Compose
+- **Optimized Docker Builds**: Multi-stage builds with production-only dependencies
+- **Container Security**: Non-root users, minimal attack surfaces
+- **Health Monitoring**: Built-in health checks for all services
+
+### Deployment Workflow:
+1. **Push to `main` branch** → Build and push Docker images to GHCR
+2. **Create tag** `v*` → Trigger release workflow
+3. **Automatic deployment** to Hetzner with tagged images
+4. **Version tracking** via `.env` variables and service labels
+
+### Docker Optimization:
+- **Multi-stage builds**: 4-stage optimization for size reduction
+- **pnpm workspace support**: Efficient monorepo dependency management
+- **Production-only dependencies**: ~70% image size reduction
+- **Layer caching**: Faster rebuilds via GitHub Actions cache
+- **Security best practices**: Non-root users, minimal base images
+
+### Infrastructure Components:
+- **PostgreSQL**: Persistent data storage with automated backups
+- **Redis**: Session caching and performance optimization
+- **Nginx**: Static asset serving with gzip compression
+- **AdonisJS**: RESTful API with authentication and validation
+- **React SPA**: Modern frontend with TanStack Router
