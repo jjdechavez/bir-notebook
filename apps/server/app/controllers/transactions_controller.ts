@@ -94,4 +94,9 @@ export default class TransactionsController {
       message: 'Transaction updated successfully',
     }
   }
+
+  async chartOfAccounts({ auth }: HttpContext) {
+    const result = await this.transactionService.getUsedChartOfAccounts(auth.user!.id)
+    return result
+  }
 }

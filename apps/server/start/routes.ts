@@ -87,6 +87,7 @@ router
     router
       .group(() => {
         router.get('/', [TransactionAccountsController, 'all'])
+        router.get('/accounts', [TransactionAccountsController, 'currentChartOfAccounts'])
       })
       .prefix('/transaction-accounts')
   })
