@@ -1,6 +1,8 @@
+import Account from '#models/account'
 import Transaction from '#models/transaction'
 import TransactionCategory from '#models/transaction_category'
 import { CreateTransactionPayload, UpdateTransactionData } from '#validators/transaction'
+import db from '@adonisjs/lucid/services/db'
 import {
   transactionCategoryBookTypes,
   transactionVatTypes,
@@ -98,11 +100,15 @@ export class TransactionService {
 
     const totalExpenses = +totalExpensesAmount[0].$extras.sum
 
+    const chartOfAccounts = await this.userChartOfAccountsQuery(userId)
+    const totalChartOfAccounts = chartOfAccounts.length
+
     const netIncome = totalIncome - totalExpenses
     return {
       totalIncome,
       totalExpenses,
       netIncome,
+      totalChartOfAccounts,
     }
   }
 
@@ -135,5 +141,25 @@ export class TransactionService {
       status: 'updated',
       data: transaction,
     } as const
+  }
+
+  userChartOfAccountsQuery(userId: number) {
+    return db
+      .query()
+      .from('transactions')
+      .select('debit_account_id as accountId')
+      .where('user_id', userId)
+      .union((query) => {
+        query.from('transactions').select('credit_account_id as accountId').where('user_id', userId)
+      })
+  }
+
+  async getUsedChartOfAccounts(userId: number) {
+    const rawAccountIds: Array<{ accountId: number }> = await this.userChartOfAccountsQuery(userId)
+    const accountIds = rawAccountIds.map((raw) => raw.accountId)
+
+    const accounts = await Account.query().whereIn('id', accountIds).andWhereNull('deletedAt')
+
+    return accounts
   }
 }
