@@ -89,7 +89,7 @@ function TransactionSummary() {
       />
       <TransactionCard
         title="Categories"
-        description={'PHP 0.00'}
+        description={data?.totalChartOfAccounts.toString() || '0'}
         icon={BookOpen}
         variant="categories"
       />
