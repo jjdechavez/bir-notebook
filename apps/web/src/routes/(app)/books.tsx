@@ -18,7 +18,10 @@ import {
 import { CashReceiptsJournal } from '@/components/books/cash-receipts-journal'
 import { CashDisbursementsJournal } from '@/components/books/cash-disbursements-journal'
 import { GeneralJournal } from '@/components/books/general-journal'
-import { GeneralLedger } from '@/components/books/general-ledger'
+import {
+  ChartOfAccounts,
+  GeneralLedger,
+} from '@/components/books/general-ledger'
 import {
   BookCountedColumnFilter,
   BookTransactionTotals,
@@ -168,7 +171,9 @@ function BooksPage() {
       </Card>
 
       <Tabs
-        defaultValue={transactionCategoryBookTypes.cashReceiptJournal}
+        defaultValue={
+          filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal
+        }
         className="space-y-4"
         onValueChange={(value) =>
           setFilters({ bookType: value as TransactionCategoryBookType })
@@ -251,7 +256,11 @@ function BooksPage() {
               totalCredit={totalTransactionAmount}
               totalDebit={totalTransactionAmount}
             />
-            <GeneralJournal transactions={transactionsData?.data || []} />
+            {transactionsData.data.length === 0 ? (
+              <NoTransactionFound />
+            ) : (
+              <GeneralJournal transactions={transactionsData.data} />
+            )}
           </BookView>
         </TabsContent>
         <TabsContent value={generalLedgerBook.key} className="space-y-4">
@@ -260,12 +269,23 @@ function BooksPage() {
             icon={generalLedgerBook.icon}
             totalTransaction={totalTransactionCount}
           >
-            <BookTransactionTotals
-              color={generalLedgerBook.color}
-              totalCredit={totalTransactionAmount}
-              totalDebit={totalTransactionAmount}
-            />
-            <GeneralLedger transactions={transactionsData?.data || []} />
+            <Tabs defaultValue="transactions">
+              <TabsList>
+                <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="transactions">
+                {transactionsData.data.length === 0 ? (
+                  <NoTransactionFound />
+                ) : (
+                  <GeneralLedger transactions={transactionsData.data} />
+                )}
+              </TabsContent>
+              <TabsContent value="accounts">
+                <ChartOfAccounts />
+              </TabsContent>
+            </Tabs>
           </BookView>
         </TabsContent>
       </Tabs>
