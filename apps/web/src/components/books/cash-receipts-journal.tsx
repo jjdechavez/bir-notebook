@@ -2,7 +2,7 @@ import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
 import type { Transaction } from '@/types/transaction'
 import { getChartOfAccounts } from './utils'
 
-interface CashReceiptsJournalProps {
+type CashReceiptsJournalProps = {
   transactions: Transaction[]
   columnCount: number
 }
@@ -73,9 +73,7 @@ export function CashReceiptsJournal({
               </td>
               <td className="p-3">{transaction.referenceNumber || '-'}</td>
               <td className="p-3 text-right font-medium text-green-600">
-                {transaction.debitAccount?.name
-                  ?.toLowerCase()
-                  .includes('cash')
+                {transaction.debitAccount?.name?.toLowerCase().includes('cash')
                   ? formatCentsToCurrency(transaction.amount)
                   : '-'}
               </td>
