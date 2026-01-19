@@ -1,24 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Calendar, Download, Search, Filter, Columns } from 'lucide-react'
-import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
+import { Calendar, Download, Search, Filter } from 'lucide-react'
 import { SettingPendingComponent } from '@/components/pending-component'
 import { GenericErrorComponent } from '@/components/error-component'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { useFilters } from '@/hooks/use-filters'
-import type { Transaction, TransactionSearch } from '@/types/transaction'
+import type { TransactionSearch } from '@/types/transaction'
 import type { PaginationState } from '@tanstack/react-table'
 import {
   transactionCategoryBookTypes,
@@ -28,7 +19,16 @@ import { CashReceiptsJournal } from '@/components/books/cash-receipts-journal'
 import { CashDisbursementsJournal } from '@/components/books/cash-disbursements-journal'
 import { GeneralJournal } from '@/components/books/general-journal'
 import { GeneralLedger } from '@/components/books/general-ledger'
-import { getColorClasses } from '@/components/books/utils'
+import {
+  BookCountedColumnFilter,
+  BookTransactionTotals,
+  NoTransactionFound,
+} from '@/components/books/common'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupDebounceInput,
+} from '@/components/ui/input-group'
 
 export const Route = createFileRoute('/(app)/books')({
   component: BooksPage,
@@ -40,38 +40,48 @@ export const Route = createFileRoute('/(app)/books')({
   }),
   pendingComponent: SettingPendingComponent,
   errorComponent: GenericErrorComponent,
-  validateSearch: () => ({}) as Partial<TransactionSearch & PaginationState>,
+  validateSearch: () =>
+    ({}) as Partial<TransactionSearch & PaginationState & { count?: number }>,
 })
 
+const cashReceiptJournalBook = {
+  key: transactionCategoryBookTypes.cashReceiptJournal,
+  label: 'Cash Receipts Journal',
+  icon: '📥',
+  color: 'green',
+}
+
+const cashDisbursementJournalBook = {
+  key: transactionCategoryBookTypes.cashDisbursementJournal,
+  label: 'Cash Disbursements Journal',
+  icon: '📤',
+  color: 'red',
+}
+
+const generalJournalBook = {
+  key: transactionCategoryBookTypes.generalJournal,
+  label: 'General Journal',
+  icon: '📝',
+  color: 'blue',
+}
+
+const generalLedgerBook = {
+  key: transactionCategoryBookTypes.generalLedger,
+  label: 'General Ledger',
+  icon: '📊',
+  color: 'purple',
+}
+
 const bookTypes = [
-  {
-    key: transactionCategoryBookTypes.cashReceiptJournal,
-    label: 'Cash Receipts Journal',
-    icon: '📥',
-    color: 'green',
-  },
-  {
-    key: transactionCategoryBookTypes.cashDisbursementJournal,
-    label: 'Cash Disbursements Journal',
-    icon: '📤',
-    color: 'red',
-  },
-  {
-    key: transactionCategoryBookTypes.generalJournal,
-    label: 'General Journal',
-    icon: '📝',
-    color: 'blue',
-  },
-  {
-    key: transactionCategoryBookTypes.generalLedger,
-    label: 'General Ledger',
-    icon: '📊',
-    color: 'purple',
-  },
+  cashReceiptJournalBook,
+  cashDisbursementJournalBook,
+  generalJournalBook,
+  generalLedgerBook,
 ]
 
 function BooksPage() {
   const { filters, setFilters } = useFilters(Route.id)
+  const columnCountFilter = filters?.count || 6
 
   const { data: transactionsData } = useSuspenseQuery(
     tuyau.api.transactions.$get.queryOptions({
@@ -80,20 +90,16 @@ function BooksPage() {
         dateTo: filters.dateTo,
         bookType:
           filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
+        search: filters?.search || '',
       },
     }),
   )
 
-  const transactionsByBook =
-    transactionsData.data.reduce(
-      (acc, transaction) => {
-        const bookType = transaction.bookType
-        if (!acc[bookType]) acc[bookType] = []
-        acc[bookType].push(transaction)
-        return acc
-      },
-      {} as Record<string, Transaction[]>,
-    ) || {}
+  const totalTransactionCount = transactionsData.meta.total
+  const totalTransactionAmount = transactionsData.data.reduce(
+    (total, t) => total + t.amount,
+    0,
+  )
 
   return (
     <div className="space-y-6 p-6">
@@ -136,15 +142,16 @@ function BooksPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
+              <InputGroup>
+                <InputGroupDebounceInput
                   placeholder="Search transactions..."
                   value={filters.search || ''}
-                  onChange={(e) => setFilters({ search: e.target.value })}
-                  className="pl-10"
+                  onChange={(e) => setFilters({ search: e.toString() })}
                 />
-              </div>
+                <InputGroupAddon>
+                  <Search className="text-gray-400 h-4 w-4" />
+                </InputGroupAddon>
+              </InputGroup>
             </div>
             <div className="flex items-end gap-2">
               <Button variant="outline" className="flex-1">
@@ -180,78 +187,100 @@ function BooksPage() {
           ))}
         </TabsList>
 
-        {bookTypes.map((book) => (
-          <TabsContent key={book.key} value={book.key} className="space-y-4">
-            <BookView
-              bookType={book.key}
-              title={book.label}
-              icon={book.icon}
-              color={book.color}
-              transactions={transactionsByBook[book.key] || []}
-              filters={filters}
+        <TabsContent value={cashReceiptJournalBook.key} className="space-y-4">
+          <BookView
+            title={cashReceiptJournalBook.label}
+            icon={cashReceiptJournalBook.icon}
+            totalTransaction={totalTransactionCount}
+          >
+            <BookCountedColumnFilter
+              count={columnCountFilter}
+              setCount={(count) => setFilters({ count })}
             />
-          </TabsContent>
-        ))}
+            <BookTransactionTotals
+              color={cashReceiptJournalBook.color}
+              totalCredit={totalTransactionAmount}
+              totalDebit={totalTransactionAmount}
+            />
+            {transactionsData?.data.length === 0 ? (
+              <NoTransactionFound />
+            ) : (
+              <CashReceiptsJournal
+                columnCount={columnCountFilter}
+                transactions={transactionsData.data}
+              />
+            )}
+          </BookView>
+        </TabsContent>
+        <TabsContent
+          value={cashDisbursementJournalBook.key}
+          className="space-y-4"
+        >
+          <BookView
+            title={cashDisbursementJournalBook.label}
+            icon={cashDisbursementJournalBook.icon}
+            totalTransaction={totalTransactionCount}
+          >
+            <BookCountedColumnFilter
+              count={columnCountFilter}
+              setCount={(count) => setFilters({ count })}
+            />
+            <BookTransactionTotals
+              color={cashDisbursementJournalBook.color}
+              totalCredit={totalTransactionAmount}
+              totalDebit={totalTransactionAmount}
+            />
+            {transactionsData.data.length === 0 ? (
+              <NoTransactionFound />
+            ) : (
+              <CashDisbursementsJournal
+                columnCount={columnCountFilter}
+                transactions={transactionsData?.data || []}
+              />
+            )}
+          </BookView>
+        </TabsContent>
+        <TabsContent value={generalJournalBook.key} className="space-y-4">
+          <BookView
+            title={generalJournalBook.label}
+            icon={generalJournalBook.icon}
+            totalTransaction={totalTransactionCount}
+          >
+            <BookTransactionTotals
+              color={generalJournalBook.color}
+              totalCredit={totalTransactionAmount}
+              totalDebit={totalTransactionAmount}
+            />
+            <GeneralJournal transactions={transactionsData?.data || []} />
+          </BookView>
+        </TabsContent>
+        <TabsContent value={generalLedgerBook.key} className="space-y-4">
+          <BookView
+            title={generalLedgerBook.label}
+            icon={generalLedgerBook.icon}
+            totalTransaction={totalTransactionCount}
+          >
+            <BookTransactionTotals
+              color={generalLedgerBook.color}
+              totalCredit={totalTransactionAmount}
+              totalDebit={totalTransactionAmount}
+            />
+            <GeneralLedger transactions={transactionsData?.data || []} />
+          </BookView>
+        </TabsContent>
       </Tabs>
     </div>
   )
 }
 
-interface BookViewProps {
-  bookType: string
+type BookViewProps = {
   title: string
   icon: string
-  color: string
-  transactions: Transaction[]
-  filters: any
+  totalTransaction: number
+  children: React.ReactNode
 }
 
-function BookView({
-  bookType,
-  title,
-  icon,
-  color,
-  transactions,
-  filters,
-}: BookViewProps) {
-  const [columnCount, setColumnCount] = useState(6)
-  // Filter transactions by search term
-  const filteredTransactions = transactions.filter(
-    (transaction) =>
-      !filters.search ||
-      transaction.description
-        .toLowerCase()
-        .includes(filters.search.toLowerCase()) ||
-      transaction.referenceNumber
-        ?.toLowerCase()
-        .includes(filters.search.toLowerCase()),
-  )
-
-  const renderTable = () => {
-    switch (bookType) {
-      case transactionCategoryBookTypes.cashReceiptJournal:
-        return (
-          <CashReceiptsJournal
-            transactions={filteredTransactions}
-            columnCount={columnCount}
-          />
-        )
-      case transactionCategoryBookTypes.cashDisbursementJournal:
-        return (
-          <CashDisbursementsJournal
-            transactions={filteredTransactions}
-            columnCount={columnCount}
-          />
-        )
-      case transactionCategoryBookTypes.generalJournal:
-        return <GeneralJournal transactions={filteredTransactions} />
-      case transactionCategoryBookTypes.generalLedger:
-        return <GeneralLedger transactions={filteredTransactions} />
-      default:
-        return <GeneralJournal transactions={filteredTransactions} />
-    }
-  }
-
+function BookView({ title, icon, children, totalTransaction }: BookViewProps) {
   return (
     <Card>
       <CardHeader>
@@ -263,7 +292,7 @@ function BookView({
           <div className="flex items-center gap-4">
             <div className="text-sm">
               <span className="text-gray-600">Transactions: </span>
-              <span className="font-medium">{filteredTransactions.length}</span>
+              <span className="font-medium">{totalTransaction}</span>
             </div>
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
@@ -272,69 +301,7 @@ function BookView({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        {/* Column controls for cash receipt and disbursement journals */}
-        {(bookType === transactionCategoryBookTypes.cashReceiptJournal ||
-          bookType ===
-            transactionCategoryBookTypes.cashDisbursementJournal) && (
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Columns className="h-4 w-4" />
-              <label className="text-sm font-medium">Counted Columns:</label>
-              <Select
-                value={columnCount.toString()}
-                onValueChange={(value) => setColumnCount(parseInt(value))}
-              >
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="6">6</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="14">14</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="text-sm text-gray-500">
-              {columnCount} counted columns (Reference + Cash +{' '}
-              {columnCount - 3} chart of accounts + Sundry + Sundry Amount)
-            </div>
-          </div>
-        )}
-
-        {bookType !== transactionCategoryBookTypes.generalLedger && (
-          /* Summary for journals */
-          <div
-            className={`grid grid-cols-2 gap-4 p-4 rounded-lg border mb-6 ${getColorClasses(color)}`}
-          >
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Debits</p>
-              <p className="text-2xl text-foreground font-bold">
-                {formatCentsToCurrency(
-                  filteredTransactions.reduce((sum, t) => sum + t.amount, 0),
-                )}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Credits</p>
-              <p className="text-2xl text-foreground font-bold">
-                {formatCentsToCurrency(
-                  filteredTransactions.reduce((sum, t) => sum + t.amount, 0),
-                )}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Transactions Table */}
-        {filteredTransactions.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No transactions found for the selected period.
-          </div>
-        ) : (
-          renderTable()
-        )}
-      </CardContent>
+      <CardContent>{children}</CardContent>
     </Card>
   )
 }
