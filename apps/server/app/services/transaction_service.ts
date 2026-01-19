@@ -66,7 +66,9 @@ export class TransactionService {
       query.where('transactionDate', '<=', filters.dateTo)
     }
     if (filters.search) {
-      query.whereILike('description', `%${filters.search}%`)
+      query
+        .whereILike('description', `%${filters.search}%`)
+        .orWhereILike('referenceNumber', `%${filters.search}%`)
     }
 
     const transactions = await query.orderBy('transactionDate', 'desc').paginate(page, limit)
