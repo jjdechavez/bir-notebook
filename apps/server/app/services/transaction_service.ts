@@ -70,6 +70,15 @@ export class TransactionService {
         .whereILike('description', `%${filters.search}%`)
         .orWhereILike('referenceNumber', `%${filters.search}%`)
     }
+    if (filters?.record) {
+      const recordType = filters.record
+      query.if(recordType === 'draft', (rtQuery) => {
+        rtQuery.whereNull('recordedAt')
+      })
+      query.if(recordType === 'recorded', (rtQuery) => {
+        rtQuery.whereNotNull('recordedAt')
+      })
+    }
 
     const transactions = await query.orderBy('transactionDate', 'desc').paginate(page, limit)
     return transactions

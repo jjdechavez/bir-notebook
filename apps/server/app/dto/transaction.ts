@@ -42,6 +42,7 @@ export class TransactionDto {
             type: this.transaction.creditAccount.type,
           }
         : null,
+      recorded: !!this.transaction?.recordedAt,
     }
   }
 }
