@@ -88,7 +88,7 @@ function TransactionSummary() {
         }
       />
       <TransactionCard
-        title="Categories"
+        title="Chart of Accounts"
         description={data?.totalChartOfAccounts.toString() || '0'}
         icon={BookOpen}
         variant="categories"

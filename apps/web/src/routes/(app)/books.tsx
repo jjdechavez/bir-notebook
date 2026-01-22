@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import { Check, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Calendar, Download, Search, Filter } from 'lucide-react'
 import { SettingPendingComponent } from '@/components/pending-component'
@@ -9,7 +10,7 @@ import { GenericErrorComponent } from '@/components/error-component'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { useFilters } from '@/hooks/use-filters'
-import type { TransactionSearch } from '@/types/transaction'
+import type { Transaction, TransactionSearch } from '@/types/transaction'
 import type { PaginationState } from '@tanstack/react-table'
 import {
   transactionCategoryBookTypes,
@@ -27,11 +28,20 @@ import {
   BookTransactionTotals,
   NoTransactionFound,
 } from '@/components/books/common'
+import { BulkActionBar } from '@/components/books/bulk-action-bar'
+import { useState } from 'react'
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupDebounceInput,
 } from '@/components/ui/input-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export const Route = createFileRoute('/(app)/books')({
   component: BooksPage,
@@ -85,6 +95,7 @@ const bookTypes = [
 function BooksPage() {
   const { filters, setFilters } = useFilters(Route.id)
   const columnCountFilter = filters?.count || 6
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
 
   const { data: transactionsData } = useSuspenseQuery(
     tuyau.api.transactions.$get.queryOptions({
@@ -124,7 +135,7 @@ function BooksPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
                 Date From
@@ -143,6 +154,7 @@ function BooksPage() {
                 onChange={(e) => setFilters({ dateTo: e.target.value })}
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">Search</label>
               <InputGroup>
@@ -156,6 +168,25 @@ function BooksPage() {
                 </InputGroupAddon>
               </InputGroup>
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Status</label>
+              <Select
+                value={filters.recorded || ''}
+                onValueChange={(value) =>
+                  setFilters({ recorded: value || undefined })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="recorded">Recorded</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex items-end gap-2">
               <Button variant="outline" className="flex-1">
                 <Download className="h-4 w-4 mr-2" />
@@ -197,6 +228,7 @@ function BooksPage() {
             title={cashReceiptJournalBook.label}
             icon={cashReceiptJournalBook.icon}
             totalTransaction={totalTransactionCount}
+            bookType={cashReceiptJournalBook.key}
           >
             <BookCountedColumnFilter
               count={columnCountFilter}
@@ -213,6 +245,8 @@ function BooksPage() {
               <CashReceiptsJournal
                 columnCount={columnCountFilter}
                 transactions={transactionsData.data}
+                selectedIds={selectedIds}
+                onSelectionChange={setSelectedIds}
               />
             )}
           </BookView>
@@ -225,6 +259,7 @@ function BooksPage() {
             title={cashDisbursementJournalBook.label}
             icon={cashDisbursementJournalBook.icon}
             totalTransaction={totalTransactionCount}
+            bookType={cashDisbursementJournalBook.key}
           >
             <BookCountedColumnFilter
               count={columnCountFilter}
@@ -241,6 +276,8 @@ function BooksPage() {
               <CashDisbursementsJournal
                 columnCount={columnCountFilter}
                 transactions={transactionsData?.data || []}
+                selectedIds={selectedIds}
+                onSelectionChange={setSelectedIds}
               />
             )}
           </BookView>
@@ -250,6 +287,7 @@ function BooksPage() {
             title={generalJournalBook.label}
             icon={generalJournalBook.icon}
             totalTransaction={totalTransactionCount}
+            bookType={generalJournalBook.key}
           >
             <BookTransactionTotals
               color={generalJournalBook.color}
@@ -259,7 +297,11 @@ function BooksPage() {
             {transactionsData.data.length === 0 ? (
               <NoTransactionFound />
             ) : (
-              <GeneralJournal transactions={transactionsData.data} />
+              <GeneralJournal
+                transactions={transactionsData.data}
+                selectedIds={selectedIds}
+                onSelectionChange={setSelectedIds}
+              />
             )}
           </BookView>
         </TabsContent>
@@ -268,6 +310,7 @@ function BooksPage() {
             title={generalLedgerBook.label}
             icon={generalLedgerBook.icon}
             totalTransaction={totalTransactionCount}
+            bookType={generalLedgerBook.key}
           >
             <Tabs defaultValue="transactions">
               <TabsList>
@@ -289,6 +332,17 @@ function BooksPage() {
           </BookView>
         </TabsContent>
       </Tabs>
+
+      <BulkActionBar
+        selectedCount={selectedIds.length}
+        onRecordSelected={() =>
+          console.log('Record selected transactions:', selectedIds)
+        }
+        onUndoSelected={() =>
+          console.log('Undo selected transactions:', selectedIds)
+        }
+        onClearSelection={() => setSelectedIds([])}
+      />
     </div>
   )
 }
@@ -300,7 +354,17 @@ type BookViewProps = {
   children: React.ReactNode
 }
 
-function BookView({ title, icon, children, totalTransaction }: BookViewProps) {
+function BookView({
+  title,
+  icon,
+  children,
+  totalTransaction,
+  bookType,
+}: BookViewProps & { bookType: string }) {
+  const hasRecordedTransactions = Array.isArray(children?.props?.transactions)
+    ? children?.props?.transactions.some((t: Transaction) => t.recorded)
+    : false
+
   return (
     <Card>
       <CardHeader>
@@ -314,10 +378,36 @@ function BookView({ title, icon, children, totalTransaction }: BookViewProps) {
               <span className="text-gray-600">Transactions: </span>
               <span className="font-medium">{totalTransaction}</span>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                onClick={() =>
+                  console.log('Record all transactions for', bookType)
+                }
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Record All
+              </Button>
+              {hasRecordedTransactions && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  onClick={() =>
+                    console.log('Undo all recorded transactions for', bookType)
+                  }
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Undo All
+                </Button>
+              )}
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export PDF
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
