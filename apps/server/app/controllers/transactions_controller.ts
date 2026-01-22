@@ -99,4 +99,30 @@ export default class TransactionsController {
     const result = await this.transactionService.getUsedChartOfAccounts(auth.user!.id)
     return result
   }
+
+  async recordTransaction({ params, response }: HttpContext) {
+    const result = await this.transactionService.recordTransaction(params.id)
+
+    if (result.status === 'not_found') {
+      return response.notFound({ message: result.message })
+    }
+
+    return {
+      data: new TransactionDto(result.data).toJson(),
+      message: result.message,
+    }
+  }
+
+  async undoRecordTransaction({ params, response }: HttpContext) {
+    const result = await this.transactionService.undoRecordTransaction(params.id)
+
+    if (result.status === 'not_found') {
+      return response.notFound({ message: result.message })
+    }
+
+    return {
+      data: new TransactionDto(result.data).toJson(),
+      message: result.message,
+    }
+  }
 }

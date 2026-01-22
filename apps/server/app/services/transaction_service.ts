@@ -164,4 +164,44 @@ export class TransactionService {
 
     return accounts
   }
+
+  async recordTransaction(transactionId: number) {
+    const transaction = await Transaction.find(transactionId)
+
+    if (!transaction) {
+      return {
+        status: 'not_found',
+        message: `Transaction not found with ${transactionId} ID`,
+      } as const
+    }
+
+    transaction.recordedAt = DateTime.now()
+    await transaction.save()
+
+    return {
+      status: 'success',
+      message: `Transaction has been recorded`,
+      data: transaction,
+    } as const
+  }
+
+  async undoRecordTransaction(transactionId: number) {
+    const transaction = await Transaction.find(transactionId)
+
+    if (!transaction) {
+      return {
+        status: 'not_found',
+        message: `Transaction not found with ${transactionId} ID`,
+      } as const
+    }
+
+    transaction.recordedAt = null
+    await transaction.save()
+
+    return {
+      status: 'success',
+      message: `Transaction record has been undo`,
+      data: transaction,
+    } as const
+  }
 }

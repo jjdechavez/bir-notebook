@@ -72,4 +72,7 @@ export default class Transaction extends BaseModel {
   get vatAmount() {
     return calculateVatAmount(this.amount, this.vatType)
   }
+
+  @column.dateTime()
+  declare recordedAt: DateTime | null
 }

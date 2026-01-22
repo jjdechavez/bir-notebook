@@ -74,6 +74,8 @@ router
 
         router.get('/:id', [TransactionsController, 'show'])
         router.put('/:id', [TransactionsController, 'update'])
+        router.post('/:id/record', [TransactionsController, 'recordTransaction'])
+        router.post('/:id/record/undo', [TransactionsController, 'undoRecordTransaction'])
       })
       .prefix('/transactions')
 
