@@ -93,10 +93,10 @@ export function CashDisbursementsJournal({
                     <p className="text-sm text-gray-500">#{transaction.id}</p>
                   </div>
                   <Badge 
-                    variant={transaction.recordedAt ? "default" : "outline"}
-                    className={transaction.recordedAt ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+                    variant={transaction.recorded ? "default" : "outline"}
+                    className={transaction.recorded ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
                   >
-                    {transaction.recordedAt ? "Recorded" : "Draft"}
+                    {transaction.recorded ? "Recorded" : "Draft"}
                   </Badge>
                 </div>
               </td>
@@ -154,7 +154,7 @@ export function CashDisbursementsJournal({
               </td>
               <td className="p-3">
                 <div className="flex justify-center">
-                  {transaction.recordedAt ? (
+                  {transaction.recorded ? (
                     <Button
                       variant="outline"
                       size="sm"

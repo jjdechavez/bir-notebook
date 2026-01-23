@@ -35,7 +35,7 @@ import { useMemo } from 'react'
 import { Input } from './ui/input'
 import { Field, FieldLabel } from './ui/field'
 
-type ListMeta = {
+export type ListMeta = {
   total: number
   perPage: number
   currentPage: number

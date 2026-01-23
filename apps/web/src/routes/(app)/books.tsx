@@ -10,8 +10,7 @@ import { GenericErrorComponent } from '@/components/error-component'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { useFilters } from '@/hooks/use-filters'
-import type { Transaction, TransactionSearch } from '@/types/transaction'
-import type { PaginationState } from '@tanstack/react-table'
+import type { TransactionSearch } from '@/types/transaction'
 import {
   transactionCategoryBookTypes,
   type TransactionCategoryBookType,
@@ -29,7 +28,6 @@ import {
   NoTransactionFound,
 } from '@/components/books/common'
 import { BulkActionBar } from '@/components/books/bulk-action-bar'
-import { useState } from 'react'
 import {
   InputGroup,
   InputGroupAddon,
@@ -54,7 +52,7 @@ export const Route = createFileRoute('/(app)/books')({
   pendingComponent: SettingPendingComponent,
   errorComponent: GenericErrorComponent,
   validateSearch: () =>
-    ({}) as Partial<TransactionSearch & PaginationState & { count?: number }>,
+    ({}) as Partial<TransactionSearch & { count?: number }>,
 })
 
 const cashReceiptJournalBook = {
@@ -95,7 +93,6 @@ const bookTypes = [
 function BooksPage() {
   const { filters, setFilters } = useFilters(Route.id)
   const columnCountFilter = filters?.count || 6
-  const [selectedIds, setSelectedIds] = useState<number[]>([])
 
   const { data: transactionsData } = useSuspenseQuery(
     tuyau.api.transactions.$get.queryOptions({
@@ -245,8 +242,6 @@ function BooksPage() {
               <CashReceiptsJournal
                 columnCount={columnCountFilter}
                 transactions={transactionsData.data}
-                selectedIds={selectedIds}
-                onSelectionChange={setSelectedIds}
               />
             )}
           </BookView>
@@ -276,34 +271,18 @@ function BooksPage() {
               <CashDisbursementsJournal
                 columnCount={columnCountFilter}
                 transactions={transactionsData?.data || []}
-                selectedIds={selectedIds}
-                onSelectionChange={setSelectedIds}
               />
             )}
           </BookView>
         </TabsContent>
         <TabsContent value={generalJournalBook.key} className="space-y-4">
-          <BookView
-            title={generalJournalBook.label}
-            icon={generalJournalBook.icon}
-            totalTransaction={totalTransactionCount}
-            bookType={generalJournalBook.key}
-          >
-            <BookTransactionTotals
-              color={generalJournalBook.color}
-              totalCredit={totalTransactionAmount}
-              totalDebit={totalTransactionAmount}
-            />
-            {transactionsData.data.length === 0 ? (
-              <NoTransactionFound />
-            ) : (
-              <GeneralJournal
-                transactions={transactionsData.data}
-                selectedIds={selectedIds}
-                onSelectionChange={setSelectedIds}
-              />
-            )}
-          </BookView>
+          <GeneralJournal
+            filters={{ ...filters, bookType: generalJournalBook.key }}
+            onRecordAction={(action, transaction) => {
+              console.log(`${action} transaction:`, transaction.id)
+              // TODO: API call to record/undo transaction
+            }}
+          />
         </TabsContent>
         <TabsContent value={generalLedgerBook.key} className="space-y-4">
           <BookView
@@ -332,17 +311,6 @@ function BooksPage() {
           </BookView>
         </TabsContent>
       </Tabs>
-
-      <BulkActionBar
-        selectedCount={selectedIds.length}
-        onRecordSelected={() =>
-          console.log('Record selected transactions:', selectedIds)
-        }
-        onUndoSelected={() =>
-          console.log('Undo selected transactions:', selectedIds)
-        }
-        onClearSelection={() => setSelectedIds([])}
-      />
     </div>
   )
 }
@@ -361,9 +329,7 @@ function BookView({
   totalTransaction,
   bookType,
 }: BookViewProps & { bookType: string }) {
-  const hasRecordedTransactions = Array.isArray(children?.props?.transactions)
-    ? children?.props?.transactions.some((t: Transaction) => t.recorded)
-    : false
+  const hasRecordedTransactions = false // TODO: Implement proper recorded transaction detection
 
   return (
     <Card>
