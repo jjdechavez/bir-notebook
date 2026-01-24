@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Check, X } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { tuyau } from '@/main'
 
 type CashReceiptsJournalProps = {
   transactions: Transaction[]
@@ -45,6 +47,26 @@ export function CashReceiptsJournal({
 
   const allAccountColumns = [...displayAccounts, ...placeholderAccounts]
 
+  const queryClient = useQueryClient()
+
+  const recordMutation = useMutation(
+    tuyau.api.transactions[':id']['record'].$post.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions.$get.queryKey(),
+        }),
+    }),
+  )
+
+  const undoRecordMutation = useMutation(
+    tuyau.api.transactions[':id']['record']['undo'].$post.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions.$get.queryKey(),
+        }),
+    }),
+  )
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -67,7 +89,7 @@ export function CashReceiptsJournal({
                 checked={selectedIds.length === transactions.length}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    onSelectionChange?.(transactions.map(t => t.id))
+                    onSelectionChange?.(transactions.map((t) => t.id))
                   } else {
                     onSelectionChange?.([])
                   }
@@ -92,11 +114,15 @@ export function CashReceiptsJournal({
                     <p className="font-medium">{transaction.description}</p>
                     <p className="text-sm text-gray-500">#{transaction.id}</p>
                   </div>
-                  <Badge 
-                    variant={transaction.recorded ? "default" : "outline"}
-                    className={transaction.recorded ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+                  <Badge
+                    variant={transaction.recorded ? 'default' : 'outline'}
+                    className={
+                      transaction.recorded
+                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                        : ''
+                    }
                   >
-                    {transaction.recorded ? "Recorded" : "Draft"}
+                    {transaction.recorded ? 'Recorded' : 'Draft'}
                   </Badge>
                 </div>
               </td>
@@ -145,7 +171,9 @@ export function CashReceiptsJournal({
                     if (checked) {
                       onSelectionChange?.([...selectedIds, transaction.id])
                     } else {
-                      onSelectionChange?.(selectedIds.filter(id => id !== transaction.id))
+                      onSelectionChange?.(
+                        selectedIds.filter((id) => id !== transaction.id),
+                      )
                     }
                   }}
                 />
@@ -157,7 +185,11 @@ export function CashReceiptsJournal({
                       variant="outline"
                       size="sm"
                       className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                      onClick={() => console.log('Undo record transaction:', transaction.id)}
+                      onClick={() =>
+                        undoRecordMutation.mutate({
+                          params: { id: transaction.id },
+                        })
+                      }
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -166,7 +198,11 @@ export function CashReceiptsJournal({
                       variant="outline"
                       size="sm"
                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      onClick={() => console.log('Record transaction:', transaction.id)}
+                      onClick={() =>
+                        recordMutation.mutate({
+                          params: { id: transaction.id },
+                        })
+                      }
                     >
                       <Check className="w-4 h-4" />
                     </Button>
