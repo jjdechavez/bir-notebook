@@ -51,8 +51,7 @@ export const Route = createFileRoute('/(app)/books')({
   }),
   pendingComponent: SettingPendingComponent,
   errorComponent: GenericErrorComponent,
-  validateSearch: () =>
-    ({}) as Partial<TransactionSearch & { count?: number }>,
+  validateSearch: () => ({}) as Partial<TransactionSearch & { count?: number }>,
 })
 
 const cashReceiptJournalBook = {
@@ -102,6 +101,7 @@ function BooksPage() {
         bookType:
           filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
         search: filters?.search || '',
+        record: filters?.record || '',
       },
     }),
   )
@@ -168,9 +168,9 @@ function BooksPage() {
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
               <Select
-                value={filters.recorded || ''}
+                value={filters.record || ''}
                 onValueChange={(value) =>
-                  setFilters({ recorded: value || undefined })
+                  setFilters({ record: value || undefined })
                 }
               >
                 <SelectTrigger>

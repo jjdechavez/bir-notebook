@@ -42,7 +42,7 @@ export const transactionListValidator = vine.compile(
     dateFrom: vine.date().optional(),
     dateTo: vine.date().optional(),
     search: vine.string().optional(),
-    recorded: vine.string().optional(),
+    record: vine.string().optional(),
   })
 )
 
