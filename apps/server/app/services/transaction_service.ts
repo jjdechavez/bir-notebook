@@ -213,4 +213,56 @@ export class TransactionService {
       data: transaction,
     } as const
   }
+
+  async bulkRecordTransactions(transactionIds: number[], bulkBy = 20) {
+    const results = []
+
+    for (let i = 0; i < transactionIds.length; i += bulkBy) {
+      const batch = transactionIds.slice(i, i + bulkBy)
+
+      const batchResults = await Promise.allSettled(
+        batch.map((transactionId) => this.recordTransaction(transactionId))
+      )
+
+      const batchTransactions = await Transaction.query()
+        .whereIn('id', batch)
+        .whereNull('recordedAt')
+
+      if (batchTransactions.length === 0) {
+        return {
+          status: 'not_found',
+          message: 'No valid transactions found to record',
+          data: [],
+        } as const
+      }
+
+      for (const [index, result] of batchResults.entries()) {
+        const transactionId = batch[index]
+
+        if (result.status === 'fulfilled') {
+          results.push(result.value)
+        } else {
+          results.push({
+            status: 'error',
+            message: `Failed to record transaction ${transactionId}`,
+            transactionId,
+          })
+        }
+      }
+    }
+
+    const successful = results.filter((r) => r.status === 'success')
+    const failed = results.filter((r) => r.status !== 'success')
+
+    return {
+      status: failed.length === 0 ? 'success' : 'partial',
+      message: `Recorded ${successful.length} transactions${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+      data: results,
+      summary: {
+        total: transactionIds.length,
+        successful: successful.length,
+        failed: failed.length,
+      },
+    } as const
+  }
 }

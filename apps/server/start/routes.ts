@@ -71,6 +71,7 @@ router
         router.get('/', [TransactionsController, 'index'])
         router.post('/', [TransactionsController, 'store'])
         router.get('/summary', [TransactionsController, 'summary'])
+        router.post('/record/bulk', [TransactionsController, 'bulkRecordTransaction'])
 
         router.get('/:id', [TransactionsController, 'show'])
         router.put('/:id', [TransactionsController, 'update'])

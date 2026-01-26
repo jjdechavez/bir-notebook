@@ -1,6 +1,7 @@
 import { PaginateDto } from '#dto/paginate'
 import { TransactionService } from '#services/transaction_service'
 import {
+    bulkRecordTransactionValidator,
   createTransactionValidator,
   transactionListValidator,
   updateTransactionValidator,
@@ -122,6 +123,21 @@ export default class TransactionsController {
 
     return {
       data: new TransactionDto(result.data).toJson(),
+      message: result.message,
+    }
+  }
+
+  async bulkRecordTransaction({ request, response }: HttpContext) {
+    const payload = await request.validateUsing(bulkRecordTransactionValidator)
+
+    const result = await this.transactionService.bulkRecordTransactions(payload.transactionIds)
+
+    if (result.status === 'not_found') {
+      return response.notFound({ message: result.message })
+    }
+
+    return {
+      data: result.summary,
       message: result.message,
     }
   }

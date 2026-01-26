@@ -73,3 +73,9 @@ export const updateTransactionValidator = vine.compile(
 )
 
 export type UpdateTransactionData = Infer<typeof updateTransactionValidator>
+
+export const bulkRecordTransactionValidator = vine.compile(
+  vine.object({
+    transactionIds: vine.array(vine.number()),
+  })
+)
