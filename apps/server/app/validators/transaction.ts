@@ -79,3 +79,11 @@ export const bulkRecordTransactionValidator = vine.compile(
     transactionIds: vine.array(vine.number()),
   })
 )
+
+export const transactionCategoryQueryValidator = vine.compile(
+  vine.object({
+    page: vine.number().optional(),
+    limit: vine.number().optional(),
+    s: vine.string().optional(),
+  })
+)

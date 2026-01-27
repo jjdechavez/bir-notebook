@@ -3,6 +3,10 @@ import Transaction from '#models/transaction'
 import UserDto from '#dtos/user'
 import TransactionCategoryDto from '#dtos/transaction_category'
 import AccountDto from '#dtos/account'
+import {
+  TransactionCategoryBookType,
+  TransactionVatType,
+} from '@bir-notebook/shared/models/transaction'
 
 export default class TransactionDto extends BaseModelDto {
   declare id: number
@@ -21,7 +25,7 @@ export default class TransactionDto extends BaseModelDto {
   declare referenceNumber: string
   declare vatType: TransactionVatType
   declare createdAt: string
-  declare vatAmount: string
+  declare vatAmount: number
   declare recordedAt: string | null
 
   constructor(transaction?: Transaction) {

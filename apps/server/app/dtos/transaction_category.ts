@@ -23,9 +23,13 @@ export default class TransactionCategoryDto extends BaseModelDto {
     this.name = transactionCategory.name
     this.bookType = transactionCategory.bookType
     this.defaultDebitAccountId = transactionCategory.defaultDebitAccountId
-    this.defaultDebitAccount = transactionCategory.defaultDebitAccount && new AccountDto(transactionCategory.defaultDebitAccount)
+    this.defaultDebitAccount =
+      transactionCategory.defaultDebitAccount &&
+      new AccountDto(transactionCategory.defaultDebitAccount)
     this.defaultCreditAccountId = transactionCategory.defaultCreditAccountId
-    this.defaultCreditAccount = transactionCategory.defaultCreditAccount && new AccountDto(transactionCategory.defaultCreditAccount)
+    this.defaultCreditAccount =
+      transactionCategory.defaultCreditAccount &&
+      new AccountDto(transactionCategory.defaultCreditAccount)
     this.createdAt = transactionCategory.createdAt.toISO()!
     this.updatedAt = transactionCategory.updatedAt.toISO()!
     this.deletedAt = transactionCategory.deletedAt?.toISO()!
