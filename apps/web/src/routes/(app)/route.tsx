@@ -1,4 +1,4 @@
-import { UserPreferencesProvider } from '@/contexts/user-preferences-context'
+import { UserPreferencesProvider } from '@/lib/user-preferences'
 import { NavigationLayout } from '@/components/navigation-layout'
 import { Spinner } from '@/components/ui/spinner'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'

@@ -1,4 +1,4 @@
-import { useUserPreferencesContext } from '@/contexts/user-preferences-context'
+import { useUserPreferencesContext } from '@/lib/user-preferences'
 import { useAuth } from '@/lib/auth'
 import { getNavigationItems } from '@/lib/navigation-data'
 import { AppSidebar } from '@/components/app-sidebar'

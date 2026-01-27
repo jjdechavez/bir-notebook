@@ -9,7 +9,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Loader2, LayoutIcon, Sun } from 'lucide-react'
-import { useUserPreferencesContext } from '@/contexts/user-preferences-context'
+import { useUserPreferencesContext } from '@/lib/user-preferences'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/(app)/settings/preferences')({
   component: PreferencesComponent,
@@ -30,8 +31,70 @@ function PreferencesComponent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="px-4 lg:px-6 space-y-6">
+        {/* Skeleton for page header */}
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+
+        {/* Skeleton for Navigation Layout card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-32" />
+            </div>
+            <Skeleton className="h-4 w-64" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <Skeleton className="h-4 w-96 ml-6" />
+
+              <div className="flex items-center space-x-2 mt-3">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <Skeleton className="h-4 w-80 ml-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skeleton for Theme card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <Skeleton className="h-4 w-72 ml-6" />
+
+              <div className="flex items-center space-x-2 mt-3">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-4 w-64 ml-6" />
+
+              <div className="flex items-center space-x-2 mt-3">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <Skeleton className="h-4 w-80 ml-6" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

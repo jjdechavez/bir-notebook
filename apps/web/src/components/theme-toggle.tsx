@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Moon, Sun, Monitor } from 'lucide-react'
-import { useUserPreferencesContext } from '@/contexts/user-preferences-context'
+import { useUserPreferencesContext } from '@/lib/user-preferences'
 
 export function ThemeToggle() {
   const { setTheme, isUpdating } = useUserPreferencesContext()

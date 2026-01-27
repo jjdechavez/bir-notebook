@@ -4,7 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../lib/tanstack-query/devtools'
 import { useAuth } from '../lib/auth'
-import { ThemeProvider } from '@/providers/theme-provider'
+import { ThemeProvider } from '../lib/theme'
 
 import type { QueryClient } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
