@@ -1,184 +1,104 @@
-import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useReactTable } from '@tanstack/react-table'
+import { getCoreRowModel, getPaginationRowModel } from '@tanstack/react-table'
+import { tuyau } from '@/main'
+import { useFilters } from '@/hooks/use-filters'
 import type { Transaction } from '@/types/transaction'
-import { getChartOfAccounts } from './utils'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Check, X } from 'lucide-react'
+import type { TransactionSearch } from '@/types/transaction'
+import { transactionCategoryBookTypes } from '@bir-notebook/shared/models/transaction'
+import { BooksDataTable } from './books-data-table'
+import { createCashDisbursementsColumns } from './columns/cash-disbursements-columns'
+import { CashDisbursementsFooter } from './footers/cash-disbursements-footer'
+import { BulkActionBar } from './bulk-action-bar'
+import {
+  DEFAULT_PAGE_INDEX,
+  DEFAULT_PAGE_SIZE,
+  DEFAULT_LIST_META,
+} from '@/lib/constants'
 
 interface CashDisbursementsJournalProps {
-  transactions: Transaction[]
-  columnCount: number
-  selectedIds?: number[]
-  onSelectionChange?: (selectedIds: number[]) => void
+  filters: TransactionSearch
+  columnCount?: number
+  onRecordAction: (action: 'record' | 'undo', transaction: Transaction) => void
 }
 
 export function CashDisbursementsJournal({
-  transactions,
-  columnCount,
-  selectedIds = [],
-  onSelectionChange,
+  filters,
+  columnCount = 6,
+  onRecordAction,
 }: CashDisbursementsJournalProps) {
-  const chartOfAccounts = getChartOfAccounts(transactions)
-  const cashAccount = chartOfAccounts.find(
-    (account) =>
-      account.name.toLowerCase().includes('cash') || account.code === '1000',
-  )
-  const otherAccounts = chartOfAccounts.filter(
-    (account) =>
-      (!account.name.toLowerCase().includes('cash') &&
-        account.code !== '1000') ||
-      account.id !== cashAccount?.id,
-  )
+  const { setFilters } = useFilters('/(app)/books')
 
-  const accountColumnsToShow = columnCount - 3
-  const displayAccounts = otherAccounts.slice(0, accountColumnsToShow)
-  const remainingAccountSlots = accountColumnsToShow - displayAccounts.length
-  const placeholderAccounts = Array.from(
-    { length: remainingAccountSlots },
-    (_, i) => ({
-      id: `placeholder-${i}`,
-      name: `Account ${i + 1}`,
-      code: `000${i + 1}`,
+  const { data: transactionsData, status } = useSuspenseQuery(
+    tuyau.api.transactions.$get.queryOptions({
+      payload: {
+        ...filters,
+        bookType: transactionCategoryBookTypes.cashDisbursementJournal,
+      },
     }),
   )
 
-  const allAccountColumns = [...displayAccounts, ...placeholderAccounts]
+  const columns = createCashDisbursementsColumns(
+    onRecordAction,
+    transactionsData?.data || [],
+    columnCount
+  )
+
+  const table = useReactTable({
+    data: transactionsData?.data || [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    rowCount: Number(transactionsData?.meta.total || 0),
+    state: {
+      pagination: {
+        pageIndex: filters?.page ? +filters.page : DEFAULT_PAGE_INDEX,
+        pageSize: filters?.limit ? +filters.limit : DEFAULT_PAGE_SIZE,
+      },
+    },
+    onPaginationChange: (updater) => {
+      const pagination =
+        typeof updater === 'function'
+          ? updater(table.getState().pagination)
+          : updater
+      setFilters({
+        page: pagination.pageIndex,
+        limit: pagination.pageSize,
+      })
+    },
+    enableRowSelection: true,
+    getRowId: (row) => row.id.toString(),
+  })
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b bg-gray-50">
-            <th className="text-left p-3 w-24">Date</th>
-            <th className="text-left p-3">Description</th>
-            <th className="text-left p-3 w-32">Reference</th>
-            <th className="text-right p-3 w-32">Credit Cash</th>
-            {allAccountColumns.map((account) => (
-              <th key={account.id} className="text-right p-3 text-xs">
-                <div>{account.name}</div>
-                <div className="text-gray-500">(Debit)</div>
-              </th>
-            ))}
-            <th className="text-right p-3 w-32">Debit Sundry</th>
-            <th className="text-right p-3 w-32">Debit Sundry Amount</th>
-            <th className="text-center p-3 w-12">
-              <Checkbox
-                checked={selectedIds.length === transactions.length}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    onSelectionChange?.(transactions.map(t => t.id))
-                  } else {
-                    onSelectionChange?.([])
-                  }
-                }}
-              />
-            </th>
-            <th className="text-center p-3 w-24">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.map((transaction, index) => (
-            <tr
-              key={transaction.id}
-              className={`border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-            >
-              <td className="p-3">
-                {new Date(transaction.transactionDate).toLocaleDateString()}
-              </td>
-              <td className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <p className="font-medium">{transaction.description}</p>
-                    <p className="text-sm text-gray-500">#{transaction.id}</p>
-                  </div>
-                  <Badge 
-                    variant={transaction.recorded ? "default" : "outline"}
-                    className={transaction.recorded ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
-                  >
-                    {transaction.recorded ? "Recorded" : "Draft"}
-                  </Badge>
-                </div>
-              </td>
-              <td className="p-3">{transaction.referenceNumber || '-'}</td>
-              <td className="p-3 text-right font-medium text-red-600">
-                {transaction.creditAccount?.name
-                  ?.toLowerCase()
-                  .includes('cash')
-                  ? formatCentsToCurrency(transaction.amount)
-                  : '-'}
-              </td>
-              {allAccountColumns.map((account) => (
-                <td
-                  key={account.id}
-                  className="p-3 text-right font-medium text-green-600"
-                >
-                  {transaction.debitAccount?.id === account.id
-                    ? formatCentsToCurrency(transaction.amount)
-                    : '-'}
-                </td>
-              ))}
-              <td className="p-3 text-right">
-                {transaction.debitAccount?.name &&
-                !transaction.debitAccount.name
-                  .toLowerCase()
-                  .includes('cash') &&
-                !allAccountColumns.some(
-                  (acc) => acc.id === transaction.debitAccount?.id,
-                )
-                  ? transaction.debitAccount.name
-                  : '-'}
-              </td>
-              <td className="p-3 text-right font-medium text-green-600">
-                {transaction.debitAccount?.name &&
-                !transaction.debitAccount.name
-                  .toLowerCase()
-                  .includes('cash') &&
-                !allAccountColumns.some(
-                  (acc) => acc.id === transaction.debitAccount?.id,
-                )
-                  ? formatCentsToCurrency(transaction.amount)
-                  : '-'}
-              </td>
-              <td className="p-3 text-center">
-                <Checkbox
-                  checked={selectedIds.includes(transaction.id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      onSelectionChange?.([...selectedIds, transaction.id])
-                    } else {
-                      onSelectionChange?.(selectedIds.filter(id => id !== transaction.id))
-                    }
-                  }}
-                />
-              </td>
-              <td className="p-3">
-                <div className="flex justify-center">
-                  {transaction.recorded ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                      onClick={() => console.log('Undo record transaction:', transaction.id)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      onClick={() => console.log('Record transaction:', transaction.id)}
-                    >
-                      <Check className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <BooksDataTable
+      columns={columns}
+      meta={transactionsData?.meta || DEFAULT_LIST_META}
+      table={table}
+      dataStatus={status}
+      footer={
+        <CashDisbursementsFooter 
+          transactions={transactionsData?.data || []} 
+          columnCount={columnCount}
+        />
+      }
+      actions={
+        <BulkActionBar
+          selectedCount={table.getFilteredSelectedRowModel().rows.length}
+          onRecordSelected={() => {
+            const selectedRows = table.getSelectedRowModel().rows
+            const transactions = selectedRows.map((row) => row.original)
+            console.log('Bulk record:', transactions)
+          }}
+          onUndoSelected={() => {
+            const selectedRows = table.getSelectedRowModel().rows
+            const transactions = selectedRows.map((row) => row.original)
+            console.log('Bulk undo:', transactions)
+          }}
+          onClearSelection={() => table.resetRowSelection()}
+        />
+      }
+    />
   )
 }

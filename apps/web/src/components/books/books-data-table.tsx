@@ -111,15 +111,7 @@ export function BooksDataTable<TData>({
           </TableBody>
 
           {/* Custom footer support */}
-          {footer && (
-            <tfoot>
-              <TableRow>
-                <TableCell colSpan={columns.length} className="p-0">
-                  {footer}
-                </TableCell>
-              </TableRow>
-            </tfoot>
-          )}
+          {footer && <>{footer}</>}
         </Table>
       </div>
 

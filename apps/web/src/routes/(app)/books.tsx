@@ -236,14 +236,14 @@ function BooksPage() {
               totalCredit={totalTransactionAmount}
               totalDebit={totalTransactionAmount}
             />
-            {transactionsData?.data.length === 0 ? (
-              <NoTransactionFound />
-            ) : (
-              <CashReceiptsJournal
-                columnCount={columnCountFilter}
-                transactions={transactionsData.data}
-              />
-            )}
+            <CashReceiptsJournal
+              filters={filters}
+              columnCount={columnCountFilter}
+              onRecordAction={(action, transaction) => {
+                console.log(`${action} transaction:`, transaction.id)
+                // TODO: API call to record/undo transaction
+              }}
+            />
           </BookView>
         </TabsContent>
         <TabsContent
@@ -265,14 +265,14 @@ function BooksPage() {
               totalCredit={totalTransactionAmount}
               totalDebit={totalTransactionAmount}
             />
-            {transactionsData.data.length === 0 ? (
-              <NoTransactionFound />
-            ) : (
-              <CashDisbursementsJournal
-                columnCount={columnCountFilter}
-                transactions={transactionsData?.data || []}
-              />
-            )}
+            <CashDisbursementsJournal
+              filters={filters}
+              columnCount={columnCountFilter}
+              onRecordAction={(action, transaction) => {
+                console.log(`${action} transaction:`, transaction.id)
+                // TODO: API call to record/undo transaction
+              }}
+            />
           </BookView>
         </TabsContent>
         <TabsContent value={generalJournalBook.key} className="space-y-4">
