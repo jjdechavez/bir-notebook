@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useDebouncedCallback } from 'use-debounce'
 
 import { cn } from '@/lib/utils'
 
@@ -30,10 +29,7 @@ function DebounceInput({
   onChange: (value: string | number) => void
 }) {
   const [value, setValue] = React.useState(initialValue)
-  const debounced = useDebouncedCallback(
-    (value) => onChange(value),
-    debounce,
-  )
+  const debounced = useDebouncedCallback((value) => onChange(value), debounce)
 
   React.useEffect(() => {
     setValue(initialValue)

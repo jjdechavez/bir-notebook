@@ -35,7 +35,7 @@ import { tuyau } from '@/main'
 import { toast } from 'sonner'
 
 const defaultValues: TransactionFormData = {
-  categoryId: 0,
+  categoryId: 0, // Keep as 0, validation will require selection
   amount: 0,
   description: '',
   transactionDate: new Date().toISOString().split('T')[0],

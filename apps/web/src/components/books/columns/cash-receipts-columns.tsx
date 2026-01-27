@@ -78,7 +78,7 @@ export const createCashReceiptsColumns = (
         <div className="flex items-center gap-2">
           <div className="flex-1">
             <p className="font-medium">{row.original.description}</p>
-            <p className="text-sm text-gray-500">#{row.original.id}</p>
+            <p className="text-sm text-muted-foreground">#{row.original.id}</p>
           </div>
           <StatusBadge recorded={!!row.original.recorded} />
         </div>
@@ -116,7 +116,7 @@ export const createCashReceiptsColumns = (
           </div>
         ),
         cell: ({ row }) => (
-          <div className="text-right font-medium text-red-600">
+          <div className="text-right font-medium text-destructive-foreground">
             {row.original.creditAccount?.id === account.id
               ? formatCentsToCurrency(row.original.amount)
               : '-'}

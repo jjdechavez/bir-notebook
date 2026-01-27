@@ -1,101 +1,156 @@
-import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { useState } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { Loader2 } from 'lucide-react'
+import { useDebounce } from 'use-debounce'
 
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
 import { tuyau } from '@/main'
 import type { TransactionCategory } from '@/types/transaction'
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 
 interface SelectTransactionCategoryProps {
-  value?: number | null
-  onChange?: (item: TransactionCategory | null) => void
+  multiple?: boolean
+  value?: number | null | number[]
+  onChange?: (value: number | number[] | null) => void
   placeholder?: string
 }
 
 export function SelectTransactionCategory({
+  multiple = false,
   value,
   onChange,
   placeholder = 'Select category...',
 }: SelectTransactionCategoryProps) {
-  const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [debouncedSearch] = useDebounce(search, 1000)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(timer)
-  }, [search])
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery(
+      tuyau.api['transaction-categories']['$get'].infiniteQueryOptions(
+        {
+          payload: {
+            s: debouncedSearch,
+            limit: 50,
+          },
+        },
+        {
+          initialPageParam: 1,
+          getNextPageParam: (lastPage) => {
+            if (lastPage.meta.currentPage === lastPage.meta.lastPage) {
+              return null
+            }
+            return lastPage.meta.currentPage + 1
+          },
+          getPreviousPageParam: (firstPage) => firstPage.meta.currentPage - 1,
+          pageParamKey:
+            tuyau.api['transaction-categories'].$get.infiniteQueryKey(),
+        },
+      ),
+    )
 
-  const payload = {
-    s: debouncedSearch,
-    limit: 100,
-  }
+  const categories: TransactionCategory[] =
+    data?.pages.flatMap((page) => page.data) || []
 
-  const { data } = useQuery(
-    tuyau.api['transaction-categories']['$get'].queryOptions({
-      payload,
-    }),
+  const selectedSingle = !multiple
+    ? categories.find((category) => category.id === value)
+    : null
+
+  const selectedMultiple = multiple
+    ? categories.filter(
+        (category) => Array.isArray(value) && value.includes(category.id),
+      )
+    : []
+
+  const lastItemRef = useInfiniteScroll(
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   )
 
-  const categories: TransactionCategory[] = data?.data || []
-  const selected = categories.find((category) => category.id === value)
+  const handleSingleChange = (selectedValue: number | null) => {
+    if (selectedValue == null) {
+      onChange?.(null)
+      return
+    }
+
+    onChange?.(selectedValue)
+  }
+
+  const handleMultipleChange = (selectedValues: number[]) => {
+    onChange?.(selectedValues)
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="justify-between"
-        >
-          {selected ? selected.name : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Search category..."
+    <Combobox<TransactionCategory, boolean>
+      multiple={multiple}
+      value={multiple ? selectedMultiple : selectedSingle}
+      onValueChange={(newValue) => {
+        if (multiple) {
+          const valueMultiple = (newValue ?? []) as unknown as number[]
+          handleMultipleChange(valueMultiple)
+        } else {
+          const value = (newValue ?? null) as unknown as number | null
+          if (value === null) {
+            onChange?.(null)
+          } else {
+            handleSingleChange(value)
+          }
+        }
+      }}
+      items={categories}
+    >
+      {multiple ? (
+        <ComboboxChips>
+          {selectedMultiple.map((category) => (
+            <ComboboxChip key={category.id}>{category.name}</ComboboxChip>
+          ))}
+          <ComboboxChipsInput
+            placeholder={placeholder}
             value={search}
-            onValueChange={setSearch}
+            onChange={(e) => setSearch(e.target.value)}
           />
-          <CommandEmpty>No role found.</CommandEmpty>
-          <CommandGroup>
-            {categories.map((category) => (
-              <CommandItem
-                key={category.id}
-                value={category.name}
-                onSelect={() => {
-                  onChange?.(category)
-                  setOpen(false)
-                }}
-              >
-                <Check
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    value === category.id ? 'opacity-100' : 'opacity-0',
-                  )}
-                />
-                {category.name}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </ComboboxChips>
+      ) : (
+        <ComboboxInput
+          placeholder={placeholder}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          showTrigger
+          showClear={!!selectedSingle}
+        />
+      )}
+      <ComboboxContent>
+        <ComboboxEmpty>No category found.</ComboboxEmpty>
+        <ComboboxList className="max-h-[400px]">
+          {categories.map((category, index) => (
+            <ComboboxItem
+              key={category.id}
+              value={category.id}
+              ref={index === categories.length - 1 ? lastItemRef : undefined}
+            >
+              {category.name}
+            </ComboboxItem>
+          ))}
+          {isFetchingNextPage && (
+            <div className="flex items-center justify-center p-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="ml-2 text-sm text-muted-foreground">
+                Loading more...
+              </span>
+            </div>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   )
 }

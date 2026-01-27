@@ -56,11 +56,11 @@ export function TransactionForm({ form, ...props }: TransactionFormProps) {
   )
 
   useEffect(() => {
-    if (defaultAccounts) {
+    if (defaultAccounts && categoryId && categoryId > 0) {
       form.setValue('debitAccountId', defaultAccounts.debitAccountId)
       form.setValue('creditAccountId', defaultAccounts.creditAccountId)
     }
-  }, [defaultAccounts, form])
+  }, [defaultAccounts, form, categoryId])
 
   const amount = form.watch('amount')
 
@@ -84,8 +84,10 @@ export function TransactionForm({ form, ...props }: TransactionFormProps) {
             <FieldLabel htmlFor={field.name}>Transaction Category</FieldLabel>
             <SelectTransactionCategory
               value={field.value}
-              onChange={(category) => {
-                field.onChange(category?.id || 0)
+              onChange={(categoryId) => {
+                console.log({ categoryId })
+                console.log(field)
+                field.onChange(categoryId ?? null)
               }}
             />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
