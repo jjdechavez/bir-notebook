@@ -1,4 +1,3 @@
-import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,12 +9,10 @@ import { Moon, Sun, Monitor } from 'lucide-react'
 import { useUserPreferencesContext } from '@/contexts/user-preferences-context'
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme()
-  const { setTheme: setPreferenceTheme, isUpdating } = useUserPreferencesContext()
+  const { setTheme, isUpdating } = useUserPreferencesContext()
   
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme)
-    setPreferenceTheme(newTheme)
   }
   
   return (
