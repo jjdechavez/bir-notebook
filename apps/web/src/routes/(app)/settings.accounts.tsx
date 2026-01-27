@@ -24,7 +24,7 @@ export const Route = createFileRoute('/(app)/settings/accounts')({
 
 function AccountsSetting() {
   return (
-    <div className="px-12 lg:px-8">
+    <div className="">
       <h1 className="font-bold text-xl text-foreground">Accounts</h1>
 
       <div className="divide-y divide-gray-200 dark:divide-white/10">

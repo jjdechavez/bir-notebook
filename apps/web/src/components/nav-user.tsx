@@ -5,6 +5,7 @@ import {
 } from '@tabler/icons-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/theme-toggle'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +78,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <div className="flex items-center justify-between w-full">
+                  <span>Theme</span>
+                  <ThemeToggle />
+                </div>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate({ to: '/settings/accounts' })}
               >

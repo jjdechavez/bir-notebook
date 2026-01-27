@@ -1,3 +1,4 @@
+import { navigationLayouts, themes } from '#models/user_preference'
 import vine from '@vinejs/vine'
 
 export const userListValidator = vine.compile(
@@ -15,5 +16,12 @@ export const updateUserValidator = vine.compile(
       const exist = await db.from('roles').where('id', value).first()
       return !!exist
     }),
+  })
+)
+
+export const updateUserPreferenceValidator = vine.compile(
+  vine.object({
+    navigationLayout: vine.string().in(Object.values(navigationLayouts)).optional(),
+    theme: vine.string().in(Object.values(themes)).optional(),
   })
 )

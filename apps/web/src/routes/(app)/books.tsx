@@ -27,7 +27,7 @@ import {
   BookTransactionTotals,
   NoTransactionFound,
 } from '@/components/books/common'
-import { BulkActionBar } from '@/components/books/bulk-action-bar'
+
 import {
   InputGroup,
   InputGroupAddon,
@@ -113,7 +113,7 @@ function BooksPage() {
   )
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold">BIR Books of Accounts</h1>

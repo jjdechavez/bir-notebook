@@ -44,7 +44,7 @@ function DashboardComponent() {
   const { user } = useAuth()
 
   return (
-    <div className="bg-background p-6">
+    <div className="bg-background">
       <h1 className="text-xl font-bold mb-4">
         Welcome back, {user?.firstName} {user?.lastName}
       </h1>

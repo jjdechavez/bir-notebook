@@ -20,6 +20,7 @@ const TransactionsController = () => import('#controllers/transactions_controlle
 const TransactionCategoriesController = () =>
   import('#controllers/transaction_categories_controller')
 const TransactionAccountsController = () => import('#controllers/transaction_accounts_controller')
+const UserPreferencesController = () => import('#controllers/user_preferences_controller')
 
 router.get('/health', [HealthChecksController])
 router.post('/api/session', [SessionController, 'store'])
@@ -93,6 +94,13 @@ router
         router.get('/accounts', [TransactionAccountsController, 'currentChartOfAccounts'])
       })
       .prefix('/transaction-accounts')
+
+    router
+      .group(() => {
+        router.get('/', [UserPreferencesController, 'show'])
+        router.put('/', [UserPreferencesController, 'update'])
+      })
+      .prefix('/preferences')
   })
   .prefix('/api')
   .middleware([middleware.auth({ guards: ['api'] }), middleware.bouncer()])

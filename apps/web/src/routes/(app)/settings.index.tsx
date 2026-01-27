@@ -8,7 +8,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/lib/auth'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { SettingsIcon, UsersIcon } from 'lucide-react'
+import { LayoutIcon, SettingsIcon, UsersIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/(app)/settings/')({
   component: SettingComponent,
@@ -19,12 +19,25 @@ function SettingComponent() {
   const isAdmin = user!.role === 'Admin'
 
   return (
-    <div className="px-4 lg:px-6 space-y-4">
+    <div className="space-y-4">
       <h1 className="font-bold text-xl text-foreground">Settings</h1>
 
       <Separator />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Item variant="outline" asChild>
+          <Link to="/settings/preferences">
+            <ItemMedia variant="image">
+              <LayoutIcon className="size-6" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>Preferences</ItemTitle>
+              <ItemDescription>
+                Customize navigation and appearance
+              </ItemDescription>
+            </ItemContent>
+          </Link>
+        </Item>
         {isAdmin ? (
           <Item variant="outline" asChild>
             <Link to="/settings/users">
