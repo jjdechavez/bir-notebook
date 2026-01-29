@@ -74,30 +74,30 @@ export function CashDisbursementsFooter({
 
   return (
     <tfoot>
-      <tr className="bg-gray-100 font-bold">
-        <td colSpan={staticColumns + 1} className="p-3 text-right">
+      <tr className="bg-muted/50 font-bold">
+        <td colSpan={staticColumns + 1} className="p-2 text-right">
           Totals:
         </td>
 
         {/* Credit Cash Total */}
-        <td className="p-3 text-right text-destructive-foreground">
+        <td className="p-2 text-right text-destructive-foreground">
           {formatCentsToCurrency(totalCreditCash)}
         </td>
 
         {/* Debit Account Totals */}
         {accountTotals.map(({ account, total }) => (
-          <td key={account.id} className="p-3 text-right text-green-600">
+          <td key={account.id} className="p-2 text-right text-success-foreground">
             {formatCentsToCurrency(total)}
           </td>
         ))}
 
         {/* Debit Sundry Total */}
-        <td className="p-3 text-right text-green-600">
+        <td className="p-2 text-right text-success-foreground">
           {formatCentsToCurrency(sundryTotal)}
         </td>
 
         {/* Debit Sundry Amount Total */}
-        <td className="p-3 text-right text-green-600">
+        <td className="p-2 text-right text-success-foreground">
           {formatCentsToCurrency(sundryTotal)}
         </td>
 
@@ -106,17 +106,17 @@ export function CashDisbursementsFooter({
       </tr>
 
       {/* Grand Total Verification Row */}
-      <tr className="bg-gray-50 font-semibold border-t">
+      <tr className="bg-muted font-semibold border-t">
         <td
           colSpan={staticColumns + allAccountColumns.length + 2}
-          className="p-3 text-right"
+          className="p-2 text-right"
         >
           Grand Total (Credit = Debit):
         </td>
-        <td className="p-3 text-right text-destructive-foreground">
+        <td className="p-2 text-right text-destructive-foreground">
           {formatCentsToCurrency(grandTotal)}
         </td>
-        <td className="p-3 text-right text-green-600">
+        <td className="p-2 text-right text-success-foreground">
           {formatCentsToCurrency(totalDebitAccounts)}
         </td>
         <td></td>

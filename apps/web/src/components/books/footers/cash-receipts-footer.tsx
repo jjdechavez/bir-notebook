@@ -74,13 +74,13 @@ export function CashReceiptsFooter({
 
   return (
     <tfoot>
-      <tr className="bg-gray-100 font-bold">
+      <tr className="bg-muted/50 font-bold">
         <td colSpan={staticColumns + 1} className="p-3 text-right">
           Totals:
         </td>
 
         {/* Debit Cash Total */}
-        <td className="p-3 text-right text-green-600">
+        <td className="p-2 text-right text-success-foreground">
           {formatCentsToCurrency(totalDebitCash)}
         </td>
 
@@ -88,19 +88,19 @@ export function CashReceiptsFooter({
         {accountTotals.map(({ account, total }) => (
           <td
             key={account.id}
-            className="p-3 text-right text-destructive-foreground"
+            className="p-2 text-right text-destructive-foreground"
           >
             {formatCentsToCurrency(total)}
           </td>
         ))}
 
         {/* Credit Sundry Total */}
-        <td className="p-3 text-right text-destructive-foreground">
+        <td className="p-2 text-right text-destructive-foreground">
           {formatCentsToCurrency(sundryTotal)}
         </td>
 
         {/* Credit Sundry Amount Total */}
-        <td className="p-3 text-right text-destructive-foreground">
+        <td className="p-2 text-right text-destructive-foreground">
           {formatCentsToCurrency(sundryTotal)}
         </td>
 
@@ -109,17 +109,17 @@ export function CashReceiptsFooter({
       </tr>
 
       {/* Grand Total Verification Row */}
-      <tr className="bg-gray-50 font-semibold border-t">
+      <tr className="bg-muted font-semibold border-t">
         <td
           colSpan={staticColumns + allAccountColumns.length + 2}
-          className="p-3 text-right"
+          className="p-2 text-right"
         >
           Grand Total (Debit = Credit):
         </td>
-        <td className="p-3 text-right text-green-600">
+        <td className="p-2 text-right text-success-foreground">
           {formatCentsToCurrency(grandTotal)}
         </td>
-        <td className="p-3 text-right text-destructive-foreground">
+        <td className="p-2 text-right text-destructive-foreground">
           {formatCentsToCurrency(totalCreditAccounts)}
         </td>
         <td></td>
