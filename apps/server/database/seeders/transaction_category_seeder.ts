@@ -60,12 +60,6 @@ export default class TransactionCategorySeeder extends BaseSeeder {
         defaultCreditAccountId: accountMap.get('1201'), // Accounts Receivable
       },
       {
-        name: 'Cash Refunds to Customers',
-        bookType: transactionCategoryBookTypes.cashReceiptJournal,
-        defaultDebitAccountId: accountMap.get('4101'), // Sales Revenue
-        defaultCreditAccountId: accountMap.get('1101'), // Cash on Hand
-      },
-      {
         name: "Owner's Capital Contribution",
         bookType: transactionCategoryBookTypes.cashReceiptJournal,
         defaultDebitAccountId: accountMap.get('1101'), // Cash on Hand
@@ -198,6 +192,12 @@ export default class TransactionCategorySeeder extends BaseSeeder {
         bookType: transactionCategoryBookTypes.cashDisbursementJournal,
         defaultDebitAccountId: accountMap.get('1102'), // Cash in Bank
         defaultCreditAccountId: accountMap.get('1101'), // Cash on Hand
+      },
+      {
+        name: 'Cash Refunds to Customers',
+        bookType: transactionCategoryBookTypes.cashDisbursementJournal,
+        defaultCreditAccountId: accountMap.get('1101'), // Cash on Hand
+        defaultDeditAccountId: accountMap.get('4101'), // Sales Revenue
       },
 
       // GENERAL JOURNAL CATEGORIES
