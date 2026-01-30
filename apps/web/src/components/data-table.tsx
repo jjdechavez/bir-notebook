@@ -201,8 +201,9 @@ export function DataTable<TData, TValue>({
           </PaginationItem>
           {paginationRange?.map((page, index) => {
             const pageNumber = +page
+            const tsPageIndex = pageNumber - 1
             const isCurrentPage =
-              table.getState().pagination.pageIndex === pageNumber
+              table.getState().pagination.pageIndex === tsPageIndex
             if (page === DOTS) {
               return (
                 <PaginationItem>
@@ -214,9 +215,11 @@ export function DataTable<TData, TValue>({
             return (
               <PaginationItem key={page}>
                 <PaginationLink
-                  onClick={() =>
-                    isCurrentPage ? undefined : table.setPageIndex(pageNumber)
-                  }
+                  onClick={() => {
+                    return isCurrentPage
+                      ? undefined
+                      : table.setPageIndex(tsPageIndex)
+                  }}
                   isActive={isCurrentPage}
                 >
                   {page}
