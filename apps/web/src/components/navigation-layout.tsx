@@ -24,7 +24,7 @@ export function NavigationLayout({ children }: NavigationLayoutProps) {
     return (
       <div className="min-h-screen">
         <AppNavbar navigationItems={navigationItems} />
-        <main className="container mx-auto pt-6">{children}</main>
+        <main className="container mx-auto py-6">{children}</main>
       </div>
     )
   }
