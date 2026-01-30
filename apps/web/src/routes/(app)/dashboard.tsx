@@ -200,7 +200,12 @@ export function TransactionList() {
   const { filters, setFilters } = useFilters(Route.id)
 
   const { data: transactionsData, status } = useQuery(
-    tuyau.api.transactions.$get.queryOptions({ payload: filters }),
+    tuyau.api.transactions.$get.queryOptions({
+      payload: {
+        ...filters,
+        page: (filters?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
+      },
+    }),
   )
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null)
@@ -213,8 +218,10 @@ export function TransactionList() {
     rowCount: Number(transactionsData?.meta.total || 0),
     state: {
       pagination: {
-        pageIndex: filters?.page ? +filters.page : DEFAULT_PAGE_INDEX,
-        pageSize: filters?.limit ? +filters.limit : DEFAULT_PAGE_SIZE,
+        pageIndex: filters?.pageIndex
+          ? +filters?.pageIndex
+          : DEFAULT_PAGE_INDEX,
+        pageSize: filters?.pageSize ? +filters.pageSize : DEFAULT_PAGE_SIZE,
       },
     },
     onPaginationChange: (pagination) => {
