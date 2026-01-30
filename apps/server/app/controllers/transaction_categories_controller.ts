@@ -32,10 +32,6 @@ export default class TransactionCategoriesController {
       })
     }
 
-    return {
-      debitAccountId: category.defaultDebitAccountId,
-      creditAccountId: category.defaultCreditAccountId,
-      bookType: category.bookType,
-    }
+    return new TransactionCategoryDto(category)
   }
 }

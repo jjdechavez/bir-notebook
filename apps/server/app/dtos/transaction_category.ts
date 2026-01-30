@@ -13,7 +13,6 @@ export default class TransactionCategoryDto extends BaseModelDto {
   declare defaultCreditAccount: AccountDto | null
   declare createdAt: string
   declare updatedAt: string
-  declare deletedAt: string | null
 
   constructor(transactionCategory?: TransactionCategory) {
     super()
@@ -32,6 +31,5 @@ export default class TransactionCategoryDto extends BaseModelDto {
       new AccountDto(transactionCategory.defaultCreditAccount)
     this.createdAt = transactionCategory.createdAt.toISO()!
     this.updatedAt = transactionCategory.updatedAt.toISO()!
-    this.deletedAt = transactionCategory.deletedAt?.toISO()!
   }
 }
