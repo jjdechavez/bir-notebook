@@ -1,10 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { Loader2, X, ChevronDown } from 'lucide-react'
 import { useDebounce } from 'use-debounce'
 
 import {
-  CommandDialog,
   CommandInput,
   CommandList,
   CommandEmpty,
@@ -84,8 +83,6 @@ export function SelectTransactionCategory({
       return
     }
     onChange?.(selectedValue)
-    // // Don't clear search immediately, let the user see the selection
-    // setSearch('')
   }
 
   const handleMultipleChange = (selectedValues: number[]) => {
@@ -109,9 +106,65 @@ export function SelectTransactionCategory({
     handleMultipleChange(newValue)
   }
 
+  // // Keyboard navigation and dropdown management
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     if (
+  //       !event.target ||
+  //       !(event.target as Element).closest('.select-category-container')
+  //     ) {
+  //       setOpen(false)
+  //     }
+  //   }
+
+  //   const handleEscape = (event: KeyboardEvent) => {
+  //     if (event.key === 'Escape') {
+  //       setOpen(false)
+  //     }
+  //   }
+
+  //   const handleKeyDown = (event: KeyboardEvent) => {
+  //     if (!open) return
+
+  //     // Arrow keys and Enter for navigation when dropdown is open
+  //     if (
+  //       event.key === 'ArrowDown' ||
+  //       event.key === 'ArrowUp' ||
+  //       event.key === 'Enter'
+  //     ) {
+  //       // Let cmdk handle keyboard navigation
+  //       return
+  //     }
+
+  //     // Type to search when dropdown is open and not focused on input
+  //     if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+  //       const input = document.querySelector(
+  //         '.select-category-container input[placeholder*="Search"]',
+  //       ) as HTMLInputElement
+  //       if (input && document.activeElement !== input) {
+  //         input.focus()
+  //         input.value += event.key
+  //         setSearch(input.value)
+  //       }
+  //     }
+  //   }
+
+  //   if (open) {
+  //     document.addEventListener('mousedown', handleClickOutside)
+  //     document.addEventListener('keydown', handleEscape)
+  //     document.addEventListener('keydown', handleKeyDown)
+  //   }
+
+  //   return () => {
+  //     document.removeEventListener('mousedown', handleClickOutside)
+  //     document.removeEventListener('keydown', handleEscape)
+  //     document.removeEventListener('keydown', handleKeyDown)
+  //   }
+  // }, [open, setSearch])
+
   return (
-    <>
-      <div onClick={() => setOpen(prev => !prev)}>
+    <div className="select-category-container relative">
+      <div onClick={() => setOpen((prev) => !prev)}>
         {multiple ? (
           <div className="min-h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent/50 transition-colors">
             <div className="flex flex-wrap gap-1">
@@ -164,69 +217,76 @@ export function SelectTransactionCategory({
         )}
       </div>
 
-      <Command className="rounded-lg border">
-        <CommandInput
-          placeholder="Search categories..."
-          value={search}
-          onValueChange={setSearch}
-        />
+      <div
+        className={cn('absolute top-full left-0 right-0 z-50 mt-1', {
+          hidden: !open,
+        })}
+      >
+        <Command className="rounded-lg border shadow-lg bg-background">
+          <CommandInput
+            placeholder="Search categories..."
+            value={search}
+            onValueChange={setSearch}
+            autoFocus
+          />
 
-        <CommandList className={cn({ "hidden": open })}>
-          <CommandEmpty>
-            {search ? 'No category found.' : 'Start typing to search...'}
-          </CommandEmpty>
+          <CommandList>
+            <CommandEmpty>
+              {search ? 'No category found.' : 'Start typing to search...'}
+            </CommandEmpty>
 
-          {categories.length > 0 && (
-            <CommandGroup>
-              {categories.map((category, index) => {
-                const isLast = index === categories.length - 1
-                return (
-                  <CommandItem
-                    key={category.id}
-                    ref={
-                      isLast
-                        ? (node) => {
-                            if (node) {
-                              lastItemRef.current = node
+            {categories.length > 0 && (
+              <CommandGroup>
+                {categories.map((category, index) => {
+                  const isLast = index === categories.length - 1
+                  return (
+                    <CommandItem
+                      key={category.id}
+                      ref={
+                        isLast
+                          ? (node) => {
+                              if (node) {
+                                lastItemRef.current = node
+                              }
                             }
-                          }
-                        : undefined
-                    }
-                    value={category.name}
-                    onSelect={() => {
-                      if (multiple) {
-                        handleToggleMultiple(category.id)
-                      } else {
-                        handleSingleChange(category.id)
-                        setOpen(false)
+                          : undefined
                       }
-                    }}
-                  >
-                    {category.name}
-                    {((multiple &&
-                      Array.isArray(value) &&
-                      value.includes(category.id)) ||
-                      (!multiple && value === category.id)) && (
-                      <div className="ml-auto flex h-4 w-4 items-center justify-center">
-                        <div className="h-2 w-2 rounded-full bg-current" />
-                      </div>
-                    )}
-                  </CommandItem>
-                )
-              })}
+                      value={category.name}
+                      onSelect={() => {
+                        if (multiple) {
+                          handleToggleMultiple(category.id)
+                        } else {
+                          handleSingleChange(category.id)
+                          setOpen(false)
+                        }
+                      }}
+                    >
+                      {category.name}
+                      {((multiple &&
+                        Array.isArray(value) &&
+                        value.includes(category.id)) ||
+                        (!multiple && value === category.id)) && (
+                        <div className="ml-auto flex h-4 w-4 items-center justify-center">
+                          <div className="h-2 w-2 rounded-full bg-current" />
+                        </div>
+                      )}
+                    </CommandItem>
+                  )
+                })}
 
-              {isFetchingNextPage && (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="ml-2 text-sm text-muted-foreground">
-                    Loading more...
-                  </span>
-                </div>
-              )}
-            </CommandGroup>
-          )}
-        </CommandList>
-      </Command>
-    </>
+                {isFetchingNextPage && (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Loading more...
+                    </span>
+                  </div>
+                )}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </div>
+    </div>
   )
 }
