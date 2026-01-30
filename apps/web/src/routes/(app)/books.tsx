@@ -7,7 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Calendar, Download, Search, Filter } from 'lucide-react'
 import { SettingPendingComponent } from '@/components/pending-component'
 import { GenericErrorComponent } from '@/components/error-component'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { useFilters } from '@/hooks/use-filters'
 import type { TransactionSearch } from '@/types/transaction'
@@ -110,6 +114,26 @@ function BooksPage() {
   const totalTransactionAmount = transactionsData.data.reduce(
     (total, t) => total + t.amount,
     0,
+  )
+
+  const queryClient = useQueryClient()
+
+  const recordMutation = useMutation(
+    tuyau.api.transactions[':id']['record'].$post.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions.$get.queryKey(),
+        }),
+    }),
+  )
+
+  const undoRecordMutation = useMutation(
+    tuyau.api.transactions[':id']['record']['undo'].$post.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions.$get.queryKey(),
+        }),
+    }),
   )
 
   return (
@@ -240,8 +264,11 @@ function BooksPage() {
               filters={filters}
               columnCount={columnCountFilter}
               onRecordAction={(action, transaction) => {
-                console.log(`${action} transaction:`, transaction.id)
-                // TODO: API call to record/undo transaction
+                if (action === 'record') {
+                  recordMutation.mutate({ params: { id: transaction.id } })
+                } else if (action === 'undo') {
+                  undoRecordMutation.mutate({ params: { id: transaction.id } })
+                }
               }}
             />
           </BookView>
@@ -269,8 +296,11 @@ function BooksPage() {
               filters={filters}
               columnCount={columnCountFilter}
               onRecordAction={(action, transaction) => {
-                console.log(`${action} transaction:`, transaction.id)
-                // TODO: API call to record/undo transaction
+                if (action === 'record') {
+                  recordMutation.mutate({ params: { id: transaction.id } })
+                } else if (action === 'undo') {
+                  undoRecordMutation.mutate({ params: { id: transaction.id } })
+                }
               }}
             />
           </BookView>
@@ -279,8 +309,11 @@ function BooksPage() {
           <GeneralJournal
             filters={{ ...filters, bookType: generalJournalBook.key }}
             onRecordAction={(action, transaction) => {
-              console.log(`${action} transaction:`, transaction.id)
-              // TODO: API call to record/undo transaction
+              if (action === 'record') {
+                recordMutation.mutate({ params: { id: transaction.id } })
+              } else if (action === 'undo') {
+                undoRecordMutation.mutate({ params: { id: transaction.id } })
+              }
             }}
           />
         </TabsContent>

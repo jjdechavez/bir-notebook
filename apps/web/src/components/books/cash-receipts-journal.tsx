@@ -16,7 +16,7 @@ import {
   DEFAULT_LIST_META,
 } from '@/lib/constants'
 
-interface CashReceiptsJournalProps {
+type CashReceiptsJournalProps = {
   filters: TransactionSearch
   columnCount?: number
   onRecordAction: (action: 'record' | 'undo', transaction: Transaction) => void

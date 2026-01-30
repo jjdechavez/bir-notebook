@@ -85,8 +85,6 @@ export function TransactionForm({ form, ...props }: TransactionFormProps) {
             <SelectTransactionCategory
               value={field.value}
               onChange={(categoryId) => {
-                console.log({ categoryId })
-                console.log(field)
                 field.onChange(categoryId ?? null)
               }}
             />
