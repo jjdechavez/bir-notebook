@@ -19,16 +19,18 @@ export function TransactionPreview({
   formData,
   isValid,
 }: TransactionPreviewProps) {
-  const { data: categories } = useQuery(
-    tuyau.api['transaction-categories'].$get.queryOptions({}),
+  const { data: selectedCategory } = useQuery(
+    tuyau.api['transaction-categories'][':id'].$get.queryOptions(
+      {
+        payload: { id: formData.categoryId },
+      },
+      { enabled: !!formData.categoryId },
+    ),
   )
   const { data: accounts } = useQuery(
     tuyau.api['transaction-accounts'].$get.queryOptions({}),
   )
 
-  const selectedCategory = categories?.data.find(
-    (c) => c.id === formData.categoryId,
-  )
   const selectedDebitAccount = accounts?.data.find(
     (a) => a.id === formData.debitAccountId,
   )
@@ -109,7 +111,7 @@ export function TransactionPreview({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-secondary-foreground">Book:</span>
+              <span className="text-muted-foreground">Book:</span>
               <Badge variant="outline">
                 {selectedCategory
                   ? formatOption(

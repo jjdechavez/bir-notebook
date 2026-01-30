@@ -41,11 +41,9 @@ export function TransactionForm({ form, ...props }: TransactionFormProps) {
   const categoryId = form.watch('categoryId')
 
   const { data: defaultAccounts } = useQuery(
-    tuyau.api['transaction-categories']({
-      id: categoryId,
-    }).$get.queryOptions(
+    tuyau.api['transaction-categories']({ id: categoryId }).$get.queryOptions(
       {
-        params: {
+        payload: {
           id: categoryId,
         },
       },
@@ -57,8 +55,8 @@ export function TransactionForm({ form, ...props }: TransactionFormProps) {
 
   useEffect(() => {
     if (defaultAccounts && categoryId && categoryId > 0) {
-      form.setValue('debitAccountId', defaultAccounts.debitAccountId)
-      form.setValue('creditAccountId', defaultAccounts.creditAccountId)
+      form.setValue('debitAccountId', defaultAccounts.defaultDebitAccountId)
+      form.setValue('creditAccountId', defaultAccounts.defaultCreditAccountId)
     }
   }, [defaultAccounts, form, categoryId])
 
