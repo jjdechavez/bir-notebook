@@ -199,11 +199,17 @@ const columns: ColumnDef<Transaction>[] = [
 export function TransactionList() {
   const { filters, setFilters } = useFilters(Route.id)
 
+  const query = {
+    page: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+    limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
+  }
+
   const { data: transactionsData, status } = useQuery(
     tuyau.api.transactions.$get.queryOptions({
       payload: {
         ...filters,
-        page: (filters?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
+        ...query,
+        page: query.page + 1,
       },
     }),
   )
@@ -218,10 +224,8 @@ export function TransactionList() {
     rowCount: Number(transactionsData?.meta.total || 0),
     state: {
       pagination: {
-        pageIndex: filters?.pageIndex
-          ? +filters?.pageIndex
-          : DEFAULT_PAGE_INDEX,
-        pageSize: filters?.pageSize ? +filters.pageSize : DEFAULT_PAGE_SIZE,
+        pageIndex: query.page,
+        pageSize: query.limit,
       },
     },
     onPaginationChange: (pagination) => {

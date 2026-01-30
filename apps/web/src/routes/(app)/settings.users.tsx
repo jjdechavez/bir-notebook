@@ -111,12 +111,14 @@ function UserSettings() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   const query = {
-    page: filters.pageIndex || DEFAULT_PAGE_INDEX,
-    limit: filters.pageSize || DEFAULT_PAGE_SIZE,
+    page: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+    limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
   }
 
   const { status, data } = useSuspenseQuery(
-    tuyau.api.users.$get.queryOptions({ payload: query }),
+    tuyau.api.users.$get.queryOptions({
+      payload: { ...query, page: query.page + 1 },
+    }),
   )
 
   const table = useReactTable({

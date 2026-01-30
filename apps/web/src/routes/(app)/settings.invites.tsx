@@ -122,7 +122,9 @@ function InviteSettings() {
   }
 
   const { status, data } = useSuspenseQuery(
-    tuyau.api.invites.$get.queryOptions({ payload: query }),
+    tuyau.api.invites.$get.queryOptions({
+      payload: { ...query, page: query.page + 1 },
+    }),
   )
 
   const table = useReactTable({
