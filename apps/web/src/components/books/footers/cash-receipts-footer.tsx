@@ -95,9 +95,7 @@ export function CashReceiptsFooter({
         ))}
 
         {/* Credit Sundry Total */}
-        <td className="p-2 text-right text-destructive-foreground">
-          {formatCentsToCurrency(sundryTotal)}
-        </td>
+        <td />
 
         {/* Credit Sundry Amount Total */}
         <td className="p-2 text-right text-destructive-foreground">

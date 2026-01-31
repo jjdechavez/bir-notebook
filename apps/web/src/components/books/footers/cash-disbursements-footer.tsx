@@ -92,9 +92,7 @@ export function CashDisbursementsFooter({
         ))}
 
         {/* Debit Sundry Total */}
-        <td className="p-2 text-right text-success-foreground">
-          {formatCentsToCurrency(sundryTotal)}
-        </td>
+        <td />
 
         {/* Debit Sundry Amount Total */}
         <td className="p-2 text-right text-success-foreground">
