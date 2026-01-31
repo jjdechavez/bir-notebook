@@ -1,4 +1,8 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import { useReactTable } from '@tanstack/react-table'
 import { getCoreRowModel, getPaginationRowModel } from '@tanstack/react-table'
 import { tuyau } from '@/main'
@@ -15,6 +19,7 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_LIST_META,
 } from '@/lib/constants'
+import { toast } from 'sonner'
 
 interface CashDisbursementsJournalProps {
   filters: TransactionSearch
@@ -41,7 +46,7 @@ export function CashDisbursementsJournal({
   const columns = createCashDisbursementsColumns(
     onRecordAction,
     transactionsData?.data || [],
-    columnCount
+    columnCount,
   )
 
   const table = useReactTable({
@@ -71,6 +76,30 @@ export function CashDisbursementsJournal({
     getRowId: (row) => row.id.toString(),
   })
 
+  const queryClient = useQueryClient()
+
+  const bulkRecordTransactionsMutation = useMutation(
+    tuyau.api.transactions.record.bulk.$post.mutationOptions({
+      onSuccess: () => {
+        toast.success('Transactions has been recorded')
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions.$get.queryKey(),
+        })
+      },
+    }),
+  )
+
+  const bulkUndoRecordTransactionsMutation = useMutation(
+    tuyau.api.transactions.record.undo.bulk.$post.mutationOptions({
+      onSuccess: () => {
+        toast.success('Transactions record has been undo')
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions.$get.queryKey(),
+        })
+      },
+    }),
+  )
+
   return (
     <BooksDataTable
       columns={columns}
@@ -78,8 +107,8 @@ export function CashDisbursementsJournal({
       table={table}
       dataStatus={status}
       footer={
-        <CashDisbursementsFooter 
-          transactions={transactionsData?.data || []} 
+        <CashDisbursementsFooter
+          transactions={transactionsData?.data || []}
           columnCount={columnCount}
         />
       }
@@ -89,12 +118,16 @@ export function CashDisbursementsJournal({
           onRecordSelected={() => {
             const selectedRows = table.getSelectedRowModel().rows
             const transactions = selectedRows.map((row) => row.original)
-            console.log('Bulk record:', transactions)
+            bulkRecordTransactionsMutation.mutate({
+              payload: { transactionIds: transactions.map((t) => t.id) },
+            })
           }}
           onUndoSelected={() => {
             const selectedRows = table.getSelectedRowModel().rows
             const transactions = selectedRows.map((row) => row.original)
-            console.log('Bulk undo:', transactions)
+            bulkUndoRecordTransactionsMutation.mutate({
+              payload: { transactionIds: transactions.map((t) => t.id) },
+            })
           }}
           onClearSelection={() => table.resetRowSelection()}
         />
