@@ -43,7 +43,6 @@ export const createCashReceiptsColumns = (
   const allAccountColumns = [...displayAccounts, ...placeholderAccounts]
 
   return [
-    // Selection column
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
@@ -64,13 +63,11 @@ export const createCashReceiptsColumns = (
       enableHiding: false,
     }),
 
-    // Date column
     columnHelper.accessor('transactionDate', {
       header: 'Date',
       cell: (info) => new Date(info.getValue()).toLocaleDateString(),
     }),
 
-    // Description with status badge
     columnHelper.display({
       id: 'description',
       header: 'Description',
@@ -85,19 +82,17 @@ export const createCashReceiptsColumns = (
       ),
     }),
 
-    // Reference column
     columnHelper.display({
       id: 'reference',
       header: 'Reference',
       cell: ({ row }) => row.original.referenceNumber || '-',
     }),
 
-    // Debit Cash column
     columnHelper.display({
       id: 'debitCash',
       header: () => <div className="text-right">Debit Cash</div>,
       cell: ({ row }) => (
-        <div className="text-right font-medium text-green-600">
+        <div className="text-right font-medium text-success-foreground">
           {row.original.debitAccount?.name?.toLowerCase().includes('cash')
             ? formatCentsToCurrency(row.original.amount)
             : '-'}
@@ -105,7 +100,6 @@ export const createCashReceiptsColumns = (
       ),
     }),
 
-    // Credit Account columns (dynamic)
     ...allAccountColumns.map((account) =>
       columnHelper.display({
         id: `credit-${account.id}`,
@@ -125,7 +119,6 @@ export const createCashReceiptsColumns = (
       }),
     ),
 
-    // Credit Sundry column
     columnHelper.display({
       id: 'creditSundry',
       header: () => <div className="text-right">Credit Sundry</div>,
@@ -144,7 +137,6 @@ export const createCashReceiptsColumns = (
       },
     }),
 
-    // Credit Sundry Amount column
     columnHelper.display({
       id: 'creditSundryAmount',
       header: () => <div className="text-right">Credit Sundry Amount</div>,
@@ -163,7 +155,6 @@ export const createCashReceiptsColumns = (
       },
     }),
 
-    // Actions column
     columnHelper.display({
       id: 'actions',
       header: () => <div className="text-center">Actions</div>,

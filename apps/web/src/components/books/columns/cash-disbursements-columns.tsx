@@ -14,7 +14,7 @@ const DEFAULT_COLUMN_COUNT = 6
 export const createCashDisbursementsColumns = (
   onRecordAction: (action: 'record' | 'undo', transaction: Transaction) => void,
   transactions: Transaction[],
-  columnCount: number = DEFAULT_COLUMN_COUNT
+  columnCount: number = DEFAULT_COLUMN_COUNT,
 ): ColumnDef<Transaction>[] => {
   const chartOfAccounts = getChartOfAccounts(transactions)
   const cashAccount = chartOfAccounts.find(
@@ -43,7 +43,6 @@ export const createCashDisbursementsColumns = (
   const allAccountColumns = [...displayAccounts, ...placeholderAccounts]
 
   return [
-    // Selection column
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
@@ -64,13 +63,11 @@ export const createCashDisbursementsColumns = (
       enableHiding: false,
     }),
 
-    // Date column
     columnHelper.accessor('transactionDate', {
       header: 'Date',
       cell: (info) => new Date(info.getValue()).toLocaleDateString(),
     }),
 
-    // Description with status badge
     columnHelper.display({
       id: 'description',
       header: 'Description',
@@ -85,14 +82,12 @@ export const createCashDisbursementsColumns = (
       ),
     }),
 
-    // Reference column
     columnHelper.display({
       id: 'reference',
       header: 'Reference',
       cell: ({ row }) => row.original.referenceNumber || '-',
     }),
 
-    // Credit Cash column
     columnHelper.display({
       id: 'creditCash',
       header: () => <div className="text-right">Credit Cash</div>,
@@ -105,7 +100,6 @@ export const createCashDisbursementsColumns = (
       ),
     }),
 
-    // Debit Account columns (dynamic)
     ...allAccountColumns.map((account) =>
       columnHelper.display({
         id: `debit-${account.id}`,
@@ -122,10 +116,9 @@ export const createCashDisbursementsColumns = (
               : '-'}
           </div>
         ),
-      })
+      }),
     ),
 
-    // Debit Sundry column
     columnHelper.display({
       id: 'debitSundry',
       header: () => <div className="text-right">Debit Sundry</div>,
@@ -144,7 +137,6 @@ export const createCashDisbursementsColumns = (
       },
     }),
 
-    // Debit Sundry Amount column
     columnHelper.display({
       id: 'debitSundryAmount',
       header: () => <div className="text-right">Debit Sundry Amount</div>,
@@ -163,7 +155,6 @@ export const createCashDisbursementsColumns = (
       },
     }),
 
-    // Actions column
     columnHelper.display({
       id: 'actions',
       header: () => <div className="text-center">Actions</div>,

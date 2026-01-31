@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Check, X } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import type { Transaction } from '@/types/transaction'
 
 interface TransactionActionsProps {
@@ -14,7 +14,11 @@ interface TransactionActionsProps {
   onUndo: () => void
 }
 
-export function TransactionActions({ transaction, onRecord, onUndo }: TransactionActionsProps) {
+export function TransactionActions({
+  transaction,
+  onRecord,
+  onUndo,
+}: TransactionActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -24,13 +28,9 @@ export function TransactionActions({ transaction, onRecord, onUndo }: Transactio
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {transaction.recorded ? (
-          <DropdownMenuItem onClick={onUndo} className="text-orange-600">
-            <X className="mr-2 h-4 w-4" />
-            Undo Record
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onUndo}>Undo Record</DropdownMenuItem>
         ) : (
-          <DropdownMenuItem onClick={onRecord} className="text-blue-600">
-            <Check className="mr-2 h-4 w-4" />
+          <DropdownMenuItem onClick={onRecord}>
             Record Transaction
           </DropdownMenuItem>
         )}

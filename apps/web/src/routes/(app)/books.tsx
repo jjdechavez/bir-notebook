@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Check, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Calendar, Download, Search, Filter } from 'lucide-react'
 import { SettingPendingComponent } from '@/components/pending-component'
@@ -360,10 +359,7 @@ function BookView({
   icon,
   children,
   totalTransaction,
-  bookType,
 }: BookViewProps & { bookType: string }) {
-  const hasRecordedTransactions = false // TODO: Implement proper recorded transaction detection
-
   return (
     <Card>
       <CardHeader>
@@ -377,36 +373,10 @@ function BookView({
               <span className="text-gray-600">Transactions: </span>
               <span className="font-medium">{totalTransaction}</span>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                onClick={() =>
-                  console.log('Record all transactions for', bookType)
-                }
-              >
-                <Check className="h-4 w-4 mr-2" />
-                Record All
-              </Button>
-              {hasRecordedTransactions && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                  onClick={() =>
-                    console.log('Undo all recorded transactions for', bookType)
-                  }
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Undo All
-                </Button>
-              )}
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
-              </Button>
-            </div>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
           </div>
         </div>
       </CardHeader>
