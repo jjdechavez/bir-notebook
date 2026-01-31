@@ -73,6 +73,7 @@ router
         router.post('/', [TransactionsController, 'store'])
         router.get('/summary', [TransactionsController, 'summary'])
         router.post('/record/bulk', [TransactionsController, 'bulkRecordTransaction'])
+        router.post('/record/undo/bulk', [TransactionsController, 'bulkUndoRecordTransaction'])
 
         router.get('/:id', [TransactionsController, 'show'])
         router.put('/:id', [TransactionsController, 'update'])
