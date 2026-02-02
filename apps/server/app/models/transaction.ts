@@ -75,4 +75,13 @@ export default class Transaction extends BaseModel {
 
   @column.dateTime()
   declare recordedAt: DateTime | null
+
+  @column()
+  declare transferGroupId: string | null
+
+  @column.dateTime()
+  declare transferredToGlAt: DateTime | null
+
+  @column()
+  declare glPostingMonth: string | null
 }

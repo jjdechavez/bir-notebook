@@ -75,6 +75,21 @@ router
         router.post('/record/bulk', [TransactionsController, 'bulkRecordTransaction'])
         router.post('/record/undo/bulk', [TransactionsController, 'bulkUndoRecordTransaction'])
 
+        // Transfer endpoints
+        router.post('/transfer-to-general-ledger', [
+          TransactionsController,
+          'transferToGeneralLedger',
+        ])
+        router.post('/transfer-to-general-ledger/bulk', [
+          TransactionsController,
+          'bulkTransferToGeneralLedger',
+        ])
+        router.post('/transfer/validate', [TransactionsController, 'validateTransferEligibility'])
+        router.get('/transfer-history', [TransactionsController, 'getTransferHistory'])
+
+        // General Ledger view
+        router.get('/general-ledger/view', [TransactionsController, 'getGeneralLedgerView'])
+
         router.get('/:id', [TransactionsController, 'show'])
         router.put('/:id', [TransactionsController, 'update'])
         router.post('/:id/record', [TransactionsController, 'recordTransaction'])

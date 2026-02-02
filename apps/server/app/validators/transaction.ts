@@ -87,3 +87,40 @@ export const transactionCategoryQueryValidator = vine.compile(
     s: vine.string().optional(),
   })
 )
+
+export const transferToGeneralLedgerValidator = vine.compile(
+  vine.object({
+    transactionIds: vine.array(vine.number()),
+    targetMonth: vine.string().regex(/^\d{4}-\d{2}$/), // YYYY-MM format
+  })
+)
+
+export const bulkTransferToGeneralLedgerValidator = vine.compile(
+  vine.object({
+    transfers: vine.array(
+      vine.object({
+        transactionIds: vine.array(vine.number()),
+        targetMonth: vine.string().regex(/^\d{4}-\d{2}$/), // YYYY-MM format
+      })
+    ),
+  })
+)
+
+export const generalLedgerViewValidator = vine.compile(
+  vine.object({
+    accountId: vine.number().exists(async (db, value) => {
+      const exist = await db.from('accounts').where('id', value).whereNull('deleted_at').first()
+      return !!exist
+    }),
+    dateFrom: vine.date({ formats: ['YYYY-MM-DD'] }),
+    dateTo: vine.date({ formats: ['YYYY-MM-DD'] }),
+  })
+)
+
+export const transferHistoryValidator = vine.compile(
+  vine.object({
+    transferGroupId: vine.string().optional(),
+    page: vine.number().optional(),
+    limit: vine.number().optional(),
+  })
+)
