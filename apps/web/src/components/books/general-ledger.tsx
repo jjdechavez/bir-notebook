@@ -73,14 +73,14 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
               >
                 <td className="p-3 font-medium">{account.code}</td>
                 <td className="p-3">{account.name}</td>
-                <td className="p-3 text-right font-medium text-green-600">
+                <td className="p-3 text-right font-medium text-success-foreground">
                   {formatCentsToCurrency(account.debit)}
                 </td>
-                <td className="p-3 text-right font-medium text-red-600">
+                <td className="p-3 text-right font-medium text-destructive-foreground">
                   {formatCentsToCurrency(account.credit)}
                 </td>
                 <td
-                  className={`p-3 text-right font-medium ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  className={`p-3 text-right font-medium ${balance >= 0 ? 'text-success-foreground' : 'text-destructive-foreground'}`}
                 >
                   {formatCentsToCurrency(Math.abs(balance))}
                 </td>
@@ -93,12 +93,12 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
             <td colSpan={2} className="p-3 text-right">
               Grand Totals:
             </td>
-            <td className="p-3 text-right text-green-600">
+            <td className="p-3 text-right text-success-foreground">
               {formatCentsToCurrency(
                 accountsArray.reduce((sum, acc) => sum + acc.debit, 0),
               )}
             </td>
-            <td className="p-3 text-right text-red-600">
+            <td className="p-3 text-right text-destructive-foreground">
               {formatCentsToCurrency(
                 accountsArray.reduce((sum, acc) => sum + acc.credit, 0),
               )}
@@ -118,7 +118,11 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
   )
 }
 
-export function ChartOfAccounts() {
+type ChartOfAccountsProps = {
+  onAccountSelect?: (accountId: number) => void
+}
+
+export function ChartOfAccounts({ onAccountSelect }: ChartOfAccountsProps) {
   const { data, status } = useQuery(
     tuyau.api['transaction-accounts'].accounts.$get.queryOptions(),
   )
@@ -140,9 +144,9 @@ export function ChartOfAccounts() {
 
   if (!data) return <div>No accounts found</div>
 
-  const groupByFirstLetter = (accounts: typeof data['data']) => {
-    const grouped: Record<string, typeof data['data']> = {}
-    
+  const groupByFirstLetter = (accounts: (typeof data)['data']) => {
+    const grouped: Record<string, (typeof data)['data']> = {}
+
     accounts.forEach((account) => {
       const firstLetter = account.name.charAt(0).toUpperCase()
       if (!grouped[firstLetter]) {
@@ -167,16 +171,24 @@ export function ChartOfAccounts() {
             </h3>
             <div className="space-y-2">
               {accounts.map((account) => (
-                <div 
-                  key={account.id} 
-                  className="flex items-center p-2 hover:bg-gray-50 rounded"
+                <div
+                  key={account.id}
+                  className={`flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors ${
+                    onAccountSelect
+                      ? 'hover:bg-blue-50 hover:border-blue-200'
+                      : ''
+                  }`}
+                  onClick={() => onAccountSelect?.(account.id)}
                 >
                   <span className="font-mono text-sm text-muted-foreground w-20">
                     {account.code}
                   </span>
-                  <span className="ml-3 text-foreground">
-                    {account.name}
-                  </span>
+                  <span className="ml-3 text-foreground">{account.name}</span>
+                  {onAccountSelect && (
+                    <span className="ml-auto text-xs text-accent-foreground">
+                      View Ledger →
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
