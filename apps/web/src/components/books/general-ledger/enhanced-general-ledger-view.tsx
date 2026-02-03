@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import type { GeneralLedgerView } from '@/types/general-ledger'
 import { formatMonth, formatDate } from '@/lib/general-ledger-helpers'
 
-interface GeneralLedgerViewProps {
+type GeneralLedgerViewProps = {
   ledgerView: GeneralLedgerView
   onTransferClick?: () => void
   onExportClick?: () => void
@@ -58,7 +58,6 @@ export function EnhancedGeneralLedgerView({
 
   return (
     <div className="space-y-6">
-      {/* Account Header */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -128,7 +127,7 @@ export function EnhancedGeneralLedgerView({
               onOpenChange={() => toggleMonth(monthData.month)}
             >
               <CollapsibleTrigger className="w-full">
-                <CardHeader className="flex flex-row items-center justify-between hover:bg-gray-50/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between hover:bg-muted/50 dark:hover:bg-transparent transition-colors">
                   <div className="flex items-center gap-3">
                     {expandedMonths.has(monthData.month) ? (
                       <ChevronDown className="h-4 w-4" />
@@ -162,11 +161,11 @@ export function EnhancedGeneralLedgerView({
                 </CardHeader>
               </CollapsibleTrigger>
 
-              <CollapsibleContent>
+              <CollapsibleContent className="mt-4">
                 <CardContent className="space-y-4">
                   {/* Opening Balance */}
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
-                    <span className="font-medium">Opening Balance</span>
+                  <div className="flex justify-between items-center p-3 bg-info rounded">
+                    <span className="font-medium text-info-foreground">Opening Balance</span>
                     <span className="font-medium">
                       {formatBalance(
                         monthData.openingBalance,
@@ -179,7 +178,7 @@ export function EnhancedGeneralLedgerView({
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="border-b bg-gray-50">
+                        <tr className="border-b bg-muted">
                           <th className="text-left p-3">Date</th>
                           <th className="text-left p-3">Description</th>
                           <th className="text-left p-3">Reference</th>
@@ -195,7 +194,7 @@ export function EnhancedGeneralLedgerView({
                         {monthData.transactions.map((transaction) => (
                           <tr
                             key={transaction.id}
-                            className={`border-b ${transaction.isTransferred ? 'bg-green-50' : ''}`}
+                            className={`border-b ${transaction.isTransferred ? 'bg-success/10 dark:bg-success/20' : ''}`}
                           >
                             <td className="p-3">
                               {formatDate(transaction.date)}
@@ -247,7 +246,7 @@ export function EnhancedGeneralLedgerView({
                   <Separator />
 
                   {/* Period Closing */}
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded border">
                     <div>
                       <h4 className="font-medium mb-2">Period Summary</h4>
                       <div className="space-y-1 text-sm">
@@ -280,7 +279,7 @@ export function EnhancedGeneralLedgerView({
                     </div>
                     <div>
                       <h4 className="font-medium mb-2">Closing Balance</h4>
-                      <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-center p-3 bg-card rounded border">
                         <p className="text-2xl font-bold">
                           {formatBalance(
                             monthData.periodClosing.runningBalance,
@@ -301,7 +300,7 @@ export function EnhancedGeneralLedgerView({
       </div>
 
       {/* Grand Total Footer */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
+      <Card className="bg-muted/50 dark:bg-muted/30 border-2">
         <CardContent className="pt-6">
           <div className="grid grid-cols-4 gap-4">
             <div>
@@ -327,7 +326,7 @@ export function EnhancedGeneralLedgerView({
               <h4 className="font-medium text-sm text-muted-foreground mb-1">
                 Total Credits
               </h4>
-              <p className="text-lg font-bold text-red-600">
+              <p className="text-lg font-bold text-destructive-foreground">
                 {formatCurrency(ledgerView.grandTotal.totalCredits)}
               </p>
             </div>
