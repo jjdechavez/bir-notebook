@@ -56,10 +56,7 @@ export function NavUserNavbar() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <div className="flex items-center justify-between w-full">
-              <span>Theme</span>
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => navigate({ to: '/settings/accounts' })}

@@ -78,14 +78,14 @@ export function AppNavbar({ navigationItems }: AppNavbarProps) {
         <div className="md:hidden border-t">
           <nav className="px-2 pt-2 pb-4 space-y-1">
             {navigationItems.map((item) => (
-              <a
+              <Link
                 key={item.url}
-                href={item.url}
+                to={item.url}
                 className="block px-3 py-2 rounded-md text-base font-medium hover:bg-accent hover:text-accent-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
