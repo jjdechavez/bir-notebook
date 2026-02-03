@@ -165,7 +165,7 @@ export function EnhancedGeneralLedgerView({
                 <CardContent className="space-y-4">
                   {/* Opening Balance */}
                   <div className="flex justify-between items-center p-3 bg-info rounded">
-                    <span className="font-medium text-info-foreground">Opening Balance</span>
+                    <span className="font-medium text-blue-400 dark:text-info-foreground">Opening Balance</span>
                     <span className="font-medium">
                       {formatBalance(
                         monthData.openingBalance,
@@ -194,7 +194,7 @@ export function EnhancedGeneralLedgerView({
                         {monthData.transactions.map((transaction) => (
                           <tr
                             key={transaction.id}
-                            className={`border-b ${transaction.isTransferred ? 'bg-success/10 dark:bg-success/20' : ''}`}
+                            className={`border-b ${transaction.isTransferred ? 'bg-success/50 dark:bg-success/20' : ''}`}
                           >
                             <td className="p-3">
                               {formatDate(transaction.date)}

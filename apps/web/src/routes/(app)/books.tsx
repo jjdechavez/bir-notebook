@@ -25,11 +25,10 @@ import {
   ChartOfAccounts,
   GeneralLedger,
 } from '@/components/books/general-ledger'
-import { EnhancedGeneralLedgerAccountView } from '@/components/books/general-ledger/enhanced-general-ledger-account-view'
+import { EnhancedGeneralLedgerWithSidebar } from '@/components/books/general-ledger/enhanced-general-ledger-with-sidebar'
 import { GeneralLedgerTransferDialog } from '@/components/books/general-ledger/transfer-dialog'
 import { TransferHistory } from '@/components/books/general-ledger/transfer-history'
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
 import {
   BookCountedColumnFilter,
   BookTransactionTotals,
@@ -101,9 +100,6 @@ function BooksPage() {
   const { filters, setFilters } = useFilters(Route.id)
   const columnCountFilter = filters?.count || 6
   const [showTransferDialog, setShowTransferDialog] = useState(false)
-  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
-    null,
-  )
 
   const { data: transactionsData } = useSuspenseQuery(
     tuyau.api.transactions.$get.queryOptions({
@@ -343,51 +339,16 @@ function BooksPage() {
               </TabsList>
 
               <TabsContent value="transactions">
-                {/* Enhanced General Ledger with account selection */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">
-                      General Ledger View
-                    </h3>
-                    <Button
-                      onClick={() => setShowTransferDialog(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Transfer to GL
-                    </Button>
-                  </div>
-
-                  {/* Account selection for detailed view */}
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      Select an account from the Chart of Accounts tab to view
-                      detailed General Ledger entries with monthly grouping.
-                    </p>
-                  </div>
-
-                  {selectedAccountId ? (
-                    <EnhancedGeneralLedgerAccountView
-                      accountId={selectedAccountId}
-                      filters={filters}
-                      onTransferClick={() => setShowTransferDialog(true)}
-                    />
-                  ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <div className="text-lg font-medium mb-2">
-                        No Account Selected
-                      </div>
-                      <div className="text-sm">
-                        Go to the Chart of Accounts tab and select an account to
-                        view its General Ledger.
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <EnhancedGeneralLedgerWithSidebar
+                  dateFrom={filters.dateFrom as string | undefined}
+                  dateTo={filters.dateTo as string | undefined}
+                  onTransferClick={() => setShowTransferDialog(true)}
+                  onExportClick={() => console.log('Export clicked')}
+                />
               </TabsContent>
 
               <TabsContent value="accounts">
-                <ChartOfAccounts onAccountSelect={setSelectedAccountId} />
+                <ChartOfAccounts />
               </TabsContent>
 
               <TabsContent value="transfer-history">
