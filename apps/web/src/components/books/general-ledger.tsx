@@ -118,11 +118,9 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
   )
 }
 
-type ChartOfAccountsProps = {
-  onAccountSelect?: (accountId: number) => void
-}
+type ChartOfAccountsProps = {}
 
-export function ChartOfAccounts({ onAccountSelect }: ChartOfAccountsProps) {
+export function ChartOfAccounts({}: ChartOfAccountsProps) {
   const { data, status } = useQuery(
     tuyau.api['transaction-accounts'].accounts.$get.queryOptions(),
   )
@@ -173,22 +171,12 @@ export function ChartOfAccounts({ onAccountSelect }: ChartOfAccountsProps) {
               {accounts.map((account) => (
                 <div
                   key={account.id}
-                  className={`flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer transition-colors ${
-                    onAccountSelect
-                      ? 'hover:bg-blue-50 hover:border-blue-200'
-                      : ''
-                  }`}
-                  onClick={() => onAccountSelect?.(account.id)}
+                  className={`flex items-center p-2 hover:bg-accent rounded transition-colors `}
                 >
                   <span className="font-mono text-sm text-muted-foreground w-20">
                     {account.code}
                   </span>
                   <span className="ml-3 text-foreground">{account.name}</span>
-                  {onAccountSelect && (
-                    <span className="ml-auto text-xs text-accent-foreground">
-                      View Ledger →
-                    </span>
-                  )}
                 </div>
               ))}
             </div>
