@@ -4,11 +4,15 @@ import UserPreferenceDto from '../dtos/user_preference.js'
 import { updateUserPreferenceValidator } from '#validators/user'
 
 export default class UserPreferencesController {
-  async show({ auth, response }: HttpContext) {
-    const preference = await UserPreference.findBy({ userId: auth.user!.id })
+  async show({ auth }: HttpContext) {
+    let preference = await UserPreference.findBy({ userId: auth.user!.id })
 
     if (!preference) {
-      return response.notFound({ message: 'User preference not found' })
+      preference = await UserPreference.create({
+        userId: auth.user!.id,
+        navigationLayout: 'sidebar',
+        theme: 'system',
+      })
     }
 
     return new UserPreferenceDto(preference)
