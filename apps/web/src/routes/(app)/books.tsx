@@ -405,7 +405,7 @@ function BookView({
           </CardTitle>
           <div className="flex items-center gap-4">
             <div className="text-sm">
-              <span className="text-gray-600">Transactions: </span>
+              <span className="text-muted-foreground">Transactions: </span>
               <span className="font-medium">{totalTransaction}</span>
             </div>
             <Button variant="outline" size="sm">
