@@ -5,7 +5,7 @@ import { EnhancedGeneralLedgerAccountView } from './enhanced-general-ledger-acco
 import type { TransactionSearch } from '@/types/transaction'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 interface EnhancedGeneralLedgerWithSidebarProps {
@@ -124,18 +124,20 @@ export function EnhancedGeneralLedgerWithSidebar({
                     Transfer to GL
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="hidden md:flex"
-                >
-                  {isSidebarOpen ? (
-                    <X className="h-4 w-4" />
-                  ) : (
-                    <Menu className="h-4 w-4" />
-                  )}
-                </Button>
+                {selectedAccountId ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="hidden md:flex"
+                  >
+                    {isSidebarOpen ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <Menu className="h-4 w-4" />
+                    )}
+                  </Button>
+                ) : null}
               </div>
             </div>
 
