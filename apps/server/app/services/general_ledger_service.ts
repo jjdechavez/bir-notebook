@@ -1,5 +1,7 @@
 import Account from '#models/account'
 import Transaction from '#models/transaction'
+import { fromCentsToPrice } from '@bir-notebook/shared/helpers/currency'
+import { transactionCategoryBookTypes } from '@bir-notebook/shared/models/transaction'
 import { DateTime } from 'luxon'
 
 export interface LedgerTransaction {
@@ -248,35 +250,33 @@ export class GeneralLedgerService {
       const parentGlTransactions: ParentGlTransaction[] = []
 
       for (const group of accountGroups) {
-        console.log(group.transactions)
         const totalAmount = group.transactions.reduce((sum, t) => sum + t.amount, 0)
 
-        const parentGl = await Transaction.create({
-          bookType: 'general_ledger',
+        const generalLedger = await Transaction.create({
+          bookType: transactionCategoryBookTypes.generalLedger,
           description: glDescription,
-          amount: totalAmount,
+          amount: fromCentsToPrice(totalAmount),
           debitAccountId: group.debitAccountId,
           creditAccountId: group.creditAccountId,
           userId,
           glId: null,
           glPostingMonth: targetMonth,
-          recordedAt: DateTime.now(),
-          categoryId: undefined, // GL transactions don't need categories
+          categoryId: undefined,
           referenceNumber: undefined,
           vatType: undefined,
         })
 
         parentGlTransactions.push({
-          id: parentGl.id,
-          description: parentGl.description,
-          amount: parentGl.amount,
+          id: generalLedger.id,
+          description: generalLedger.description,
+          amount: generalLedger.amount,
           accountPair: `${group.debitAccountId}-${group.creditAccountId}`,
           debitAccountId: group.debitAccountId,
           creditAccountId: group.creditAccountId,
           targetMonth: targetMonth,
         })
 
-        await this.linkChildrenToParent(group.transactions, parentGl.id, targetMonth)
+        await this.linkChildrenToParent(group.transactions, generalLedger.id, targetMonth)
       }
 
       const result: TransferResult = {
