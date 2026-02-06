@@ -3,7 +3,7 @@ import { getChartOfAccounts } from '../utils'
 import type { Transaction } from '@/types/transaction'
 
 interface CashDisbursementsFooterProps {
-  transactions: Transaction[]
+  transactions: Array<Transaction>
   columnCount?: number
 }
 
@@ -86,7 +86,10 @@ export function CashDisbursementsFooter({
 
         {/* Debit Account Totals */}
         {accountTotals.map(({ account, total }) => (
-          <td key={account.id} className="p-2 text-right text-success-foreground">
+          <td
+            key={account.id}
+            className="p-2 text-right text-success-foreground"
+          >
             {formatCentsToCurrency(total)}
           </td>
         ))}

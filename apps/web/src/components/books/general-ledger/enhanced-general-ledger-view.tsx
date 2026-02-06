@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
 import { ChevronDown, ChevronRight, Download } from 'lucide-react'
+import type { GeneralLedgerView } from '@/types/general-ledger'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -10,8 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import type { GeneralLedgerView } from '@/types/general-ledger'
-import { formatMonth, formatDate } from '@/lib/general-ledger-helpers'
+import { formatDate, formatMonth } from '@/lib/general-ledger-helpers'
 
 type GeneralLedgerViewProps = {
   ledgerView: GeneralLedgerView
@@ -103,7 +103,6 @@ export function EnhancedGeneralLedgerView({
         </CardContent>
       </Card>
 
-      {/* Monthly Sections */}
       <div className="space-y-4">
         {ledgerView.months.map((monthData) => (
           <Card key={monthData.month}>
@@ -112,7 +111,7 @@ export function EnhancedGeneralLedgerView({
               onOpenChange={() => toggleMonth(monthData.month)}
             >
               <CollapsibleTrigger className="w-full">
-                <CardHeader className="flex flex-row items-center justify-between hover:bg-muted/50 dark:hover:bg-transparent transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     {expandedMonths.has(monthData.month) ? (
                       <ChevronDown className="h-4 w-4" />

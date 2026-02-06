@@ -1,4 +1,11 @@
 import { useState } from 'react'
+import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
+import { AlertCircle, ArrowLeft, ArrowRight, Check } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { formatOption } from '@bir-notebook/shared/models/common'
+import { transactionCategoryBookTypeOptions } from '@bir-notebook/shared/models/transaction'
+import type { Transaction } from '@/types/transaction'
+import type { TransferValidationResult } from '@/types/general-ledger'
 import {
   Dialog,
   DialogContent,
@@ -12,12 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
-import { ArrowLeft, ArrowRight, Check, AlertCircle } from 'lucide-react'
 import { tuyau } from '@/main'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Transaction } from '@/types/transaction'
-import type { TransferValidationResult } from '@/types/general-ledger'
 import { formatDate, generateMonthOptions } from '@/lib/general-ledger-helpers'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -28,10 +30,8 @@ import {
   FieldLabel,
   FieldTitle,
 } from '@/components/ui/field'
-import { formatOption } from '@bir-notebook/shared/models/common'
-import { transactionCategoryBookTypeOptions } from '@bir-notebook/shared/models/transaction'
 
-function groupTransactionsByAccounts(transactions: Transaction[]) {
+function groupTransactionsByAccounts(transactions: Array<Transaction>) {
   return transactions.reduce(
     (groups, transaction) => {
       const key = `${transaction.debitAccountId}-${transaction.creditAccountId}`
@@ -56,7 +56,7 @@ function groupTransactionsByAccounts(transactions: Transaction[]) {
         debitAccount: Transaction['debitAccount']
         creditAccountId: number
         creditAccount: Transaction['creditAccount']
-        transactions: Transaction[]
+        transactions: Array<Transaction>
       }
     >,
   )
@@ -66,19 +66,19 @@ type GeneralLedgerTransferDialogProps = {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
-  initialSelectedTransactions?: number[]
+  initialSelectedTransactions?: Array<number>
 }
 
 type TransactionSelectionProps = {
-  selectedTransactions: number[]
-  onSelectionChange: (ids: number[]) => void
+  selectedTransactions: Array<number>
+  onSelectionChange: (ids: Array<number>) => void
   onNext: () => void
-  availableTransactions: Transaction[]
+  availableTransactions: Array<Transaction>
   validationError?: string
 }
 
 type MonthAssignmentProps = {
-  selectedTransactions: number[]
+  selectedTransactions: Array<number>
   onNext: () => void
   onBack: () => void
   targetMonth: string
@@ -501,7 +501,7 @@ export function GeneralLedgerTransferDialog({
   initialSelectedTransactions = [],
 }: GeneralLedgerTransferDialogProps) {
   const [step, setStep] = useState<'select' | 'assign' | 'confirm'>('select')
-  const [selectedTransactions, setSelectedTransactions] = useState<number[]>(
+  const [selectedTransactions, setSelectedTransactions] = useState<Array<number>>(
     initialSelectedTransactions,
   )
   const [targetMonth, setTargetMonth] = useState('')
@@ -526,6 +526,9 @@ export function GeneralLedgerTransferDialog({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: tuyau.api.transactions.$get.queryKey(),
+        })
+        queryClient.invalidateQueries({
+          queryKey: tuyau.api.transactions['general-ledger'].view.pathKey(),
         })
         onSuccess?.()
         onClose()
