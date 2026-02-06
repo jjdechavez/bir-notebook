@@ -328,7 +328,7 @@ function BooksPage() {
             totalTransaction={totalTransactionCount}
             bookType={generalLedgerBook.key}
           >
-            <Tabs defaultValue="transactions">
+            <Tabs defaultValue="transactions" className="gap-6">
               <TabsList>
                 <TabsTrigger value="transactions">Enhanced Ledger</TabsTrigger>
                 <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
@@ -399,7 +399,7 @@ function BookView({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center">
             <span>{icon}</span>
             {title}
           </CardTitle>
