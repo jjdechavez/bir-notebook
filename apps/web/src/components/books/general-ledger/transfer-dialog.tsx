@@ -18,8 +18,49 @@ import { tuyau } from '@/main'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Transaction } from '@/types/transaction'
 import type { TransferValidationResult } from '@/types/general-ledger'
-import { generateMonthOptions } from '@/lib/general-ledger-helpers'
+import { formatDate, generateMonthOptions } from '@/lib/general-ledger-helpers'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from '@/components/ui/field'
+import { formatOption } from '@bir-notebook/shared/models/common'
+import { transactionCategoryBookTypeOptions } from '@bir-notebook/shared/models/transaction'
+
+function groupTransactionsByAccounts(transactions: Transaction[]) {
+  return transactions.reduce(
+    (groups, transaction) => {
+      const key = `${transaction.debitAccountId}-${transaction.creditAccountId}`
+
+      if (!groups[key]) {
+        groups[key] = {
+          debitAccountId: transaction.debitAccountId,
+          debitAccount: transaction.debitAccount,
+          creditAccountId: transaction.creditAccountId,
+          creditAccount: transaction.creditAccount,
+          transactions: [],
+        }
+      }
+
+      groups[key].transactions.push(transaction)
+      return groups
+    },
+    {} as Record<
+      string,
+      {
+        debitAccountId: number
+        debitAccount: Transaction['debitAccount']
+        creditAccountId: number
+        creditAccount: Transaction['creditAccount']
+        transactions: Transaction[]
+      }
+    >,
+  )
+}
 
 type GeneralLedgerTransferDialogProps = {
   isOpen: boolean
@@ -42,11 +83,13 @@ type MonthAssignmentProps = {
   onBack: () => void
   targetMonth: string
   onTargetMonthChange: (month: string) => void
+  glDescription: string
+  onGlDescriptionChange: (description: string) => void
 }
 
 type ConfirmationProps = {
-  selectedTransactions: number[]
   targetMonth: string
+  glDescription: string
   onConfirm: () => void
   onBack: () => void
   isLoading?: boolean
@@ -79,23 +122,29 @@ function TransactionSelectionStep({
   }
 
   const eligibleTransactions = availableTransactions.filter(
-    (t) => t.recorded && !(t as any).transferredToGlAt,
+    (t) => t.recorded && !t.transferredToGlAt,
   )
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Select Transactions</h3>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="select-all"
-            checked={
-              selectedTransactions.length === eligibleTransactions.length &&
-              eligibleTransactions.length > 0
-            }
-            onCheckedChange={handleSelectAll}
-          />
-          <Label htmlFor="select-all">Select All</Label>
+      <div>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold">Select Transactions</h3>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="select-all"
+              checked={
+                selectedTransactions.length === eligibleTransactions.length &&
+                eligibleTransactions.length > 0
+              }
+              onCheckedChange={handleSelectAll}
+            />
+            <Label htmlFor="select-all">Select All</Label>
+          </div>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Only recorded transactions that haven't been transferred can be
+          selected.
         </div>
       </div>
 
@@ -106,11 +155,6 @@ function TransactionSelectionStep({
         </Alert>
       )}
 
-      <div className="text-sm text-muted-foreground">
-        Only recorded transactions that haven't been transferred can be
-        selected.
-      </div>
-
       <div className="max-h-96 overflow-y-auto space-y-2">
         {eligibleTransactions.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
@@ -118,55 +162,50 @@ function TransactionSelectionStep({
             haven't been transferred can be selected.
           </div>
         ) : (
-          eligibleTransactions.map((transaction) => (
-            <Card
-              key={transaction.id}
-              className={`p-4 cursor-pointer transition-colors ${
-                selectedTransactions.includes(transaction.id)
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  checked={selectedTransactions.includes(transaction.id)}
-                  onCheckedChange={(checked) =>
-                    handleTransactionToggle(transaction.id, checked as boolean)
-                  }
-                />
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">{transaction.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(
-                            transaction.transactionDate,
-                          ).toLocaleDateString()}
-                        </span>
+          <FieldGroup className="gap-y-2">
+            {eligibleTransactions.map((transaction) => (
+              <FieldLabel key={transaction.id} className="cursor-pointer">
+                <Field orientation="horizontal">
+                  <Checkbox
+                    checked={selectedTransactions.includes(transaction.id)}
+                    onCheckedChange={(checked) =>
+                      handleTransactionToggle(
+                        transaction.id,
+                        checked as boolean,
+                      )
+                    }
+                  />
+                  <FieldContent>
+                    <FieldTitle className="w-full flex justify-between">
+                      <p>{transaction.description}</p>
+                      <span>{formatCentsToCurrency(transaction.amount)}</span>
+                    </FieldTitle>
+                    <FieldDescription className="flex justify-between">
+                      <div className="flex gap-x-2">
+                        <span>{formatDate(transaction.transactionDate)}</span>
                         <span className="text-sm text-muted-foreground">•</span>
                         <span className="text-sm text-muted-foreground">
                           {transaction.referenceNumber}
                         </span>
                         <Badge variant="outline" className="text-xs">
-                          {transaction.bookType?.replace(/_/g, ' ')}
+                          {formatOption(
+                            transactionCategoryBookTypeOptions,
+                            transaction.bookType,
+                          )}
                         </Badge>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        {formatCentsToCurrency(transaction.amount)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {transaction.debitAccount?.code} →{' '}
-                        {transaction.creditAccount?.code}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          {transaction.debitAccount?.code} →{' '}
+                          {transaction.creditAccount?.code}
+                        </p>
+                      </div>
+                    </FieldDescription>
+                  </FieldContent>
+                </Field>
+              </FieldLabel>
+            ))}
+          </FieldGroup>
         )}
       </div>
 
@@ -190,13 +229,31 @@ function MonthAssignmentStep({
   onBack,
   targetMonth,
   onTargetMonthChange,
+  glDescription,
+  onGlDescriptionChange,
 }: MonthAssignmentProps) {
   const monthOptions = generateMonthOptions()
+
+  const { data: transactionsData } = useQuery(
+    tuyau.api.transactions.$get.queryOptions({
+      payload: {
+        record: 'recorded',
+        limit: 1000,
+      },
+    }),
+  )
+
+  const selectedTransactionsData =
+    transactionsData?.data?.filter((t) =>
+      selectedTransactions.includes(t.id),
+    ) || []
+
+  const accountGroups = groupTransactionsByAccounts(selectedTransactionsData)
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold">Assign Target Month</h3>
+        <h3 className="font-semibold">Assign Target Month</h3>
         <p className="text-sm text-muted-foreground mt-1">
           Select the month for posting these {selectedTransactions.length}{' '}
           transaction{selectedTransactions.length !== 1 ? 's' : ''} to the
@@ -204,45 +261,122 @@ function MonthAssignmentStep({
         </p>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="target-month">Target Month</Label>
-        <select
-          id="target-month"
-          value={targetMonth}
-          onChange={(e) => onTargetMonthChange(e.target.value)}
-          className="w-full p-2 border rounded-md"
-        >
-          <option value="">Select a month</option>
-          {monthOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="space-y-4 flex-1">
+          <div className="space-y-2">
+            <Label htmlFor="target-month">Target Month</Label>
+            <select
+              id="target-month"
+              value={targetMonth}
+              onChange={(e) => onTargetMonthChange(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="">Select a month</option>
+              {monthOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Transfer Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between">
-            <span>Transactions to transfer:</span>
-            <span className="font-medium">{selectedTransactions.length}</span>
+          <div className="space-y-2">
+            <Label htmlFor="gl-description">GL Description</Label>
+            <textarea
+              id="gl-description"
+              value={glDescription}
+              onChange={(e) => onGlDescriptionChange(e.target.value)}
+              placeholder="e.g., Jan Totals sales, Q1 expenses, Year-end closing"
+              className="w-full p-2 border rounded-md resize-none"
+              rows={3}
+              maxLength={255}
+            />
+            <div className="flex justify-between">
+              <p className="text-sm text-muted-foreground">
+                This description will be shown for all transferred transactions
+                in the General Ledger
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {glDescription.length}/255 characters
+              </p>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span>Target posting month:</span>
-            <span className="font-medium">{targetMonth || 'Not selected'}</span>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="space-y-4 flex-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Account Groups</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground mb-3">
+                This transfer will create {Object.keys(accountGroups).length} GL
+                group(s) based on account pairs:
+              </p>
+              {Object.values(accountGroups).map((group, index) => (
+                <div key={index} className="p-3 bg-muted rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm font-medium">
+                        {group.transactions.length} transaction
+                        {group.transactions.length !== 1 ? 's' : ''}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {group.debitAccount?.code} ({group.debitAccount?.name})
+                        → {group.creditAccount?.code} (
+                        {group.creditAccount?.name})
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">
+                        {formatCentsToCurrency(
+                          group.transactions.reduce(
+                            (sum, t) => sum + t.amount,
+                            0,
+                          ),
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Total amount
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Transfer Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between">
+                <span>Transactions to transfer:</span>
+                <span className="font-medium">
+                  {selectedTransactions.length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Target posting month:</span>
+                <span className="font-medium">
+                  {targetMonth || 'Not selected'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={onBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <Button onClick={onNext} disabled={!targetMonth}>
+        <Button
+          onClick={onNext}
+          disabled={!targetMonth || !glDescription.trim()}
+        >
           Next
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
@@ -252,8 +386,8 @@ function MonthAssignmentStep({
 }
 
 function ConfirmationStep({
-  selectedTransactions,
   targetMonth,
+  glDescription,
   onConfirm,
   onBack,
   isLoading = false,
@@ -323,12 +457,22 @@ function ConfirmationStep({
 
           <Separator />
 
+          <div className="space-y-2">
+            <p className="text-sm font-medium">GL Description:</p>
+            <div className="p-2 bg-muted rounded-md text-sm">
+              {glDescription}
+            </div>
+          </div>
+
+          <Separator />
+
           <div>
             <p className="text-sm font-medium mb-2">Transfer Impact:</p>
             <p className="text-sm text-muted-foreground">
-              Select month for posting these {selectedTransactions.length}{' '}
-              transaction{selectedTransactions.length !== 1 ? 's' : ''} to
-              General Ledger.
+              {validation.eligibleTransactions.length} transaction
+              {validation.eligibleTransactions.length !== 1 ? 's' : ''} will be
+              transferred to General Ledger for {targetMonth} with the
+              description above.
             </p>
           </div>
         </CardContent>
@@ -361,6 +505,7 @@ export function GeneralLedgerTransferDialog({
     initialSelectedTransactions,
   )
   const [targetMonth, setTargetMonth] = useState('')
+  const [glDescription, setGlDescription] = useState('')
   const queryClient = useQueryClient()
 
   const { data: transactionsData, status: transactionsStatus } = useQuery(
@@ -408,6 +553,7 @@ export function GeneralLedgerTransferDialog({
       payload: {
         transactionIds: selectedTransactions,
         targetMonth,
+        glDescription,
       },
     })
   }
@@ -416,6 +562,7 @@ export function GeneralLedgerTransferDialog({
     setStep('select')
     setSelectedTransactions(initialSelectedTransactions)
     setTargetMonth('')
+    setGlDescription('')
     transferMutation.reset()
   }
 
@@ -460,13 +607,15 @@ export function GeneralLedgerTransferDialog({
             onBack={handleBack}
             targetMonth={targetMonth}
             onTargetMonthChange={setTargetMonth}
+            glDescription={glDescription}
+            onGlDescriptionChange={setGlDescription}
           />
         )}
 
         {step === 'confirm' && (
           <ConfirmationStep
-            selectedTransactions={selectedTransactions}
             targetMonth={targetMonth}
+            glDescription={glDescription}
             onConfirm={handleConfirmTransfer}
             onBack={handleBack}
             isLoading={transferMutation.isPending}
