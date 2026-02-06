@@ -32,7 +32,6 @@ export function AccountSidebar({
     tuyau.api['transaction-accounts'].accounts.$get.queryOptions(),
   )
 
-  // Group and filter accounts
   const accountGroups = useMemo(() => {
     if (!accountsData?.data) {
       return []
@@ -40,7 +39,6 @@ export function AccountSidebar({
 
     const accounts = accountsData.data
 
-    // Filter accounts by search term
     const filteredAccounts = searchTerm
       ? accounts.filter(
           (account) =>
@@ -49,7 +47,6 @@ export function AccountSidebar({
         )
       : accounts
 
-    // Group by account type
     const assetAccounts = filteredAccounts.filter((acc) => acc.type === 'asset')
     const liabilityAccounts = filteredAccounts.filter(
       (acc) => acc.type === 'liability',
@@ -101,10 +98,10 @@ export function AccountSidebar({
     return (
       <div className="space-y-4">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-300 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-muted rounded w-1/4 mb-4"></div>
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-3 bg-gray-200 rounded"></div>
+              <div key={i} className="h-3 bg-muted/10 rounded"></div>
             ))}
           </div>
         </div>
@@ -119,9 +116,8 @@ export function AccountSidebar({
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
         <Input
           placeholder="Search accounts by code or name..."
           value={searchTerm}
@@ -130,12 +126,10 @@ export function AccountSidebar({
         />
       </div>
 
-      {/* Account Count */}
       <div className="text-sm text-muted-foreground">
         {totalAccounts} account{totalAccounts !== 1 ? 's' : ''} found
       </div>
 
-      {/* Account Groups */}
       <div className="space-y-4 h-full overflow-y-auto pr-2">
         {accountGroups.map((group) => (
           <Card key={group.title}>

@@ -26,7 +26,6 @@ export function EnhancedGeneralLedgerWithSidebar({
 
   const handleAccountSelect = (accountId: number) => {
     setSelectedAccountId(accountId)
-    // Auto-collapse sidebar on mobile after selection
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false)
     }
@@ -38,12 +37,11 @@ export function EnhancedGeneralLedgerWithSidebar({
 
   return (
     <div className="flex gap-6 h-full">
-      {/* Sidebar - 35% */}
       <div
         className={`${isSidebarOpen ? 'w-1/3' : 'w-0'} transition-all duration-300 overflow-hidden`}
       >
         <div className="max-w-full">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex justify-between mb-4">
             <h2 className="text-lg font-semibold">Accounts</h2>
             <div className="flex gap-2">
               <Button
@@ -53,6 +51,10 @@ export function EnhancedGeneralLedgerWithSidebar({
                 disabled={!selectedAccountId}
               >
                 Clear
+              </Button>
+
+              <Button onClick={onTransferClick} size="sm" className="mb-4">
+                Transfer to GL
               </Button>
               <Button
                 variant="outline"
@@ -92,11 +94,6 @@ export function EnhancedGeneralLedgerWithSidebar({
               >
                 ← Back to Accounts
               </Button>
-              {onTransferClick && (
-                <Button onClick={onTransferClick} className="mb-4">
-                  Transfer to GL
-                </Button>
-              )}
               {onExportClick && (
                 <Button
                   variant="outline"
@@ -108,12 +105,10 @@ export function EnhancedGeneralLedgerWithSidebar({
               )}
             </div>
 
-            {/* General Ledger View */}
             <div className="border-l-2 border-blue-200 pl-4">
               <EnhancedGeneralLedgerAccountView
                 accountId={selectedAccountId}
                 filters={{ dateFrom, dateTo } as TransactionSearch}
-                onTransferClick={onTransferClick}
               />
             </div>
           </div>
