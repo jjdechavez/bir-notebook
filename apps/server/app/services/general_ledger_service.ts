@@ -1,6 +1,5 @@
 import Account from '#models/account'
 import Transaction from '#models/transaction'
-import { cuid } from '@adonisjs/core/helpers'
 import { DateTime } from 'luxon'
 
 export interface LedgerTransaction {
@@ -59,6 +58,28 @@ export interface TransferValidationResult {
   }>
 }
 
+export interface TransactionGroup {
+  debitAccountId: number
+  creditAccountId: number
+  transactions: Transaction[]
+}
+
+export interface ParentGlTransaction {
+  id: number
+  description: string
+  amount: number
+  accountPair: string
+  debitAccountId: number
+  creditAccountId: number
+  targetMonth: string
+}
+
+export interface TransferResult {
+  parentGlTransactions: ParentGlTransaction[]
+  totalTransactions: number
+  totalGroups: number
+}
+
 export interface TransferSummary {
   transferGroupId: string
   totalTransactions: number
@@ -78,6 +99,31 @@ export interface TransferSummary {
 
 export class GeneralLedgerService {
   constructor() {}
+
+  /**
+   * Group transactions by account pairs for hierarchical GL structure
+   */
+  private groupTransactionsByAccounts(transactions: Transaction[]): TransactionGroup[] {
+    const groups = transactions.reduce(
+      (result, transaction) => {
+        const key = `${transaction.debitAccountId}-${transaction.creditAccountId}`
+
+        if (!result[key]) {
+          result[key] = {
+            debitAccountId: transaction.debitAccountId,
+            creditAccountId: transaction.creditAccountId,
+            transactions: [],
+          }
+        }
+
+        result[key].transactions.push(transaction)
+        return result
+      },
+      {} as Record<string, TransactionGroup>
+    )
+
+    return Object.values(groups)
+  }
 
   /**
    * Get General Ledger view for a specific account with multi-month grouping
@@ -174,20 +220,17 @@ export class GeneralLedgerService {
     }
   }
 
-  /**
-   * Transfer transactions to General Ledger
-   */
   async transferToGeneralLedger(
     transactionIds: number[],
     targetMonth: string,
+    glDescription: string,
     userId: number
-  ): Promise<{ status: string; summary: TransferSummary; errors?: string[] }> {
+  ): Promise<{ status: string; result?: TransferResult; errors?: string[] }> {
     const validation = await this.validateTransferEligibility(transactionIds, userId)
 
     if (!validation.isValid || validation.eligibleTransactions.length === 0) {
       return {
         status: 'error',
-        summary: {} as TransferSummary,
         errors:
           validation.errors.length > 0
             ? validation.errors
@@ -195,38 +238,62 @@ export class GeneralLedgerService {
       }
     }
 
-    const transferGroupId = `transfer_${cuid()}`
+    try {
+      const sourceTransactions = await Transaction.query()
+        .whereIn('id', validation.eligibleTransactions)
+        .andWhere('userId', userId)
 
-    const results = await Promise.allSettled(
-      validation.eligibleTransactions.map((transactionId) =>
-        this.transferSingleTransaction(transactionId, targetMonth, transferGroupId)
-      )
-    )
+      const accountGroups = this.groupTransactionsByAccounts(sourceTransactions)
 
-    const successful = results.filter((r) => r.status === 'fulfilled').length
-    const failed = results.filter((r) => r.status === 'rejected').length
+      const parentGlTransactions: ParentGlTransaction[] = []
 
-    if (failed > 0) {
-      const errors = results
-        .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-        .map((r) => r.reason as string)
+      for (const group of accountGroups) {
+        console.log(group.transactions)
+        const totalAmount = group.transactions.reduce((sum, t) => sum + t.amount, 0)
+
+        const parentGl = await Transaction.create({
+          bookType: 'general_ledger',
+          description: glDescription,
+          amount: totalAmount,
+          debitAccountId: group.debitAccountId,
+          creditAccountId: group.creditAccountId,
+          userId,
+          glId: null,
+          glPostingMonth: targetMonth,
+          recordedAt: DateTime.now(),
+          categoryId: undefined, // GL transactions don't need categories
+          referenceNumber: undefined,
+          vatType: undefined,
+        })
+
+        parentGlTransactions.push({
+          id: parentGl.id,
+          description: parentGl.description,
+          amount: parentGl.amount,
+          accountPair: `${group.debitAccountId}-${group.creditAccountId}`,
+          debitAccountId: group.debitAccountId,
+          creditAccountId: group.creditAccountId,
+          targetMonth: targetMonth,
+        })
+
+        await this.linkChildrenToParent(group.transactions, parentGl.id, targetMonth)
+      }
+
+      const result: TransferResult = {
+        parentGlTransactions,
+        totalTransactions: sourceTransactions.length,
+        totalGroups: accountGroups.length,
+      }
 
       return {
-        status: successful > 0 ? 'partial' : 'error',
-        summary: {} as TransferSummary,
-        errors,
+        status: 'success',
+        result,
       }
-    }
-
-    const summary = await this.generateTransferSummary(
-      validation.eligibleTransactions,
-      targetMonth,
-      transferGroupId
-    )
-
-    return {
-      status: 'success',
-      summary,
+    } catch (error) {
+      return {
+        status: 'error',
+        errors: [error instanceof Error ? error.message : 'Unknown error occurred'],
+      }
     }
   }
 
@@ -234,18 +301,36 @@ export class GeneralLedgerService {
    * Get transfer history
    */
   async getTransferHistory(userId: number, transferGroupId?: string): Promise<any[]> {
-    const query = Transaction.query()
-      .where('userId', userId)
-      .whereNotNull('transferGroupId')
-      .preload('debitAccount')
-      .preload('creditAccount')
-      .preload('category')
-
     if (transferGroupId) {
-      query.where('transferGroupId', transferGroupId)
+      // Get specific transfer group - return both parent and children
+      return await Transaction.query()
+        .where('userId', userId)
+        .where(function (query) {
+          query
+            .where('id', transferGroupId) // Parent GL
+            .orWhere('glId', transferGroupId) // Child transactions
+        })
+        .preload('debitAccount')
+        .preload('creditAccount')
+        .preload('category')
+        .preload('generalLedger')
+        .preload('children')
+        .orderBy('createdAt', 'desc')
+        .exec()
+    } else {
+      // Return all parent GL transactions (transfer groups)
+      return await Transaction.query()
+        .where('userId', userId)
+        .where('bookType', 'general_ledger')
+        .whereNull('glId') // Parent GL only
+        .preload('debitAccount')
+        .preload('creditAccount')
+        .preload('children', (childrenQuery) => {
+          childrenQuery.preload('category')
+        })
+        .orderBy('createdAt', 'desc')
+        .exec()
     }
-
-    return query.orderBy('transferredToGlAt', 'desc').exec()
   }
 
   /**
@@ -256,10 +341,23 @@ export class GeneralLedgerService {
     asOfDate: Date,
     userId: number
   ): Promise<number> {
+    const asOfDateTime = DateTime.fromJSDate(asOfDate)
+
+    // Get both regular recorded transactions and GL parent transactions
     const previousTransactions = await Transaction.query()
       .where('userId', userId)
-      .whereNotNull('recordedAt')
-      .where('transactionDate', '<', DateTime.fromJSDate(asOfDate).toSQLDate()!)
+      .where(function (query) {
+        // Include recorded regular transactions
+        query.whereNotNull('recordedAt').where('transactionDate', '<', asOfDateTime.toSQLDate()!)
+
+        // OR include GL parent transactions created before this date
+        query.orWhere(function (subQuery) {
+          subQuery
+            .where('bookType', 'general_ledger')
+            .whereNull('glId') // Parent GL only
+            .where('createdAt', '<', asOfDateTime.toSQLDate()!)
+        })
+      })
       .where(function (query) {
         query.where('debit_account_id', accountId).orWhere('credit_account_id', accountId)
       })
@@ -286,44 +384,46 @@ export class GeneralLedgerService {
     month: string,
     userId: number
   ): Promise<LedgerTransaction[]> {
-    const [year, monthNumber] = month.split('-').map(Number)
-    const startDate = DateTime.fromObject({ year, month: monthNumber, day: 1 })
-    const endDate = startDate.endOf('month')
-
+    // Query both parent GL transactions and child transactions
     const transactions = await Transaction.query()
       .where('userId', userId)
-      .whereNotNull('recordedAt')
-      .where('transactionDate', '>=', startDate.toSQLDate()!)
-      .where('transactionDate', '<=', endDate.toSQLDate()!)
+      .where('glPostingMonth', month) // Filter by posting month instead of transaction date
       .where(function (query) {
         query.where('debit_account_id', accountId).orWhere('credit_account_id', accountId)
       })
       .preload('debitAccount')
       .preload('creditAccount')
-      .orderBy('transactionDate', 'asc')
+      .preload('children', (childrenQuery) => {
+        childrenQuery.preload('category').preload('debitAccount').preload('creditAccount')
+      })
+      .preload('generalLedger') // For child transactions to get parent description
+      .orderBy('created_at', 'asc')
       .orderBy('id', 'asc')
 
     const ledgerTransactions: LedgerTransaction[] = []
 
     for (const transaction of transactions) {
-      const isDebit = transaction.debitAccountId === accountId
-      const counterpartAccount = isDebit ? transaction.creditAccount : transaction.debitAccount
+      // Show parent GL transactions with their description
+      if (transaction.isParentGl) {
+        const isDebit = transaction.debitAccountId === accountId
+        const counterpartAccount = isDebit ? transaction.creditAccount : transaction.debitAccount
 
-      ledgerTransactions.push({
-        id: transaction.id,
-        date: transaction.transactionDate.toISODate()!,
-        description: transaction.description,
-        referenceNumber: transaction.referenceNumber,
-        debitAmount: isDebit ? transaction.amount : undefined,
-        creditAmount: !isDebit ? transaction.amount : undefined,
-        counterpartAccount: {
-          code: counterpartAccount?.code || '',
-          name: counterpartAccount?.name || '',
-        },
-        transferGroupId: transaction.transferGroupId || undefined,
-        transferredAt: transaction.transferredToGlAt?.toString(),
-        isTransferred: !!transaction.transferredToGlAt,
-      })
+        ledgerTransactions.push({
+          id: transaction.id,
+          date: transaction.createdAt.toISODate()!, // Use created_at for GL posting date
+          description: transaction.description, // Parent description like "Jan Totals sales"
+          referenceNumber: undefined,
+          debitAmount: isDebit ? transaction.amount : undefined,
+          creditAmount: !isDebit ? transaction.amount : undefined,
+          counterpartAccount: {
+            code: counterpartAccount?.code || '',
+            name: counterpartAccount?.name || '',
+          },
+          transferGroupId: transaction.id.toString(),
+          transferredAt: transaction.createdAt.toString(),
+          isTransferred: true,
+        })
+      }
     }
 
     return ledgerTransactions
@@ -393,82 +493,22 @@ export class GeneralLedgerService {
   }
 
   /**
-   * Transfer a single transaction
+   * Link child transactions to parent GL transaction
    */
-  private async transferSingleTransaction(
-    transactionId: number,
-    targetMonth: string,
-    transferGroupId: string
+  private async linkChildrenToParent(
+    transactions: Transaction[],
+    parentGlId: number,
+    targetMonth: string
   ): Promise<void> {
-    const transaction = await Transaction.find(transactionId)
-    if (!transaction) {
-      throw new Error(`Transaction ${transactionId} not found`)
-    }
-
-    transaction.transferGroupId = transferGroupId
-    transaction.transferredToGlAt = DateTime.now()
-    transaction.glPostingMonth = targetMonth
-
-    await transaction.save()
-  }
-
-  /**
-   * Generate transfer summary
-   */
-  private async generateTransferSummary(
-    transactionIds: number[],
-    targetMonth: string,
-    transferGroupId: string
-  ): Promise<TransferSummary> {
-    const transactions = await Transaction.query()
-      .whereIn('id', transactionIds)
-      .preload('debitAccount')
-      .preload('creditAccount')
-
-    // Group by accounts affected
-    const accountsMap = new Map<number, any>()
-
-    for (const transaction of transactions) {
-      // Handle debit account
-      if (!accountsMap.has(transaction.debitAccountId)) {
-        accountsMap.set(transaction.debitAccountId, {
-          account: transaction.debitAccount,
-          debitCount: 0,
-          creditCount: 0,
-          totalDebitAmount: 0,
-          totalCreditAmount: 0,
-        })
-      }
-      const debitAccountData = accountsMap.get(transaction.debitAccountId)!
-      debitAccountData.debitCount++
-      debitAccountData.totalDebitAmount += transaction.amount
-
-      // Handle credit account
-      if (!accountsMap.has(transaction.creditAccountId)) {
-        accountsMap.set(transaction.creditAccountId, {
-          account: transaction.creditAccount,
-          debitCount: 0,
-          creditCount: 0,
-          totalDebitAmount: 0,
-          totalCreditAmount: 0,
-        })
-      }
-      const creditAccountData = accountsMap.get(transaction.creditAccountId)!
-      creditAccountData.creditCount++
-      creditAccountData.totalCreditAmount += transaction.amount
-    }
-
-    return {
-      transferGroupId,
-      totalTransactions: transactionIds.length,
-      accountsAffected: Array.from(accountsMap.values()),
-      targetMonths: [
-        {
-          month: targetMonth,
-          transactionCount: transactionIds.length,
-          totalAmount: transactions.reduce((sum, t) => sum + t.amount, 0),
-        },
-      ],
-    }
+    await Transaction.query()
+      .whereIn(
+        'id',
+        transactions.map((t) => t.id)
+      )
+      .update({
+        glId: parentGlId,
+        transferredToGlAt: DateTime.now(),
+        glPostingMonth: targetMonth,
+      })
   }
 }

@@ -1,4 +1,3 @@
-import { PaginateDto } from '#dto/paginate'
 import { TransactionService } from '#services/transaction_service'
 import { GeneralLedgerService } from '#services/general_ledger_service'
 import {
@@ -11,7 +10,7 @@ import {
   generalLedgerViewValidator,
   transferHistoryValidator,
 } from '#validators/transaction'
-import { TransactionDto } from '#dto/transaction'
+import TransactionDto from '#dtos/transaction'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import Transaction from '#models/transaction'
@@ -31,14 +30,8 @@ export default class TransactionsController {
       ...filters
     } = await request.validateUsing(transactionListValidator)
     const result = await this.transactionService.paginate(page, limit, { ...filters, userId })
-    const resultJson = result.toJSON()
 
-    return {
-      data: resultJson.data.map((transaction) =>
-        new TransactionDto(transaction as Transaction).toJson()
-      ),
-      meta: new PaginateDto(resultJson.meta).metaToJson(),
-    }
+    return TransactionDto.fromPaginator(result)
   }
 
   async store({ request, response, auth }: HttpContext) {
@@ -159,28 +152,29 @@ export default class TransactionsController {
     }
   }
 
-  async transferToGeneralLedger({ request, auth }: HttpContext) {
+  async transferToGeneralLedger({ request, auth, response }: HttpContext) {
     const payload = await request.validateUsing(transferToGeneralLedgerValidator)
 
     const result = await this.generalLedgerService.transferToGeneralLedger(
       payload.transactionIds,
       payload.targetMonth,
+      payload.glDescription,
       auth.user!.id
     )
 
     if (result.status === 'error') {
-      return {
+      return response.internalServerError({
         status: result.status,
         errors: result.errors,
         message: 'Transfer failed',
-      }
+      })
     }
 
-    return {
+    return response.ok({
       status: result.status,
-      data: result.summary,
-      message: `Successfully transferred ${result.summary.totalTransactions} transactions to General Ledger`,
-    }
+      data: result.result,
+      message: `Successfully transferred ${result.result?.totalTransactions} transactions to ${result.result?.totalGroups} GL group(s)`,
+    })
   }
 
   async bulkTransferToGeneralLedger({ request, auth }: HttpContext) {
@@ -191,6 +185,7 @@ export default class TransactionsController {
         this.generalLedgerService.transferToGeneralLedger(
           transfer.transactionIds,
           transfer.targetMonth,
+          transfer.glDescription,
           auth.user!.id
         )
       )
@@ -206,7 +201,7 @@ export default class TransactionsController {
         totalGroups: payload.transfers.length,
         successful: successful.length,
         failed: failed.length,
-        results: successful.map((r) => (r as PromiseFulfilledResult<any>).value.summary),
+        results: successful.map((r) => (r as PromiseFulfilledResult<any>).value.result),
       },
     }
   }
@@ -253,6 +248,54 @@ export default class TransactionsController {
 
     return {
       data: ledgerView,
+    }
+  }
+
+  async updateGlDescription({ params, request, auth, response }: HttpContext) {
+    try {
+      const { description } = request.only(['description'])
+
+      if (!description || description.trim().length === 0) {
+        return response.badRequest({
+          message: 'Description is required',
+        })
+      }
+
+      if (description.length > 255) {
+        return response.badRequest({
+          message: 'Description must be less than 255 characters',
+        })
+      }
+
+      // Find the parent GL transaction
+      const glTransaction = await Transaction.query()
+        .where('id', params.id)
+        .where('userId', auth.user!.id)
+        .where('bookType', 'general_ledger')
+        .whereNull('glId') // Parent GL only
+        .first()
+
+      if (!glTransaction) {
+        return response.notFound({
+          message: 'GL transaction not found',
+        })
+      }
+
+      // Update the description
+      glTransaction.description = description.trim()
+      await glTransaction.save()
+
+      return {
+        message: 'GL transaction description updated successfully',
+        data: {
+          id: glTransaction.id,
+          description: glTransaction.description,
+        },
+      }
+    } catch (error) {
+      return response.badRequest({
+        message: 'Failed to update GL transaction description',
+      })
     }
   }
 }

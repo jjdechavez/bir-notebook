@@ -92,6 +92,7 @@ export const transferToGeneralLedgerValidator = vine.compile(
   vine.object({
     transactionIds: vine.array(vine.number()),
     targetMonth: vine.string().regex(/^\d{4}-\d{2}$/), // YYYY-MM format
+    glDescription: vine.string().minLength(1).maxLength(255), // NEW: Parent GL description
   })
 )
 
@@ -101,6 +102,7 @@ export const bulkTransferToGeneralLedgerValidator = vine.compile(
       vine.object({
         transactionIds: vine.array(vine.number()),
         targetMonth: vine.string().regex(/^\d{4}-\d{2}$/), // YYYY-MM format
+        glDescription: vine.string().minLength(1).maxLength(255), // NEW: Parent GL description per transfer
       })
     ),
   })

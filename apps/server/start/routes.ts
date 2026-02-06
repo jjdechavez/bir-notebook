@@ -90,6 +90,9 @@ router
         // General Ledger view
         router.get('/general-ledger/view', [TransactionsController, 'getGeneralLedgerView'])
 
+        // GL description editing
+        router.put('/gl/:id/update-description', [TransactionsController, 'updateGlDescription'])
+
         router.get('/:id', [TransactionsController, 'show'])
         router.put('/:id', [TransactionsController, 'update'])
         router.post('/:id/record', [TransactionsController, 'recordTransaction'])
