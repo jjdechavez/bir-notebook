@@ -79,6 +79,11 @@ export class TransactionService {
         rtQuery.whereNotNull('recordedAt')
       })
     }
+    if (filters.exclude) {
+      const exclude =
+        typeof filters.exclude === 'string' ? filters.exclude.split(',') : filters.exclude || []
+      query.whereNotIn('bookType', exclude)
+    }
 
     const transactions = await query.orderBy('transactionDate', 'desc').paginate(page, limit)
     return transactions
