@@ -49,10 +49,11 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy the entire isolated folder from the extract stage
 COPY --from=extract --chown=adonis:nodejs /app/isolated ./
 
+COPY apps/server/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 USER adonis
 
-# AdonisJS v6 compiled entry point
 EXPOSE 3333
-
-# We run from the root of the isolated folder, calling the compiled server
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "build/bin/server.js"]
