@@ -41,6 +41,10 @@ services:
     image: ghcr.io/jjdechavez/bir-notebook-server:${APP_VERSION:-latest}
     restart: unless-stopped
     env_file: .env
+    networks:
+      - bir-network
+    ports:
+      - "3333:3333"
     environment:
       NODE_ENV: production
       TZ: UTC
