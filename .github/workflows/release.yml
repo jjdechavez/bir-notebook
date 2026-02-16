@@ -96,7 +96,7 @@ jobs:
             echo "FE_URL=${{ secrets.FE_URL }}" >> .env
             
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d
             docker system prune -f
           EOF
