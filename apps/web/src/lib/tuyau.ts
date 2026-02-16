@@ -5,7 +5,7 @@ import { getAuthToken } from './auth'
 
 export const tuyauClient = createTuyau({
   api,
-  baseUrl: 'http://localhost:3333',
+  baseUrl: import.meta.env.DEV ? 'http://localhost:3333' : '',
   timeout: 10_000,
   hooks: {
     beforeRequest: [
