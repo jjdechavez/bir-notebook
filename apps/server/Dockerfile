@@ -19,7 +19,9 @@ COPY apps/shared ./apps/shared
 COPY apps/server ./apps/server
 
 # Build everything
-RUN pnpm --filter @bir-notebook/shared build
+# DEPERECATED
+# RUN pnpm --filter @bir-notebook/shared build
+# pnpm will automatically build workspace dependencies first
 RUN pnpm --filter @bir-notebook/server build
 
 # --- Stage 3: Production Isolation ---
