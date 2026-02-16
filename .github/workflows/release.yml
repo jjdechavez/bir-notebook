@@ -78,13 +78,6 @@ jobs:
       - name: Copy Docker Compose file
         run: scp ${{ github.workspace }}/docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml
 
-      - name: Run Database Migrations
-        run: |
-          ssh root@${{ secrets.DO_HOST }} << EOF
-            cd /opt/bir-notebook
-            docker compose -f docker-compose.prod.yml run --rm server node ace migration:run --force
-          EOF
-
       - name: Deploy to Digital Ocean
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
