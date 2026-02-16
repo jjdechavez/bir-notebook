@@ -34,6 +34,17 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           push: true
+          build-args: |
+            PORT=3333
+            APP_KEY=dummy-key-for-build
+            HOST=0.0.0.0
+            LOG_LEVEL=info
+            DB_HOST=localhost
+            DB_PORT=5432
+            DB_USER=user
+            DB_PASSWORD=password
+            DB_DATABASE=db
+            FE_URL=http://localhost:80
           tags: |
             ghcr.io/${{ github.repository }}-web:latest
             ghcr.io/${{ github.repository }}-web:${{ steps.get_version.outputs.VERSION }}
