@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
+  "files": ["dist"],
   "exports": {
     "./models/invite": {
       "types": "./dist/models/invite.d.ts",
