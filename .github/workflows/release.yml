@@ -72,6 +72,9 @@ jobs:
       - name: Add Host to known_hosts
         run: ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Copy Docker Compose file
+        run: scp docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml
+
       - name: Deploy to Digital Ocean
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
