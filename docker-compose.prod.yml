@@ -52,13 +52,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_DATABASE: ${DB_DATABASE:-bir_notebook}
       FE_URL: ${FE_URL}
-    ports:
-      - "3333:3333"
-    networks:
-      - bir-network
-    depends_on:
-      postgres:
-        condition: service_healthy
       # redis:
       #   condition: service_healthy
     deploy:
@@ -75,7 +68,7 @@ services:
     # environment:
     #   VITE_API_URL: ${VITE_API_URL:-http://localhost:3333}
     ports:
-      - "3000:3000"
+      - "80:80"
     networks:
       - bir-network
     depends_on:
