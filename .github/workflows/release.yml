@@ -84,8 +84,8 @@ jobs:
           ssh root@${{ secrets.DO_HOST }} << EOF
             cd /opt/bir-notebook
             
-            # Update VERSION in .env for docker-compose
-            sed -i "s/^APP_VERSION=.*/APP_VERSION=$VERSION/" .env || echo "APP_VERSION=$VERSION" >> .env
+            echo "APP_VERSION=$VERSION" > .env
+            echo "NODE_ENV=production" >> .env
             
             # Update Server Secrets in .env
             echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
