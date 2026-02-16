@@ -75,7 +75,7 @@ jobs:
       - name: List files in the workspace using the environment variable
         run: |
           echo "Workspace path: $GITHUB_WORKSPACE"
-          ls -lh "$GITHUB_WORKSPACE"
+          ls -lh ${{ github.workspace }}
         shell: bash
 
       - name: Copy Docker Compose file
