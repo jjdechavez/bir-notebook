@@ -2,7 +2,7 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 
 # --- Stage 2: Builder ---
 FROM base AS builder
@@ -19,10 +19,8 @@ COPY apps/shared ./apps/shared
 COPY apps/server ./apps/server
 
 # Build everything
-# DEPERECATED
 # RUN pnpm --filter @bir-notebook/shared build
-# pnpm will automatically build workspace dependencies first
-RUN pnpm --filter @bir-notebook/server build
+RUN pnpm --filter @bir-notebook/server -r build
 
 # --- Stage 3: Production Isolation ---
 FROM base AS extract
