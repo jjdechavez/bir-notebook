@@ -51,7 +51,7 @@ export default class TransactionsController {
       }
 
       return {
-        data: new TransactionDto(result.data).toJson(),
+        data: new TransactionDto(result.data),
         message: 'Transaction created successfully',
       }
     } catch (error) {
@@ -71,7 +71,7 @@ export default class TransactionsController {
     }
 
     return {
-      data: new TransactionDto(transaction).toJson(),
+      data: new TransactionDto(transaction),
     }
   }
 
@@ -92,7 +92,7 @@ export default class TransactionsController {
     }
 
     return {
-      data: new TransactionDto(result.data).toJson(),
+      data: new TransactionDto(result.data),
       message: 'Transaction updated successfully',
     }
   }
@@ -110,7 +110,7 @@ export default class TransactionsController {
     }
 
     return {
-      data: new TransactionDto(result.data).toJson(),
+      data: new TransactionDto(result.data),
       message: result.message,
     }
   }
@@ -123,7 +123,7 @@ export default class TransactionsController {
     }
 
     return {
-      data: new TransactionDto(result.data).toJson(),
+      data: new TransactionDto(result.data),
       message: result.message,
     }
   }
