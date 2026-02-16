@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const currentUser = await tuyauClient.api.session.$get({
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
         },
       })
       setUser(currentUser.data as unknown as User)

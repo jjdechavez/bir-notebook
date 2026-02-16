@@ -6,6 +6,7 @@ import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
 import { formatOption } from '@bir-notebook/shared/models/common'
 import {
   transactionCategoryBookTypeOptions,
+  transactionCategoryBookTypes,
   transactionVatTypeOptions,
 } from '@bir-notebook/shared/models/transaction'
 import {
@@ -210,6 +211,7 @@ export function TransactionList() {
         ...filters,
         ...query,
         page: query.page + 1,
+        exclude: transactionCategoryBookTypes.generalLedger,
       },
     }),
   )

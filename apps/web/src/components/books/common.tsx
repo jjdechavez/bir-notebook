@@ -34,7 +34,7 @@ export function BookCountedColumnFilter(props: BookCountedColumnFilterProps) {
           </SelectContent>
         </Select>
       </div>
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-muted-foreground">
         {props.count} counted columns (Reference + Cash + {props.count - 3}{' '}
         chart of accounts + Sundry + Sundry Amount)
       </div>
@@ -54,14 +54,14 @@ export function BookTransactionTotals(props: BookTransactionTotalsProps) {
       className={`grid grid-cols-2 gap-4 p-4 rounded-lg border mb-6 ${getColorClasses(props.color)}`}
     >
       <div>
-        <p className="text-sm font-medium text-gray-600">Total Debits</p>
-        <p className="text-2xl text-foreground font-bold">
+        <p className="text-sm font-medium text-foreground">Total Debits</p>
+        <p className="text-2xl text-accent-foreground font-bold">
           {formatCentsToCurrency(props.totalDebit)}
         </p>
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-600">Total Credits</p>
-        <p className="text-2xl text-foreground font-bold">
+        <p className="text-sm font-medium text-foreground">Total Credits</p>
+        <p className="text-2xl text-accent-foreground font-bold">
           {formatCentsToCurrency(props.totalCredit)}
         </p>
       </div>
@@ -71,7 +71,7 @@ export function BookTransactionTotals(props: BookTransactionTotalsProps) {
 
 export function NoTransactionFound() {
   return (
-    <div className="text-center py-8 text-gray-500">
+    <div className="text-center py-8 text-accent-foreground">
       No transactions found for the selected period.
     </div>
   )

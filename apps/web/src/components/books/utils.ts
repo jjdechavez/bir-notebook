@@ -17,8 +17,8 @@ export const getChartOfAccounts = (transactions: Transaction[]) => {
 
 export const getColorClasses = (color: string) => {
   const colors = {
-    green: 'border-green-200 bg-green-50',
-    red: 'border-red-200 bg-red-50',
+    green: 'border-success bg-success/50 dark:bg-success/30',
+    red: 'border-destructive/20 dark:border-destructive bg-destructive/20 dark:bg-destructive/30',
     blue: 'border-blue-200 bg-blue-50',
     purple: 'border-purple-200 bg-purple-50',
   }

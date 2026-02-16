@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, computed } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, computed, hasMany } from '@adonisjs/lucid/orm'
 import User from './user.js'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import { toCents } from '@bir-notebook/shared/helpers/currency'
 import TransactionCategory from './transaction_category.js'
 import Account from './account.js'
@@ -75,4 +75,33 @@ export default class Transaction extends BaseModel {
 
   @column.dateTime()
   declare recordedAt: DateTime | null
+
+  @column.dateTime()
+  declare transferredToGlAt: DateTime | null
+
+  @column()
+  declare glPostingMonth: string | null
+
+  @column()
+  declare glId: number | null
+
+  @belongsTo(() => Transaction, {
+    foreignKey: 'glId',
+  })
+  declare generalLedger: BelongsTo<typeof Transaction>
+
+  @hasMany(() => Transaction, {
+    foreignKey: 'glId',
+  })
+  declare children: HasMany<typeof Transaction>
+
+  @computed()
+  get isParentGl(): boolean {
+    return this.bookType === 'general_ledger' && this.glId === null
+  }
+
+  @computed()
+  get isChildTransaction(): boolean {
+    return this.glId !== null
+  }
 }

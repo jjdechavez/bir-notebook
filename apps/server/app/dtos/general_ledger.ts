@@ -1,15 +1,15 @@
-import { BaseModelDto } from '@adocasts.com/dto/base'
-import Transaction from '#models/transaction'
-import UserDto from '#dtos/user'
-import TransactionCategoryDto from '#dtos/transaction_category'
-import AccountDto from '#dtos/account'
+import { BaseDto } from '@adocasts.com/dto/base'
+import UserDto from './user.js'
+import TransactionCategoryDto from './transaction_category.js'
+import AccountDto from './account.js'
 import {
   TransactionCategoryBookType,
   TransactionVatType,
 } from '@bir-notebook/shared/models/transaction'
-import GeneralLedgerDto from './general_ledger.js'
+import TransactionDto from './transaction.js'
+import Transaction from '#models/transaction'
 
-export default class TransactionDto extends BaseModelDto {
+export default class GeneralLedgerDto extends BaseDto {
   declare id: number
   declare userId: number
   declare user: UserDto | null
@@ -27,11 +27,10 @@ export default class TransactionDto extends BaseModelDto {
   declare vatType: TransactionVatType
   declare createdAt: string
   declare vatAmount: number
-  declare recorded: boolean
+  declare recordedAt: string | null
   declare transferredToGlAt: string | null
   declare glPostingMonth: string | null
-  declare glId: number | null
-  declare generalLedger: GeneralLedgerDto | null
+  declare children: Array<TransactionDto> | null
 
   constructor(transaction?: Transaction) {
     super()
@@ -44,7 +43,7 @@ export default class TransactionDto extends BaseModelDto {
     this.category = transaction.category && new TransactionCategoryDto(transaction.category)
     this.amount = transaction.amount
     this.description = transaction.description
-    this.transactionDate = transaction.transactionDate?.toISO()!
+    this.transactionDate = transaction.transactionDate.toISO()!
     this.creditAccountId = transaction.creditAccountId
     this.creditAccount = transaction.creditAccount && new AccountDto(transaction.creditAccount)
     this.debitAccountId = transaction.debitAccountId
@@ -54,11 +53,9 @@ export default class TransactionDto extends BaseModelDto {
     this.vatType = transaction.vatType
     this.createdAt = transaction.createdAt.toISO()!
     this.vatAmount = transaction.vatAmount
-    this.recorded = !!transaction.recordedAt
+    this.recordedAt = transaction.recordedAt?.toISO()!
     this.transferredToGlAt = transaction.transferredToGlAt?.toISO()!
     this.glPostingMonth = transaction.glPostingMonth
-    this.glId = transaction.glId
-    this.generalLedger =
-      transaction.generalLedger && new GeneralLedgerDto(transaction.generalLedger)
+    this.children = transaction.children && TransactionDto.fromArray(transaction.children)
   }
 }

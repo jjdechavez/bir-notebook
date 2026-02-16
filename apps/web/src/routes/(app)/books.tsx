@@ -25,6 +25,10 @@ import {
   ChartOfAccounts,
   GeneralLedger,
 } from '@/components/books/general-ledger'
+import { EnhancedGeneralLedgerWithSidebar } from '@/components/books/general-ledger/enhanced-general-ledger-with-sidebar'
+import { GeneralLedgerTransferDialog } from '@/components/books/general-ledger/transfer-dialog'
+import { TransferHistory } from '@/components/books/general-ledger/transfer-history'
+import { useState } from 'react'
 import {
   BookCountedColumnFilter,
   BookTransactionTotals,
@@ -95,6 +99,7 @@ const bookTypes = [
 function BooksPage() {
   const { filters, setFilters } = useFilters(Route.id)
   const columnCountFilter = filters?.count || 6
+  const [showTransferDialog, setShowTransferDialog] = useState(false)
 
   const { data: transactionsData } = useSuspenseQuery(
     tuyau.api.transactions.$get.queryOptions({
@@ -323,26 +328,56 @@ function BooksPage() {
             totalTransaction={totalTransactionCount}
             bookType={generalLedgerBook.key}
           >
-            <Tabs defaultValue="transactions">
+            <Tabs defaultValue="transactions" className="gap-6">
               <TabsList>
-                <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                <TabsTrigger value="transactions">Enhanced Ledger</TabsTrigger>
                 <TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
+                <TabsTrigger value="transfer-history">
+                  Transfer History
+                </TabsTrigger>
+                <TabsTrigger value="classic">Classic View</TabsTrigger>
               </TabsList>
 
               <TabsContent value="transactions">
+                <EnhancedGeneralLedgerWithSidebar
+                  dateFrom={filters.dateFrom as string | undefined}
+                  dateTo={filters.dateTo as string | undefined}
+                  onTransferClick={() => setShowTransferDialog(true)}
+                  onExportClick={() => console.log('Export clicked')}
+                />
+              </TabsContent>
+
+              <TabsContent value="accounts">
+                <ChartOfAccounts />
+              </TabsContent>
+
+              <TabsContent value="transfer-history">
+                <TransferHistory />
+              </TabsContent>
+
+              <TabsContent value="classic">
                 {transactionsData.data.length === 0 ? (
                   <NoTransactionFound />
                 ) : (
                   <GeneralLedger transactions={transactionsData.data} />
                 )}
               </TabsContent>
-              <TabsContent value="accounts">
-                <ChartOfAccounts />
-              </TabsContent>
             </Tabs>
           </BookView>
         </TabsContent>
       </Tabs>
+
+      {showTransferDialog && (
+        <GeneralLedgerTransferDialog
+          isOpen={showTransferDialog}
+          onClose={() => setShowTransferDialog(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({
+              queryKey: tuyau.api.transactions.$get.queryKey(),
+            })
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -364,13 +399,13 @@ function BookView({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center">
             <span>{icon}</span>
             {title}
           </CardTitle>
           <div className="flex items-center gap-4">
             <div className="text-sm">
-              <span className="text-gray-600">Transactions: </span>
+              <span className="text-muted-foreground">Transactions: </span>
               <span className="font-medium">{totalTransaction}</span>
             </div>
             <Button variant="outline" size="sm">
