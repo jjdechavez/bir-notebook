@@ -74,12 +74,12 @@ jobs:
 
       - name: List files in the workspace using the environment variable
         run: |
-          echo "Workspace path: $GITHUB_WORKSPACE"
-          ls -lh ${{ github.workspace }}
+          echo "Listing all the files from the repo"
+          ls -la
         shell: bash
 
       - name: Copy Docker Compose file
-        run: scp ${{ github.workspace }}/docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml"
+        run: scp ${{ github.workspace }}/docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml
 
       - name: Deploy to Digital Ocean
         run: |
