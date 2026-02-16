@@ -75,7 +75,7 @@ jobs:
       - name: Copy Docker Compose file
         run: |
           echo "Workspace path: " ${{ github.workspace }}
-          ls -lh "${{ github.workspace }}"
+          ls -lh ${{ github.workspace }}
           scp ${{ github.workspace }}/docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml"
 
       - name: Deploy to Digital Ocean
