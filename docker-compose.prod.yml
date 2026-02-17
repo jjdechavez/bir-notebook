@@ -5,8 +5,8 @@ services:
     image: postgres:15-alpine
     container_name: bir-postgres
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-bir_notebook}
-      POSTGRES_USER: ${DB_USER:-bir_user}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -15,7 +15,7 @@ services:
       - bir-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bir_user} -d ${DB_DATABASE:-bir_notebook}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}"]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -46,16 +46,10 @@ services:
     ports:
       - "3333:3333"
     environment:
-      NODE_ENV: production
       TZ: UTC
       PORT: 3333
       HOST: 0.0.0.0
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      DB_HOST: postgres
-      DB_USER: ${DB_USER:-bir_user}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_DATABASE: ${DB_DATABASE:-bir_notebook}
-      FE_URL: ${FE_URL}
       # redis:
       #   condition: service_healthy
     deploy:

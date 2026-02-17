@@ -89,6 +89,7 @@ jobs:
             
             # Update Server Secrets in .env
             echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env
             echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
