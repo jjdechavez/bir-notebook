@@ -197,7 +197,7 @@ export default class TransactionCategorySeeder extends BaseSeeder {
         name: 'Cash Refunds to Customers',
         bookType: transactionCategoryBookTypes.cashDisbursementJournal,
         defaultCreditAccountId: accountMap.get('1101'), // Cash on Hand
-        defaultDeditAccountId: accountMap.get('4101'), // Sales Revenue
+        defaultDebitAccountId: accountMap.get('4101'), // Sales Revenue
       },
 
       // GENERAL JOURNAL CATEGORIES
