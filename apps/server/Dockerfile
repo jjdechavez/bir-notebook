@@ -38,6 +38,10 @@ RUN pnpm --filter @bir-notebook/server --prod deploy /app/isolated
 # This merges the compiled JS files with the production node_modules
 COPY --from=builder /app/apps/server/build /app/isolated/build
 
+# 3. Copy the compiled SHARED library code into the isolated node_modules
+# pnpm deploy puts workspace symlinks/deps into node_modules/@bir-notebook/shared
+COPY --from=builder /app/apps/shared/dist /app/isolated/node_modules/@bir-notebook/shared/dist
+
 # --- Stage 4: Final Runner ---
 FROM node:22-alpine AS runner
 WORKDIR /app
