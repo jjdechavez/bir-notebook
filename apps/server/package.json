@@ -1,77 +1,30 @@
 {
   "name": "@bir-notebook/server",
-  "version": "0.0.0",
   "private": true,
   "type": "module",
-  "license": "UNLICENSED",
   "scripts": {
-    "start": "node bin/server.js",
-    "build": "node ace build",
-    "dev": "node ace serve --hmr",
-    "test": "node ace test",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
-  },
-  "imports": {
-    "#controllers/*": "./app/controllers/*.js",
-    "#exceptions/*": "./app/exceptions/*.js",
-    "#models/*": "./app/models/*.js",
-    "#mails/*": "./app/mails/*.js",
-    "#services/*": "./app/services/*.js",
-    "#listeners/*": "./app/listeners/*.js",
-    "#events/*": "./app/events/*.js",
-    "#middleware/*": "./app/middleware/*.js",
-    "#validators/*": "./app/validators/*.js",
-    "#providers/*": "./providers/*.js",
-    "#policies/*": "./app/policies/*.js",
-    "#abilities/*": "./app/abilities/*.js",
-    "#database/*": "./database/*.js",
-    "#start/*": "./start/*.js",
-    "#tests/*": "./tests/*.js",
-    "#config/*": "./config/*.js",
-    "#dto/*": "./app/dto/*.js",
-    "#dtos/*": "./app/dtos/*.js"
-  },
-  "devDependencies": {
-    "@adonisjs/assembler": "^7.8.2",
-    "@adonisjs/eslint-config": "^2.0.0",
-    "@adonisjs/prettier-config": "^1.4.4",
-    "@adonisjs/tsconfig": "^1.4.0",
-    "@japa/api-client": "^3.1.0",
-    "@japa/assert": "^4.0.1",
-    "@japa/plugin-adonisjs": "^4.0.0",
-    "@japa/runner": "^4.2.0",
-    "@swc/core": "1.11.24",
-    "@tuyau/utils": "^0.0.9",
-    "@types/luxon": "^3.7.1",
-    "@types/node": "^22.15.18",
-    "eslint": "^9.26.0",
-    "hot-hook": "^0.4.0",
-    "pino-pretty": "^13.0.0",
-    "prettier": "^3.5.3",
-    "ts-node-maintained": "^10.9.5",
-    "typescript": "~5.8"
+    "dev": "tsx watch server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "make:migration": "node scripts/make-migration.mjs",
+    "migration:run": "tsx scripts/migrate.ts latest",
+    "migration:rollback": "tsx scripts/migrate.ts down",
+    "generate:db": "node --env-file .env ./node_modules/kysely-codegen/dist/cli/bin.js --dialect postgres --out-file db/types.ts --url='env(DATABASE_URL)'"
   },
   "dependencies": {
-    "@adocasts.com/dto": "^0.0.10",
-    "@adonisjs/auth": "^9.4.0",
-    "@adonisjs/bouncer": "^3.1.6",
-    "@adonisjs/core": "^6.18.0",
-    "@adonisjs/cors": "^2.2.1",
-    "@adonisjs/lucid": "^21.6.1",
-    "@bir-notebook/shared": "workspace:*",
-    "@tuyau/core": "^0.4.2",
-    "@vinejs/vine": "^3.0.1",
-    "luxon": "^3.7.2",
-    "pg": "^8.16.3",
-    "reflect-metadata": "^0.2.2"
+    "better-auth": "^1.0.0",
+    "c12": "^1.9.0",
+    "h3": "^1.12.0",
+    "kysely": "^0.27.3",
+    "pg": "^8.12.0",
+    "zod": "^3.25.76"
   },
-  "hotHook": {
-    "boundaries": ["./app/controllers/**/*.ts", "./app/middleware/*.ts"]
-  },
-  "prettier": "@adonisjs/prettier-config",
-  "exports": {
-    "./api": "./.adonisjs/index.ts"
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/pg": "^8.18.0",
+    "kysely-codegen": "^0.16.0",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
   }
 }
