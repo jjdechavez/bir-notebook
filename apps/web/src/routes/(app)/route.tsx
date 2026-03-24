@@ -4,20 +4,22 @@ import { Spinner } from '@/components/ui/spinner'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/(app)')({
-  beforeLoad: ({ context, location }) => {
-    const { auth } = context
+  beforeLoad: async ({ context, location }) => {
+    if (context.auth.isLoading) {
+      return
+    }
 
-    if (!auth.isAuthenticated && !auth.isLoading && !auth.user) {
+    if (!context.auth.isAuthenticated) {
       throw redirect({
         to: '/login',
         search: {
-          redirect: location.href,
+          redirect: location.pathname,
         },
       })
     }
   },
   pendingComponent: () => (
-    <div className="flex items-center gap-4">
+    <div className="flex min-h-svh w-full items-center justify-center">
       <Spinner />
     </div>
   ),

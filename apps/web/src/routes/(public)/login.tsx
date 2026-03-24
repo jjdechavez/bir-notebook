@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { PublicNotFound } from '@/components/public-not-found'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 
@@ -10,13 +10,13 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field'
-import { GalleryVerticalEnd } from 'lucide-react'
+import { GalleryVerticalEnd, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-
-import { useAuth } from '../../lib/auth'
+import { Spinner } from '@/components/ui/spinner'
 import { api } from '@/lib/api'
+import { authClient } from '@/lib/auth-client'
 
 const schema = z.object({
   email: z.email(),
@@ -29,6 +29,10 @@ export const Route = createFileRoute('/(public)/login')({
     setup: z.string().optional(),
   }),
   beforeLoad: async ({ context }) => {
+    if (context.auth.isLoading) {
+      return
+    }
+
     if (context.auth.isAuthenticated) {
       throw redirect({
         to: '/dashboard',
@@ -38,7 +42,6 @@ export const Route = createFileRoute('/(public)/login')({
     const needsSetup = await api.systems
       .systemSetupStatus()
       .then((res) => {
-        console.log(res)
         return res.setup === 'pending'
       })
       .catch(() => false)
@@ -49,14 +52,29 @@ export const Route = createFileRoute('/(public)/login')({
       })
     }
   },
+  pendingComponent: () => (
+    <div className="flex min-h-svh w-full items-center justify-center">
+      <Spinner />
+    </div>
+  ),
   component: LoginComponent,
   notFoundComponent: PublicNotFound,
 })
 
 function LoginComponent() {
   const navigate = useNavigate()
-  const { login, isAuthenticated } = useAuth()
   const { setup } = Route.useSearch()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null)
+
+  const session = authClient.useSession()
+
+  useEffect(() => {
+    if (session.data?.session && isSubmitting) {
+      setIsSubmitting(false)
+      navigate({ to: '/dashboard' })
+    }
+  }, [session.data, isSubmitting, navigate])
 
   const form = useForm({
     defaultValues: {
@@ -69,19 +87,20 @@ function LoginComponent() {
       onBlur: schema,
     },
     onSubmit: async ({ value }) => {
+      setIsSubmitting(true)
+      setLoginError(null)
       try {
-        await login(value.email, value.password)
+        await authClient.signIn.email({
+          email: value.email,
+          password: value.password,
+        })
       } catch (err) {
+        setIsSubmitting(false)
+        setLoginError('Invalid email or password')
         throw err
       }
     },
   })
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate({ to: '/dashboard' })
-    }
-  }, [isAuthenticated, navigate])
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -93,6 +112,11 @@ function LoginComponent() {
                 Admin account created successfully. Please login with your
                 credentials.
               </AlertDescription>
+            </Alert>
+          )}
+          {loginError && (
+            <Alert className="border-red-500 bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200">
+              <AlertDescription>{loginError}</AlertDescription>
             </Alert>
           )}
           <form
@@ -166,8 +190,15 @@ function LoginComponent() {
                 )}
               />
               <Field>
-                <Button type="submit" form="login-form">
-                  Login
+                <Button type="submit" form="login-form" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    'Login'
+                  )}
                 </Button>
               </Field>
             </FieldGroup>

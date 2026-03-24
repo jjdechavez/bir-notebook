@@ -1,7 +1,5 @@
-import {
-  DEFAULT_PAGE_INDEX,
-  DEFAULT_PAGE_SIZE,
-} from '@/components/data-table'
+import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/components/data-table'
+import { systems } from './api/systems'
 
 export type ListQueryParam = Partial<{
   page: number
@@ -50,4 +48,8 @@ export const cleanEmptyParams = <T extends Record<string, unknown>>(
   if (search.pageSize === DEFAULT_PAGE_SIZE) delete newSearch.pageSize
 
   return newSearch
+}
+
+export const api = {
+  systems,
 }

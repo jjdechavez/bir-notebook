@@ -27,11 +27,11 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { tuyau } from '@/main'
 import type { Transaction, TransactionSearch } from '@/types/transaction'
-import { useAuth } from '@/lib/auth'
 import { useFilters } from '@/hooks/use-filters'
 import { CreateTransaction } from '@/components/create-transaction'
 import { useState } from 'react'
 import { EditTransaction } from '@/components/edit-transaction'
+import { authClient } from '@/lib/auth-client'
 
 export const Route = createFileRoute('/(app)/dashboard')({
   component: DashboardComponent,
@@ -42,12 +42,12 @@ export const Route = createFileRoute('/(app)/dashboard')({
 })
 
 function DashboardComponent() {
-  const { user } = useAuth()
+  const {data} = authClient.useSession()
 
   return (
     <div className="bg-background">
       <h1 className="text-xl font-bold mb-4">
-        Welcome back, {user?.firstName} {user?.lastName}
+        Welcome back, {data?.user?.firstName} {data?.user?.lastName}
       </h1>
       <div className="space-y-6">
         <p className="text-muted-foreground">

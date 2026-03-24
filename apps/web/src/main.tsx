@@ -4,7 +4,6 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { createTuyauReactQueryClient } from '@tuyau/react-query'
 
 import * as TanStackQueryProvider from './lib/tanstack-query/root-provider.tsx'
-import { AuthProvider, useAuth } from './lib/auth'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -12,6 +11,7 @@ import { routeTree } from './routeTree.gen'
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 import { tuyauClient } from './lib/tuyau.ts'
+import { authClient } from './lib/auth-client.ts'
 
 // Create a new router instance
 
@@ -43,7 +43,7 @@ declare module '@tanstack/react-router' {
 }
 
 function RouterWithAuth() {
-  const auth = useAuth()
+  const auth = authClient.useSession()
 
   return (
     <RouterProvider
@@ -51,9 +51,9 @@ function RouterWithAuth() {
       context={{
         ...TanStackQueryProviderContext,
         auth: {
-          user: auth.user,
-          isAuthenticated: auth.isAuthenticated,
-          isLoading: auth.isLoading,
+          user: auth.data?.user,
+          isAuthenticated: !!auth.data?.session,
+          isLoading: auth.isPending,
         },
       }}
     />
@@ -67,9 +67,7 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <AuthProvider>
-          <RouterWithAuth />
-        </AuthProvider>
+        <RouterWithAuth />
       </TanStackQueryProvider.Provider>
     </StrictMode>,
   )
