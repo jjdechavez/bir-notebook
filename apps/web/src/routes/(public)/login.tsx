@@ -1,13 +1,11 @@
 import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { PublicNotFound } from '@/components/public-not-found'
-import { useState, useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -15,8 +13,10 @@ import {
 import { GalleryVerticalEnd } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 import { useAuth } from '../../lib/auth'
+import { api } from '@/lib/api'
 
 const schema = z.object({
   email: z.email(),
@@ -24,10 +24,28 @@ const schema = z.object({
 })
 
 export const Route = createFileRoute('/(public)/login')({
-  beforeLoad: ({ context }) => {
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+    setup: z.string().optional(),
+  }),
+  beforeLoad: async ({ context }) => {
     if (context.auth.isAuthenticated) {
       throw redirect({
         to: '/dashboard',
+      })
+    }
+
+    const needsSetup = await api.systems
+      .systemSetupStatus()
+      .then((res) => {
+        console.log(res)
+        return res.setup === 'pending'
+      })
+      .catch(() => false)
+
+    if (needsSetup) {
+      throw redirect({
+        to: '/setup',
       })
     }
   },
@@ -38,15 +56,26 @@ export const Route = createFileRoute('/(public)/login')({
 function LoginComponent() {
   const navigate = useNavigate()
   const { login, isAuthenticated } = useAuth()
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const { setup } = Route.useSearch()
+
+  const form = useForm({
     defaultValues: {
       email: '',
       password: '',
+    } as z.infer<typeof schema>,
+    validators: {
+      onChange: schema,
+      onSubmit: schema,
+      onBlur: schema,
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        await login(value.email, value.password)
+      } catch (err) {
+        throw err
+      }
     },
   })
-
-  const [_, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -54,19 +83,26 @@ function LoginComponent() {
     }
   }, [isAuthenticated, navigate])
 
-  const onSubmit = async (data: z.infer<typeof schema>) => {
-    try {
-      await login(data.email, data.password)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
-    }
-  }
-
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          <form id="login-form" onSubmit={form.handleSubmit(onSubmit)}>
+          {setup === 'success' && (
+            <Alert className="border-green-500 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200">
+              <AlertDescription>
+                Admin account created successfully. Please login with your
+                credentials.
+              </AlertDescription>
+            </Alert>
+          )}
+          <form
+            id="login-form"
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              form.handleSubmit()
+            }}
+          >
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <a
@@ -76,38 +112,36 @@ function LoginComponent() {
                   <div className="flex size-8 items-center justify-center rounded-md">
                     <GalleryVerticalEnd className="size-6" />
                   </div>
-                  <span className="sr-only">Acme Inc.</span>
+                  <span className="sr-only">BIR Notebook</span>
                 </a>
-                <h1 className="text-xl font-bold">Welcome to Acme Inc.</h1>
-                <FieldDescription>
-                  Don&apos;t have an account? <a href="#">Sign up</a>
-                </FieldDescription>
+                <h1 className="text-xl font-bold">Welcome to BIR Notebook</h1>
               </div>
-              <Controller
+              <form.Field
                 name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
+                children={(field) => (
+                  <Field data-invalid={field.state.meta.errors.length > 0}>
                     <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                     <Input
-                      {...field}
                       id={field.name}
+                      name={field.name}
                       type="email"
                       placeholder="m@example.com"
-                      aria-invalid={fieldState.invalid}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      aria-invalid={field.state.meta.errors.length > 0}
                       autoComplete="false"
                     />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+                    {field.state.meta.errors.length > 0 && (
+                      <FieldError errors={field.state.meta.errors} />
                     )}
                   </Field>
                 )}
               />
-              <Controller
+              <form.Field
                 name="password"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field aria-invalid={fieldState.invalid}>
+                children={(field) => (
+                  <Field data-invalid={field.state.meta.errors.length > 0}>
                     <div className="flex items-center">
                       <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                       <a
@@ -117,7 +151,17 @@ function LoginComponent() {
                         Forgot your password?
                       </a>
                     </div>
-                    <Input {...field} id={field.name} type="password" />
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      type="password"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </Field>
                 )}
               />

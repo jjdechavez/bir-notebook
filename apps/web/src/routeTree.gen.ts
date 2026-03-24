@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as publicSetupRouteImport } from './routes/(public)/setup'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as appSettingsRouteImport } from './routes/(app)/settings'
 import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
@@ -29,6 +30,11 @@ const appRouteRoute = appRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const publicSetupRoute = publicSetupRouteImport.update({
+  id: '/(public)/setup',
+  path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const publicLoginRoute = publicLoginRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof appDashboardRoute
   '/settings': typeof appSettingsRouteWithChildren
   '/login': typeof publicLoginRoute
+  '/setup': typeof publicSetupRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
   '/settings/preferences': typeof appSettingsPreferencesRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/books': typeof appBooksRoute
   '/dashboard': typeof appDashboardRoute
   '/login': typeof publicLoginRoute
+  '/setup': typeof publicSetupRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
   '/settings/preferences': typeof appSettingsPreferencesRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/(app)/dashboard': typeof appDashboardRoute
   '/(app)/settings': typeof appSettingsRouteWithChildren
   '/(public)/login': typeof publicLoginRoute
+  '/(public)/setup': typeof publicSetupRoute
   '/(app)/settings/accounts': typeof appSettingsAccountsRoute
   '/(app)/settings/invites': typeof appSettingsInvitesRoute
   '/(app)/settings/preferences': typeof appSettingsPreferencesRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/settings'
     | '/login'
+    | '/setup'
     | '/settings/accounts'
     | '/settings/invites'
     | '/settings/preferences'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/books'
     | '/dashboard'
     | '/login'
+    | '/setup'
     | '/settings/accounts'
     | '/settings/invites'
     | '/settings/preferences'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/(app)/dashboard'
     | '/(app)/settings'
     | '/(public)/login'
+    | '/(public)/setup'
     | '/(app)/settings/accounts'
     | '/(app)/settings/invites'
     | '/(app)/settings/preferences'
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   appRouteRoute: typeof appRouteRouteWithChildren
   publicLoginRoute: typeof publicLoginRoute
+  publicSetupRoute: typeof publicSetupRoute
   publicInvitesInviteIdConfirmRoute: typeof publicInvitesInviteIdConfirmRoute
 }
 
@@ -186,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(public)/setup': {
+      id: '/(public)/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof publicSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(public)/login': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   appRouteRoute: appRouteRouteWithChildren,
   publicLoginRoute: publicLoginRoute,
+  publicSetupRoute: publicSetupRoute,
   publicInvitesInviteIdConfirmRoute: publicInvitesInviteIdConfirmRoute,
 }
 export const routeTree = rootRouteImport
