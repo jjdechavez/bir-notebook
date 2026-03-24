@@ -7,6 +7,7 @@ export default defineConfig({
     "src/models/invite.ts",
     "src/models/transaction.ts",
     "src/helpers/currency.ts",
+    "src/models/system.ts",
   ],
   format: ["esm", "cjs"],
   outDir: "dist",

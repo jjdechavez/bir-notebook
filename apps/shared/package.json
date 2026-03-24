@@ -11,7 +11,9 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     "./models/invite": {
       "types": "./dist/models/invite.d.ts",
@@ -37,11 +39,19 @@
       "types": "./dist/models/common.d.ts",
       "import": "./dist/models/common.js",
       "require": "./dist/models/common.cjs"
+    },
+    "./models/system": {
+      "types": "./dist/models/system.d.ts",
+      "import": "./dist/models/system.js",
+      "require": "./dist/models/system.cjs"
     }
   },
   "devDependencies": {
     "@types/node": "^25.0.7",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
   }
 }
