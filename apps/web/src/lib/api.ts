@@ -1,5 +1,6 @@
 import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/components/data-table'
 import { systems } from './api/systems'
+import { user } from './api/user'
 
 export type ListQueryParam = Partial<{
   page: number
@@ -52,4 +53,5 @@ export const cleanEmptyParams = <T extends Record<string, unknown>>(
 
 export const api = {
   systems,
+  user,
 }

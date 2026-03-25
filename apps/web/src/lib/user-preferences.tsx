@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { useTheme } from './theme'
 import { toast } from 'sonner'
+import { useUpdateUserPreference, useUserPreference } from '@/hooks/api/user'
 
 interface UserPreferencesContextType {
   navigationLayout: 'sidebar' | 'navbar'
@@ -22,21 +23,19 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const { setTheme: setUITheme, theme: currentUITheme } = useTheme()
 
-  const preferencesQuery = useQuery(tuyau.api.preferences.$get.queryOptions())
+  const preferencesQuery = useUserPreference()
 
-  const updatePreferencesMutation = useMutation(
-    tuyau.api.preferences.$put.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.preferences.$get.queryKey(),
-        })
-      },
-      onError: (error) => {
-        console.error('Failed to update preferences:', error)
-        // TODO: Add toast notification here if needed
-      },
-    }),
-  )
+  const updatePreferencesMutation = useUpdateUserPreference({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: tuyau.api.preferences.$get.queryKey(),
+      })
+    },
+    onError: (error) => {
+      console.error('Failed to update preferences:', error)
+      // TODO: Add toast notification here if needed
+    },
+  })
 
   const navigationLayout = preferencesQuery.data?.navigationLayout ?? 'sidebar'
   const theme = preferencesQuery.data?.theme ?? 'system'
@@ -54,7 +53,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     toast.promise(
       async () =>
         await updatePreferencesMutation.mutateAsync({
-          payload: { navigationLayout: layout },
+          navigationLayout: layout,
         }),
       {
         loading: 'Updating navigation layout...',
@@ -67,8 +66,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
   const setTheme = (newTheme: 'light' | 'dark' | 'system') => {
     setUITheme(newTheme)
     toast.promise(
-      async () =>
-        updatePreferencesMutation.mutateAsync({ payload: { theme: newTheme } }),
+      async () => updatePreferencesMutation.mutateAsync({ theme: newTheme }),
       {
         loading: 'Updating theme...',
         success: () => `Theme has been updated successfully`,

@@ -6,7 +6,7 @@ import {
   ItemTitle,
 } from '@/components/ui/item'
 import { Separator } from '@/components/ui/separator'
-import { useAuth } from '@/lib/auth'
+import { authClient } from '@/lib/auth-client'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { LayoutIcon, SettingsIcon, UsersIcon } from 'lucide-react'
 
@@ -15,8 +15,8 @@ export const Route = createFileRoute('/(app)/settings/')({
 })
 
 function SettingComponent() {
-  const { user } = useAuth()
-  const isAdmin = user!.role === 'Admin'
+  const { data } = authClient.useSession()
+  const isAdmin = data?.user!.role === 'admin'
 
   return (
     <div className="space-y-4">
