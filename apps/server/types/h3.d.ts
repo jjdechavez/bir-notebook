@@ -3,7 +3,8 @@ import type { Pool } from "pg";
 import type { AppConfig } from "../config.js";
 import type { DB } from "../db/types.js";
 import type { Logger } from "../utils/logger.js";
-import type { betterAuth, Session, User } from "better-auth";
+import type { DB } from "../db/types.js";
+import type { Session } from "../db/auth.js";
 
 declare module "h3" {
   interface H3EventContext {
@@ -13,7 +14,7 @@ declare module "h3" {
     pool: Pool;
     auth: ReturnType<typeof betterAuth>;
     logger: Logger;
-    currentUser?: User;
-    currentSession?: Session;
+    currentUser?: Session['user'];
+    currentSession?: Session['session'];
   }
 }

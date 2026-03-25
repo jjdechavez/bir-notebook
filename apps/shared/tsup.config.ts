@@ -8,6 +8,7 @@ export default defineConfig({
     "src/models/transaction.ts",
     "src/helpers/currency.ts",
     "src/models/system.ts",
+    "src/models/user.ts",
   ],
   format: ["esm", "cjs"],
   outDir: "dist",

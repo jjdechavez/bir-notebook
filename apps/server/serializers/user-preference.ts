@@ -1,9 +1,9 @@
 import type { Selectable } from "kysely";
-import type { UserPreferenceTable } from "../db/types.js";
+import type { UserPreferences } from "../db/types.js";
 import { toIsoString } from "../utils/date.js";
 
 export function serializeUserPreference(
-  preference: Selectable<UserPreferenceTable>
+  preference: Selectable<UserPreferences>,
 ) {
   return {
     id: preference.id,
@@ -11,6 +11,6 @@ export function serializeUserPreference(
     navigationLayout: preference.navigation_layout,
     theme: preference.theme,
     createdAt: toIsoString(preference.created_at),
-    updatedAt: toIsoString(preference.updated_at)
+    updatedAt: toIsoString(preference.updated_at),
   };
 }

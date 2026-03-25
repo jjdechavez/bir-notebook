@@ -1,4 +1,9 @@
-import { eventHandler, readBody, setResponseStatus } from "h3";
+import {
+  defineEventHandler,
+  eventHandler,
+  readBody,
+  setResponseStatus,
+} from "h3";
 import { sessionStoreSchema } from "../validators/session.js";
 import { requireAuth } from "../middleware/auth.js";
 import { getUserWithProfile } from "../services/users.js";
@@ -12,9 +17,9 @@ export const createSession = eventHandler(async (event) => {
     response = await event.context.auth.api.signInEmail({
       body: {
         email: payload.email,
-        password: payload.password
+        password: payload.password,
       },
-      headers: event.headers
+      headers: event.headers,
     });
   } catch {
     setResponseStatus(event, 422);
@@ -22,9 +27,9 @@ export const createSession = eventHandler(async (event) => {
       errors: [
         {
           message: "Invalid credentials",
-          field: "email"
-        }
-      ]
+          field: "email",
+        },
+      ],
     };
   }
 
@@ -34,29 +39,35 @@ export const createSession = eventHandler(async (event) => {
     token: response.token,
     abilities: ["*"],
     lastUsedAt: null,
-    expiresAt: null
+    expiresAt: null,
   };
 });
 
-export const destroySession = requireAuth(async (event) => {
-  await event.context.auth.api.signOut({
-    headers: event.headers
-  });
+export const destroySession = defineEventHandler({
+  onRequest: [requireAuth()],
+  handler: async (event) => {
+    await event.context.auth.api.signOut({
+      headers: event.headers,
+    });
 
-  setResponseStatus(event, 204);
-  return "";
+    setResponseStatus(event, 204);
+    return "";
+  },
 });
 
-export const getSession = requireAuth(async (event) => {
-  const user = await getUserWithProfile(
-    event.context.db,
-    event.context.currentUser!.id
-  );
+export const getSession = defineEventHandler({
+  onRequest: [requireAuth()],
+  handler: async (event) => {
+    const user = await getUserWithProfile(
+      event.context.db,
+      event.context.currentUser!.id,
+    );
 
-  if (!user) {
-    setResponseStatus(event, 404);
-    return { message: "User not found" };
-  }
+    if (!user) {
+      setResponseStatus(event, 404);
+      return { message: "User not found" };
+    }
 
-  return serializeUserSummary(user.user, user.profile, user.role);
+    return serializeUserSummary(user.user, user.profile, user.role);
+  },
 });

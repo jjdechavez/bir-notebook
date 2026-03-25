@@ -11,9 +11,7 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "exports": {
     "./models/invite": {
       "types": "./dist/models/invite.d.ts",
@@ -44,6 +42,11 @@
       "types": "./dist/models/system.d.ts",
       "import": "./dist/models/system.js",
       "require": "./dist/models/system.cjs"
+    },
+    "./models/user": {
+      "types": "./dist/models/user.d.ts",
+      "import": "./dist/models/user.js",
+      "require": "./dist/models/user.cjs"
     }
   },
   "devDependencies": {
