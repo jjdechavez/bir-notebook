@@ -34,7 +34,7 @@ export function getAuth(config: AppConfig, pool: Pool) {
           type: ["user", "admin"],
           required: false,
           defaultValue: "user",
-          input: false, // don't allow user to set role
+          // input: false, // don't allow user to set role
         },
       },
     },

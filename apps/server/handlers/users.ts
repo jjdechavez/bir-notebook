@@ -1,4 +1,5 @@
 import {
+  createError,
   defineEventHandler,
   getQuery,
   getRequestURL,
@@ -8,12 +9,7 @@ import {
 } from "h3";
 import { requireAuth } from "../middleware/auth.js";
 import { userListSchema, updateUserSchema } from "../validators/user.js";
-import {
-  listUsers,
-  upsertUserProfile,
-  getUserWithProfile,
-} from "../services/users.js";
-import { serializeUserDetail } from "../serializers/user.js";
+import { listUsers, getUserWithProfile } from "../services/users.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
 
 export const listUsersHandler = defineEventHandler({
@@ -35,9 +31,7 @@ export const listUsersHandler = defineEventHandler({
     const baseUrl = `${url.origin}${url.pathname}`;
 
     return {
-      data: result.users.map((user) =>
-        serializeUserDetail(user.user, user.profile, user.role),
-      ),
+      data: result.users,
       meta: buildPaginationMeta(result.total, limit, page, baseUrl),
     };
   },
@@ -62,37 +56,27 @@ export const updateUserHandler = defineEventHandler({
 
     if (!existingUser) {
       setResponseStatus(event, 404);
-      return { message: `User not found with ${userId} ID` };
-    }
-
-    if (payload.roleId) {
-      const role = await event.context.db
-        .selectFrom("roles")
-        .selectAll()
-        .where("id", "=", payload.roleId)
-        .executeTakeFirst();
-      if (!role) {
-        setResponseStatus(event, 404);
-        return { message: `Role not found with ${payload.roleId} ID` };
-      }
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+        message: `User not found with ${userId} ID`,
+      });
     }
 
     const updatePayload: {
       userId: string;
       firstName?: string;
       lastName?: string;
-      roleId?: number | null;
+      role?: string | null;
     } = { userId };
 
     if (payload.firstName !== undefined)
       updatePayload.firstName = payload.firstName;
     if (payload.lastName !== undefined)
       updatePayload.lastName = payload.lastName;
-    if (payload.roleId !== undefined) updatePayload.roleId = payload.roleId;
-
-    await upsertUserProfile(event.context.db, updatePayload);
+    if (payload.role !== undefined) updatePayload.role = payload.role;
 
     const user = await getUserWithProfile(event.context.db, userId);
-    return serializeUserDetail(user!.user, user!.profile, user!.role);
+    return user;
   },
 });

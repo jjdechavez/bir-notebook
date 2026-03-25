@@ -1,16 +1,23 @@
-import { defineEventHandler, readBody, setResponseStatus } from "h3";
+import {
+  createError,
+  defineEventHandler,
+  readBody,
+  readValidatedBody,
+} from "h3";
 import { requireAuth } from "../middleware/auth.js";
 import {
   changePasswordSchema,
   updateAccountSchema,
 } from "../validators/account.js";
-import { getUserWithProfile, upsertUserProfile } from "../services/users.js";
-import { serializeUserSummary } from "../serializers/user.js";
+import { getUserWithProfile } from "../services/users.js";
 
 export const updateAccount = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
-    const payload = updateAccountSchema.parse(await readBody(event));
+    const payload = await readValidatedBody(
+      event,
+      updateAccountSchema.safeParse,
+    );
     const userId = event.context.currentUser!.id;
 
     const updatePayload: {
@@ -19,31 +26,35 @@ export const updateAccount = defineEventHandler({
       lastName?: string;
     } = { userId };
 
-    if (payload.firstName !== undefined)
-      updatePayload.firstName = payload.firstName;
-    if (payload.lastName !== undefined)
-      updatePayload.lastName = payload.lastName;
+    if (payload.data?.firstName !== undefined)
+      updatePayload.firstName =
+        payload.data?.firstName || event.context.currentUser!.firstName;
+    if (payload.data?.lastName !== undefined)
+      updatePayload.lastName =
+        payload.data?.lastName || event.context.currentUser!.lastName;
 
-    const profile = await upsertUserProfile(event.context.db, updatePayload);
-
-    const fullName = [profile.first_name, profile.last_name]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
+    const fullName = `${updatePayload.firstName} ${updatePayload.lastName}`;
 
     await event.context.db
       .updateTable("user")
-      .set({ name: fullName || event.context.currentUser!.name })
+      .set({
+        name: fullName || event.context.currentUser!.name,
+        firstName: updatePayload.firstName,
+        lastName: updatePayload.lastName,
+      })
       .where("id", "=", userId)
       .execute();
 
     const user = await getUserWithProfile(event.context.db, userId);
     if (!user) {
-      setResponseStatus(event, 404);
-      return { message: "User not found" };
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+        message: "User not found",
+      });
     }
 
-    return serializeUserSummary(user.user, user.profile, user.role);
+    return user;
   },
 });
 
@@ -61,15 +72,18 @@ export const changePassword = defineEventHandler({
         },
       });
     } catch {
-      setResponseStatus(event, 422);
-      return {
-        errors: [
-          {
-            message: "Invalid credentials",
-            field: "currentPassword",
-          },
-        ],
-      };
+      throw createError({
+        statusCode: 422,
+        message: "Invalid Credentials",
+        data: {
+          errors: [
+            {
+              message: "Invalid credentials",
+              field: "currentPassword",
+            },
+          ],
+        },
+      });
     }
 
     const user = await getUserWithProfile(
@@ -78,10 +92,13 @@ export const changePassword = defineEventHandler({
     );
 
     if (!user) {
-      setResponseStatus(event, 404);
-      return { message: "User not found" };
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+        message: "User not found",
+      });
     }
 
-    return serializeUserSummary(user.user, user.profile, user.role);
+    return user;
   },
 });

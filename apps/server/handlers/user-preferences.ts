@@ -30,7 +30,7 @@ export const getUserPreferences = defineEventHandler({
         .executeTakeFirst();
     }
 
-    return serializeUserPreference(preference as Selectable<UserPreferences>);
+    return preference;
   },
 });
 
@@ -86,7 +86,7 @@ export const updateUserPreferences = defineEventHandler({
 
     return {
       message: "User preference has been updated",
-      data: serializeUserPreference(updated as Selectable<UserPreferences>),
+      data: updated,
     };
   },
 });

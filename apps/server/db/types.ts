@@ -43,7 +43,7 @@ export interface Invites {
   email: string;
   id: Generated<number>;
   invited_by_id: string | null;
-  role_id: number | null;
+  role: string | null;
   status: Generated<string>;
   updated_at: Generated<Timestamp>;
 }
@@ -54,13 +54,6 @@ export interface Jwks {
   id: string;
   privateKey: string;
   publicKey: string;
-}
-
-export interface Roles {
-  created_at: Generated<Timestamp>;
-  id: Generated<number>;
-  name: string;
-  updated_at: Generated<Timestamp>;
 }
 
 export interface Session {
@@ -130,15 +123,6 @@ export interface UserPreferences {
   user_id: string;
 }
 
-export interface UserProfiles {
-  created_at: Generated<Timestamp>;
-  first_name: string;
-  last_name: string;
-  role_id: number | null;
-  updated_at: Generated<Timestamp>;
-  user_id: string;
-}
-
 export interface Verification {
   createdAt: Generated<Timestamp>;
   expiresAt: Timestamp;
@@ -153,12 +137,10 @@ export interface DB {
   chart_of_accounts: ChartOfAccounts;
   invites: Invites;
   jwks: Jwks;
-  roles: Roles;
   session: Session;
   transaction_categories: TransactionCategories;
   transactions: Transactions;
   user: User;
   user_preferences: UserPreferences;
-  user_profiles: UserProfiles;
   verification: Verification;
 }

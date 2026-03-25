@@ -1,10 +1,12 @@
 import {
+  createError,
   defineEventHandler,
   eventHandler,
   getQuery,
   getRequestURL,
   getRouterParams,
   readBody,
+  readValidatedBody,
   sendRedirect,
   setResponseStatus,
 } from "h3";
@@ -14,22 +16,29 @@ import {
   createInviteSchema,
   updateInviteSchema,
 } from "../validators/invite.js";
-import { serializeInvite } from "../serializers/invite.js";
 import type { Selectable } from "kysely";
-import type { Invites, Roles } from "../db/types.js";
-import { getUserWithProfile, upsertUserProfile } from "../services/users.js";
+import type { Invites } from "../db/types.js";
+import { getUserWithProfile } from "../services/users.js";
 import { signUrl, verifySignedUrl } from "../utils/signed-url.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
+import { toValidationError } from "../utils/validation.js";
 
 export const createInviteHandler = defineEventHandler({
   onRequest: [requireAdmin()],
   handler: async (event) => {
-    const payload = createInviteSchema.parse(await readBody(event));
+    const payload = await readValidatedBody(
+      event,
+      createInviteSchema.safeParse,
+    );
+
+    if (!payload.success) {
+      return toValidationError(payload.error);
+    }
 
     const existingUser = await event.context.db
       .selectFrom("user")
       .select(["id"])
-      .where("email", "=", payload.email)
+      .where("email", "=", payload.data.email)
       .executeTakeFirst();
 
     if (existingUser) {
@@ -37,22 +46,22 @@ export const createInviteHandler = defineEventHandler({
       return { message: "Email is already in use" };
     }
 
-    const role = await event.context.db
-      .selectFrom("roles")
-      .selectAll()
-      .where("id", "=", payload.roleId)
-      .executeTakeFirst();
+    const roles = ["user", "admin"];
+    const validRole = roles.includes(payload.data.role);
 
-    if (!role) {
-      setResponseStatus(event, 404);
-      return { message: "Role not found" };
+    if (!validRole) {
+      throw createError({
+        statusCode: 422,
+        statusMessage: "Invalid Request",
+        message: "Invalid role",
+      });
     }
 
     const invite = await event.context.db
       .insertInto("invites")
       .values({
-        email: payload.email,
-        role_id: payload.roleId,
+        email: payload.data.email,
+        role: payload.data.role,
         invited_by_id: event.context.currentUser!.id,
         status: "pending",
         created_at: new Date(),
@@ -62,7 +71,7 @@ export const createInviteHandler = defineEventHandler({
       .executeTakeFirst();
 
     setResponseStatus(event, 201);
-    return serializeInvite(invite as any, role as any, null);
+    return invite;
   },
 });
 
@@ -107,18 +116,6 @@ export const listInvitesHandler = defineEventHandler({
       .offset(offset)
       .execute();
 
-    const roleIds = invites
-      .map((invite) => invite.role_id)
-      .filter(Boolean) as number[];
-    const roles: Array<Selectable<Roles>> = roleIds.length
-      ? await event.context.db
-          .selectFrom("roles")
-          .selectAll()
-          .where("id", "in", roleIds)
-          .execute()
-      : [];
-    const roleMap = new Map(roles.map((role) => [role.id, role]));
-
     const invitedByIds = invites
       .map((invite) => invite.invited_by_id)
       .filter(Boolean) as string[];
@@ -133,17 +130,7 @@ export const listInvitesHandler = defineEventHandler({
     const baseUrl = `${url.origin}${url.pathname}`;
 
     return {
-      data: invites.map((invite) =>
-        serializeInvite(
-          invite as any,
-          invite.role_id
-            ? ((roleMap.get(invite.role_id) as any) ?? null)
-            : null,
-          invite.invited_by_id
-            ? ((invitedByMap.get(invite.invited_by_id) as any) ?? null)
-            : null,
-        ),
-      ),
+      data: invites,
       meta: buildPaginationMeta(total, limit, page, baseUrl),
     };
   },
@@ -229,19 +216,14 @@ export const showInviteHandler = eventHandler(async (event) => {
     .executeTakeFirst();
 
   if (!invite) {
-    setResponseStatus(event, 404);
-    return { message: `Invite not found with ${params["id"]} ID` };
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Not Found",
+      message: `Invite not found with ${params["id"]} ID`,
+    });
   }
 
-  const role = invite.role_id
-    ? await event.context.db
-        .selectFrom("roles")
-        .selectAll()
-        .where("id", "=", invite.role_id)
-        .executeTakeFirst()
-    : null;
-
-  return serializeInvite(invite as any, role as any, null);
+  return invite;
 });
 
 export const completeInviteHandler = eventHandler(async (event) => {
@@ -256,50 +238,40 @@ export const completeInviteHandler = eventHandler(async (event) => {
 
   if (!invite) {
     setResponseStatus(event, 404);
-    return {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Not Found",
       message: `Failed to complete invitation: Invite not found with ${params["id"]} ID`,
-    };
+    });
   }
 
   const userName = `${payload.firstName} ${payload.lastName}`.trim();
-  let signUp: { user: { id: string } };
   try {
-    signUp = await event.context.auth.api.signUpEmail({
+    await event.context.auth.api.signUpEmail({
       body: {
         name: userName,
         email: invite.email,
         password: payload.password,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        role: invite.role as "user" | "admin",
       },
       headers: event.headers,
     });
   } catch {
-    setResponseStatus(event, 400);
-    return {
-      errors: [
-        {
-          message: "Unable to create user",
-          field: "email",
-        },
-      ],
-    };
+    throw createError({
+      statusCode: 400,
+      message: "Unable to create user",
+      data: {
+        errors: [
+          {
+            message: "Unable to create user",
+            field: "email",
+          },
+        ],
+      },
+    });
   }
-
-  const profilePayload: {
-    userId: string;
-    firstName?: string;
-    lastName?: string;
-    roleId?: number | null;
-  } = {
-    userId: signUp.user.id,
-    firstName: payload.firstName,
-    lastName: payload.lastName,
-  };
-
-  if (invite.role_id !== null) {
-    profilePayload.roleId = invite.role_id;
-  }
-
-  await upsertUserProfile(event.context.db, profilePayload);
 
   await event.context.db
     .updateTable("invites")
@@ -315,36 +287,35 @@ export const updateInviteHandler = defineEventHandler({
   onRequest: [requireAdmin()],
   handler: async (event) => {
     const params = getRouterParams(event);
-    const payload = updateInviteSchema.parse(await readBody(event));
+    const payload = await readValidatedBody(
+      event,
+      updateInviteSchema.safeParse,
+    );
+
+    if (!payload.success) {
+      throw toValidationError(payload.error);
+    }
 
     const existing = await event.context.db
       .selectFrom("invites")
       .selectAll()
-      .where("email", "=", payload.email)
+      .where("email", "=", payload.data.email)
       .where("id", "!=", Number(params["id"]))
       .executeTakeFirst();
 
     if (existing) {
-      setResponseStatus(event, 400);
-      return { message: "Email is already in use" };
-    }
-
-    const role = await event.context.db
-      .selectFrom("roles")
-      .selectAll()
-      .where("id", "=", payload.roleId)
-      .executeTakeFirst();
-
-    if (!role) {
-      setResponseStatus(event, 404);
-      return { message: "Role not found" };
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        message: "Email is already used",
+      });
     }
 
     const invite = await event.context.db
       .updateTable("invites")
       .set({
-        email: payload.email,
-        role_id: payload.roleId,
+        email: payload.data.email,
+        role: payload.data.role,
         updated_at: new Date(),
       })
       .where("id", "=", Number(params["id"]))
@@ -352,10 +323,13 @@ export const updateInviteHandler = defineEventHandler({
       .executeTakeFirst();
 
     if (!invite) {
-      setResponseStatus(event, 404);
-      return { message: `Invite not found with ${params["id"]} ID` };
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+        message: `Invite not found with ${params["id"]} ID`,
+      });
     }
 
-    return serializeInvite(invite as any, role as any, null);
+    return invite;
   },
 });
