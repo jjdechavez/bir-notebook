@@ -1,5 +1,6 @@
 import { ofetch, type FetchOptions } from 'ofetch'
 import { getAuthToken } from './auth'
+import { camelKeys } from './utils'
 
 const ofetchBaseConfig: FetchOptions = {
   timeout: 3000,
@@ -15,8 +16,9 @@ const ofetchBaseConfig: FetchOptions = {
     )
     console.error(error)
   },
-  async onResponse({ request, options }) {
+  async onResponse({ request, options, response }) {
     console.log('[fetch response]', request, options)
+    response._data = camelKeys(response._data)
   },
 }
 
@@ -38,6 +40,7 @@ export const requestApi = ofetch.create({
   },
   async onResponse({ request, options, response }) {
     console.log('[fetch response]', request, options)
+    response._data = camelKeys(response._data)
     if (response.status === 401) {
       console.warn('Unauthorized: redirecting to login')
       if (typeof window !== 'undefined') {
