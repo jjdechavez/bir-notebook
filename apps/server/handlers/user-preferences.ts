@@ -2,6 +2,9 @@ import { defineEventHandler, readValidatedBody, setResponseStatus } from "h3";
 import { requireAuth } from "../middleware/auth.js";
 import { updateUserPreferenceSchema } from "../validators/user.js";
 import { toValidationError } from "../utils/validation.js";
+import { serializeUserPreference } from "../serializers/user-preference.js";
+import { UserPreferences } from "../db/types.js";
+import { Selectable } from "kysely";
 
 export const getUserPreferences = defineEventHandler({
   onRequest: [requireAuth()],
@@ -27,7 +30,7 @@ export const getUserPreferences = defineEventHandler({
         .executeTakeFirst();
     }
 
-    return preference;
+    return serializeUserPreference(preference as Selectable<UserPreferences>);
   },
 });
 
@@ -83,7 +86,7 @@ export const updateUserPreferences = defineEventHandler({
 
     return {
       message: "User preference has been updated",
-      data: updated,
+      data: serializeUserPreference(updated as Selectable<UserPreferences>),
     };
   },
 });

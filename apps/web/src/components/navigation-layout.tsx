@@ -1,24 +1,26 @@
 import { useUserPreferencesContext } from '@/lib/user-preferences'
-import { useAuth } from '@/lib/auth'
 import { getNavigationItems } from '@/lib/navigation-data'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { AppNavbar } from '@/components/app-navbar'
+import { authClient } from '@/lib/auth-client'
 
 interface NavigationLayoutProps {
   children: React.ReactNode
 }
 
 export function NavigationLayout({ children }: NavigationLayoutProps) {
-  const { navigationLayout } = useUserPreferencesContext()
-  const { user } = useAuth()
+  const { navigationLayout, isLoading } = useUserPreferencesContext()
+  const { data , isPending } = authClient.useSession()
 
-  if (!user) {
+  if (isPending && !data?.user && isLoading) {
     return null // or loading state
   }
 
-  const navigationItems = getNavigationItems(user)
+  const navigationItems = getNavigationItems(data?.user)
+
+  console.log({ isLoading, navigationLayout })
 
   if (navigationLayout === 'navbar') {
     return (

@@ -12,16 +12,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useNavigate } from '@tanstack/react-router'
-import { useAuth } from '@/lib/auth'
 import { Button } from './ui/button'
+import { authClient } from '@/lib/auth-client'
 
 export function NavUserNavbar() {
   const navigate = useNavigate()
-  const { logout, user: data } = useAuth()
+  const { data } = authClient.useSession()
 
   const user = {
-    name: data?.name,
-    email: data?.email,
+    name: data?.user.name,
+    email: data?.user.email,
   }
 
   return (
@@ -68,7 +68,7 @@ export function NavUserNavbar() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={async () => {
-            await logout()
+            await authClient.signOut()
             navigate({ to: '/login' })
           }}
         >
