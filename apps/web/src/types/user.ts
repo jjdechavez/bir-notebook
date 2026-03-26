@@ -1,11 +1,17 @@
-import type { tuyau } from '@/main'
-import type { InferRequestType, InferResponseType } from '@tuyau/react-query'
+import type { ListQueryParam, ListResponse } from '@/lib/api'
+import type { SessionClient } from '@/lib/auth-client'
+import type { UserRole } from '@bir-notebook/shared/models/user'
 
-export type User = InferResponseType<
-  typeof tuyau.api.users.$get
->['data'][number]
+export type User = SessionClient['user']
 
-export type UserInput = InferRequestType<
-  // @ts-ignore
-  (typeof tuyau.api.users)[':id']['$put']
->
+export type UserInput = {
+  firstName: string
+  lastName: string
+  role: UserRole
+}
+
+export type UserList = ListResponse<User>
+
+export type ListUserQueryParam = ListQueryParam & {
+  s?: string
+}

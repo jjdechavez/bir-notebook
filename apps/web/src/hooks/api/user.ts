@@ -1,4 +1,5 @@
 import {
+  queryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -15,6 +16,12 @@ import type {
   UserPreference,
   UserPreferenceInput,
 } from '@bir-notebook/shared/models/user'
+import type {
+  ListUserQueryParam,
+  User,
+  UserInput,
+  UserList,
+} from '@/types/user'
 
 const USER_PREFERENCE_QUERY_KEY = `user-preference` as const
 
@@ -44,5 +51,42 @@ export const useUpdateUserPreference = (
     mutationFn: (input: UserPreferenceInput) =>
       api.user.preferences.update(input),
     ...buildOptions(queryClient, [userPreferenceKeys.all], options),
+  })
+}
+
+const USER_QUERY_KEY = `user` as const
+
+export const userKeys = queryKeysFactory(USER_QUERY_KEY)
+
+type UserQueryKeys = typeof userKeys
+
+export const usersOptions = (query: ListUserQueryParam = {}) =>
+  queryOptions({
+    queryKey: userKeys.list(query),
+    queryFn: () => api.user.list(query),
+  })
+
+export const useUsers = (
+  query?: ListUserQueryParam,
+  options?: UseQueryOptionsWrapper<
+    UserList,
+    Error,
+    ReturnType<UserQueryKeys['list']>
+  >,
+) => {
+  return useQuery({
+    ...usersOptions(query),
+    ...options,
+  })
+}
+
+export const useUpdateUser = (
+  id: string,
+  options?: UseMutationOptions<User, Error, UserInput>,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UserInput) => api.user.update(id, input),
+    ...buildOptions(queryClient, [userKeys.all], options),
   })
 }

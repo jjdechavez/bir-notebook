@@ -19,6 +19,11 @@ export type ListMeta = {
   lastPageUrl: string
 }
 
+export type ListResponse<T> = {
+  data: Array<T>
+  meta: ListMeta
+}
+
 export const DEFAULT_LIST_META: ListMeta = {
   total: 0,
   perPage: 0,

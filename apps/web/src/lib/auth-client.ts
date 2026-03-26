@@ -35,3 +35,5 @@ export const authClient = createAuthClient({
     },
   },
 })
+
+export type SessionClient = typeof authClient['$Infer']['Session']

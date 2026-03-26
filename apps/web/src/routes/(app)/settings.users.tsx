@@ -7,7 +7,6 @@ import {
   type ColumnDef,
   type PaginationState,
 } from '@tanstack/react-table'
-import { tuyau } from '@/main'
 import {
   DataTable,
   DEFAULT_PAGE_INDEX,
@@ -29,17 +28,23 @@ import { useState } from 'react'
 import { EditUser } from '@/components/setting-user-overlay'
 import { SettingPendingComponent } from '@/components/pending-component'
 import { GenericErrorComponent } from '@/components/error-component'
+import { usersOptions } from '@/hooks/api/user'
+import { formatOption } from '@bir-notebook/shared/models/common'
+import { userRoleOptions } from '@bir-notebook/shared/models/user'
 
 export const Route = createFileRoute('/(app)/settings/users')({
-  loader: ({ context }) => {
+  validateSearch: () => ({}) as Partial<PaginationState> & { s?: string },
+  loaderDeps: ({ search }) => ({
+    page: (search?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
+    size: search?.pageSize || DEFAULT_PAGE_SIZE,
+    s: search?.s,
+  }),
+  loader: ({ context, deps }) => {
     return {
       crumb: 'Users',
-      ...context.queryClient.ensureQueryData(
-        context.tuyau.api.users.$get.queryOptions(),
-      ),
+      ...context.queryClient.ensureQueryData(usersOptions(deps)),
     }
   },
-  validateSearch: () => ({}) as Partial<PaginationState>,
   component: UserSettings,
   pendingComponent: SettingPendingComponent,
   errorComponent: GenericErrorComponent,
@@ -67,6 +72,7 @@ const columns: ColumnDef<User>[] = [
   {
     header: 'Role',
     accessorKey: 'role',
+    cell: ({ row }) => <>{formatOption(userRoleOptions, row.original.role)}</>,
   },
   {
     id: 'actions',
@@ -116,9 +122,7 @@ function UserSettings() {
   }
 
   const { status, data } = useSuspenseQuery(
-    tuyau.api.users.$get.queryOptions({
-      payload: { ...query, page: query.page + 1 },
-    }),
+    usersOptions({ ...query, page: query.page + 1 }),
   )
 
   const table = useReactTable({
