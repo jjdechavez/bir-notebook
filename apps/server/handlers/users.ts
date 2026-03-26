@@ -57,7 +57,7 @@ export const updateUserHandler = defineEventHandler({
 
     const existingUser = await event.context.db
       .selectFrom("user")
-      .select(["id"])
+      .select(["id", "firstName", "lastName", "role"])
       .where("id", "=", userId)
       .executeTakeFirst();
 
@@ -73,6 +73,7 @@ export const updateUserHandler = defineEventHandler({
       firstName?: string;
       lastName?: string;
       role?: string | null;
+      name?: string;
     } = {};
 
     if (payload.data.firstName !== undefined)
@@ -80,6 +81,11 @@ export const updateUserHandler = defineEventHandler({
     if (payload.data.lastName !== undefined)
       updatePayload.lastName = payload.data.lastName;
     if (payload.data.role !== undefined) updatePayload.role = payload.data.role;
+    if (payload.data?.firstName || payload.data?.lastName) {
+      const firstName = payload.data?.firstName || existingUser.firstName;
+      const lastName = payload.data?.lastName || existingUser.lastName;
+      updatePayload.name = `${firstName} ${lastName}`;
+    }
 
     await event.context.db
       .updateTable("user")
