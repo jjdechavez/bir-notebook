@@ -8,7 +8,7 @@ export type UserWithProfile = {
 export async function getUserWithProfile(
   db: Kysely<DB>,
   userId: string,
-): Promise<UserWithProfile | null> {
+): Promise<Selectable<User> | null> {
   const row = await db
     .selectFrom("user as u")
     .select([
@@ -47,7 +47,7 @@ export async function getUserWithProfile(
     banExpires: row["u_ban_expires"],
   };
 
-  return { user };
+  return user;
 }
 
 export async function listUsers(
@@ -129,7 +129,7 @@ export async function listUsers(
       banExpires: row["u_ban_expires"],
     };
 
-    return { user };
+    return user;
   });
 
   return { total, users };

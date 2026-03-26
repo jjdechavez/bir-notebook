@@ -4,13 +4,13 @@ import {
   getQuery,
   getRequestURL,
   getRouterParams,
-  readBody,
-  setResponseStatus,
+  readValidatedBody,
 } from "h3";
 import { requireAuth } from "../middleware/auth.js";
 import { userListSchema, updateUserSchema } from "../validators/user.js";
 import { listUsers, getUserWithProfile } from "../services/users.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
+import { toValidationError } from "../utils/validation.js";
 
 export const listUsersHandler = defineEventHandler({
   onRequest: [requireAuth()],
@@ -43,10 +43,17 @@ export const updateUserHandler = defineEventHandler({
     const params = getRouterParams(event);
     const userId = params["id"];
     if (!userId) {
-      setResponseStatus(event, 400);
-      return { message: "User id is required" };
+      throw createError({
+        statusCode: 400,
+        message: "User id is required",
+      });
     }
-    const payload = updateUserSchema.parse(await readBody(event));
+
+    const payload = await readValidatedBody(event, updateUserSchema.safeParse);
+
+    if (!payload.success) {
+      throw toValidationError(payload.error);
+    }
 
     const existingUser = await event.context.db
       .selectFrom("user")
@@ -55,7 +62,6 @@ export const updateUserHandler = defineEventHandler({
       .executeTakeFirst();
 
     if (!existingUser) {
-      setResponseStatus(event, 404);
       throw createError({
         statusCode: 404,
         statusMessage: "Not Found",
@@ -64,17 +70,22 @@ export const updateUserHandler = defineEventHandler({
     }
 
     const updatePayload: {
-      userId: string;
       firstName?: string;
       lastName?: string;
       role?: string | null;
-    } = { userId };
+    } = {};
 
-    if (payload.firstName !== undefined)
-      updatePayload.firstName = payload.firstName;
-    if (payload.lastName !== undefined)
-      updatePayload.lastName = payload.lastName;
-    if (payload.role !== undefined) updatePayload.role = payload.role;
+    if (payload.data.firstName !== undefined)
+      updatePayload.firstName = payload.data.firstName;
+    if (payload.data.lastName !== undefined)
+      updatePayload.lastName = payload.data.lastName;
+    if (payload.data.role !== undefined) updatePayload.role = payload.data.role;
+
+    await event.context.db
+      .updateTable("user")
+      .set(updatePayload)
+      .where("id", "=", userId)
+      .execute();
 
     const user = await getUserWithProfile(event.context.db, userId);
     return user;
