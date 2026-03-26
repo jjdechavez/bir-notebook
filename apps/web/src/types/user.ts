@@ -1,14 +1,16 @@
 import type { ListQueryParam, ListResponse } from '@/lib/api'
 import type { SessionClient } from '@/lib/auth-client'
-import type { UserRole } from '@bir-notebook/shared/models/user'
+import { z } from 'zod'
 
 export type User = SessionClient['user']
 
-export type UserInput = {
-  firstName: string
-  lastName: string
-  role: UserRole
-}
+export const userInputSchema = z.object({
+  firstName: z.string().min(3),
+  lastName: z.string().min(3),
+  role: z.enum(['user', 'admin']),
+})
+
+export type UserInput = z.infer<typeof userInputSchema>
 
 export type UserList = ListResponse<User>
 

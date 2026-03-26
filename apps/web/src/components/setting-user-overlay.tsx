@@ -1,4 +1,3 @@
-import { useForm } from 'react-hook-form'
 import { Button } from './ui/button'
 import {
   Drawer,
@@ -9,12 +8,11 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from './ui/drawer'
-import { UserForm } from './user-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { User, UserInput } from '@/types/user'
+import { userAppFormOpts, UserForm, useUserAppForm } from './user-form'
+import type { User } from '@/types/user'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { tuyau } from '@/main'
 import { toast } from 'sonner'
+import { useUpdateUser } from '@/hooks/api/user'
 
 export function EditUser({
   user,
@@ -27,39 +25,30 @@ export function EditUser({
   onToggleOpen: () => void
   onCallback?: () => void
 }) {
-  const queryClient = useQueryClient()
   const isMobile = useIsMobile()
-  const form = useForm<UserInput>({
-    defaultValues: {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      roleId: user.roleId,
+  const updateUserMutation = useUpdateUser(user.id, {
+    onSuccess: () => {
+      if (onCallback) {
+        onCallback()
+      }
     },
   })
 
-  const updateUserMutation = useMutation(
-    tuyau.api.users({ id: user.id }).$put.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.users.$get.pathKey(),
-        })
-        if (onCallback) {
-          onCallback()
-        }
-      },
-    }),
-  )
-
-  const onSubmit = async (payload: UserInput) => {
-    toast.promise(
-      async () => await updateUserMutation.mutateAsync({ payload }),
-      {
+  const form = useUserAppForm({
+    ...userAppFormOpts,
+    defaultValues: {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+    },
+    onSubmit: async ({ value }) => {
+      toast.promise(async () => await updateUserMutation.mutateAsync(value), {
         loading: 'Updating user...',
         success: () => `Updated successfully`,
         error: () => 'Failed to update user',
-      },
-    )
-  }
+      })
+    },
+  })
 
   return (
     <Drawer
@@ -74,10 +63,14 @@ export function EditUser({
         </DrawerHeader>
 
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          <UserForm form={form} onSubmit={onSubmit} />
+          <UserForm form={form} />
         </div>
         <DrawerFooter>
-          <Button type="submit" form="user-form">
+          <Button
+            type="submit"
+            form="user-form"
+            onClick={() => form.handleSubmit()}
+          >
             Update
           </Button>
           <DrawerClose asChild onClick={onToggleOpen}>

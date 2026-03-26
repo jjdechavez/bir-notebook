@@ -1,78 +1,105 @@
-import { Controller, type UseFormReturn } from 'react-hook-form'
+import {
+  createFormHook,
+  createFormHookContexts,
+  formOptions,
+} from '@tanstack/react-form'
 import { Field, FieldError, FieldLabel } from './ui/field'
 import { Input } from './ui/input'
-import type { UserInput } from '@/types/user'
-import { SelectRole } from './select-role'
+import { SimpleSelectRole } from './simple-select-role'
+import { userInputSchema } from '@/types/user'
+import type { UserRole } from '@bir-notebook/shared/models/user'
 
-type UserFormProps = {
-  onSubmit: (input: UserInput) => void
-  form: UseFormReturn<UserInput>
-}
+const { fieldContext, formContext } = createFormHookContexts()
+const { useAppForm: useUserAppForm, withForm } = createFormHook({
+  fieldComponents: {},
+  formComponents: {},
+  fieldContext,
+  formContext,
+})
 
-export function UserForm(props: UserFormProps) {
-  const onSubmit = props.form.handleSubmit((payload) => {
-    props.onSubmit(payload)
-  })
+export { useUserAppForm }
 
-  return (
-    <form id="user-form" onSubmit={onSubmit} className='space-y-4'>
-      <Controller
-        control={props.form.control}
-        name="firstName"
-        render={({ field, fieldState, formState }) => {
-          return (
-            <Field data-invalid={fieldState.invalid}>
+export const userAppFormOpts = formOptions({
+  defaultValues: {
+    firstName: '',
+    lastName: '',
+    role: 'user' as UserRole,
+  },
+  validators: {
+    onSubmit: userInputSchema,
+  },
+})
+
+export const UserForm = withForm({
+  ...userAppFormOpts,
+  render: ({ form }) => {
+    return (
+      <form
+        id="user-form"
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault()
+        }}
+      >
+        <form.Field
+          name="firstName"
+          children={(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>First Name</FieldLabel>
               <Input
-                {...field}
-                value={field.value ?? ''}
-                disabled={formState.isSubmitting}
-                aria-invalid={fieldState.invalid}
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                disabled={form.state.isSubmitting}
+                aria-invalid={field.state.meta.errors.length > 0}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {field.state.meta.errors.length > 0 && (
+                <FieldError errors={field.state.meta.errors} />
+              )}
             </Field>
-          )
-        }}
-      />
+          )}
+        />
 
-      <Controller
-        control={props.form.control}
-        name="lastName"
-        render={({ field, fieldState, formState }) => {
-          return (
-            <Field data-invalid={fieldState.invalid}>
+        <form.Field
+          name="lastName"
+          children={(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
               <Input
-                {...field}
-                value={field.value ?? ''}
-                disabled={formState.isSubmitting}
-                aria-invalid={fieldState.invalid}
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                disabled={form.state.isSubmitting}
+                aria-invalid={field.state.meta.errors.length > 0}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {field.state.meta.errors.length > 0 && (
+                <FieldError errors={field.state.meta.errors} />
+              )}
             </Field>
-          )
-        }}
-      />
+          )}
+        />
 
-      <Controller
-        control={props.form.control}
-        name="roleId"
-        render={({ field, fieldState }) => {
-          return (
-            <Field data-invalid={fieldState.invalid}>
+        <form.Field
+          name="role"
+          children={(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>Role</FieldLabel>
-              <SelectRole
-                {...field}
-                value={field.value as number}
-                onChange={(role) => {
-                  field.onChange(role!.id)
-                }}
+              <SimpleSelectRole
+                name={field.name}
+                handleChange={e => field.handleChange(e as UserRole)}
+                value={field.state.value}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {field.state.meta.errors.length > 0 && (
+                <FieldError errors={field.state.meta.errors} />
+              )}
             </Field>
-          )
-        }}
-      />
-    </form>
-  )
-}
+          )}
+        />
+      </form>
+    )
+  },
+})
