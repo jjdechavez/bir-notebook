@@ -1,6 +1,7 @@
 import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/components/data-table'
 import { systems } from './api/systems'
 import { user } from './api/user'
+import { invite } from './api/invite'
 
 export type ListQueryParam = Partial<{
   page: number
@@ -56,7 +57,16 @@ export const cleanEmptyParams = <T extends Record<string, unknown>>(
   return newSearch
 }
 
+export type ServerValidationError = {
+  data: {
+    data: Array<{ field: string; message: string }>
+    statusCode: number
+    statusMessage: string
+  }
+}
+
 export const api = {
   systems,
   user,
+  invite,
 }

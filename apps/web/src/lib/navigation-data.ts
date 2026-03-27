@@ -23,7 +23,7 @@ export function getNavigationItems(user: User): NavItem[] {
   ]
   
   // Add admin-only items
-  if (user.role === 'Admin') {
+  if (user.role === 'admin') {
     items.push({
       title: 'Users',
       url: '/settings/users',

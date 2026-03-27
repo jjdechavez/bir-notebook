@@ -5,7 +5,6 @@ import {
   getQuery,
   getRequestURL,
   getRouterParams,
-  readBody,
   readValidatedBody,
   sendRedirect,
   setResponseStatus,
@@ -18,7 +17,6 @@ import {
 } from "../validators/invite.js";
 import { type Selectable, sql } from "kysely";
 import type { Invites } from "../db/types.js";
-import { getUserWithProfile } from "../services/users.js";
 import { signUrl, verifySignedUrl } from "../utils/signed-url.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
 import { toValidationError } from "../utils/validation.js";
@@ -236,7 +234,14 @@ export const showInviteHandler = eventHandler(async (event) => {
 
 export const completeInviteHandler = eventHandler(async (event) => {
   const params = getRouterParams(event);
-  const payload = completeInviteSchema.parse(await readBody(event));
+  const payload = await readValidatedBody(
+    event,
+    completeInviteSchema.safeParse,
+  );
+
+  if (!payload.success) {
+    throw toValidationError(payload.error);
+  }
 
   const invite = await event.context.db
     .selectFrom("invites")
@@ -245,7 +250,6 @@ export const completeInviteHandler = eventHandler(async (event) => {
     .executeTakeFirst();
 
   if (!invite) {
-    setResponseStatus(event, 404);
     throw createError({
       statusCode: 404,
       statusMessage: "Not Found",
@@ -253,20 +257,22 @@ export const completeInviteHandler = eventHandler(async (event) => {
     });
   }
 
-  const userName = `${payload.firstName} ${payload.lastName}`.trim();
+  const userName = `${payload.data.firstName} ${payload.data.lastName}`.trim();
   try {
-    await event.context.auth.api.signUpEmail({
+    await event.context.auth.api.createUser({
       body: {
         name: userName,
         email: invite.email,
-        password: payload.password,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
+        password: payload.data.password,
         role: invite.role as "user" | "admin",
+        data: {
+          firstName: payload.data.firstName,
+          lastName: payload.data.lastName,
+        },
       },
       headers: event.headers,
     });
-  } catch {
+  } catch (e) {
     throw createError({
       statusCode: 400,
       message: "Unable to create user",

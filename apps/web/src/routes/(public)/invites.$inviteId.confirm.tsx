@@ -9,29 +9,28 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { tuyau } from '@/main'
-import type { Invite, InviteCompleteInput } from '@/types/invite'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { Invite } from '@/types/invite'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { TuyauHTTPError } from '@tuyau/client'
 import { GalleryVerticalEnd } from 'lucide-react'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from '@tanstack/react-form'
 import { toast } from 'sonner'
+import { inviteOptions, useCompleteInvite } from '@/hooks/api/invite'
+import { inviteCompleteInputSchema } from '@bir-notebook/shared/models/invite'
 
 export const Route = createFileRoute('/(public)/invites/$inviteId/confirm')({
+  loader: ({ context, params }) => {
+    return {
+      ...context.queryClient.ensureQueryData(inviteOptions(params.inviteId)),
+    }
+  },
   component: InviteConfrim,
   notFoundComponent: PublicNotFound,
 })
 
 function InviteConfrim() {
   const { inviteId } = Route.useParams()
-  const { status, data } = useQuery(
-    tuyau.api.invites({ id: inviteId }).$get.queryOptions(),
-  )
-
-  if (status === 'pending') {
-    return <div>Loading</div>
-  }
+  const { data } = useSuspenseQuery(inviteOptions(inviteId))
 
   if (!data || data.status === 'accepted') {
     return <PublicNotFound />
@@ -60,57 +59,38 @@ function CreatedAccount() {
 }
 
 function AccountForm({ invite }: { invite: Invite }) {
-  const queryClient = useQueryClient()
-  const form = useForm<InviteCompleteInput>({
+  const form = useForm({
     defaultValues: {
       firstName: '',
       lastName: '',
       password: '',
       password_confirmation: '',
     },
+    validators: {
+      onSubmit: inviteCompleteInputSchema,
+    },
+    onSubmit: async ({ value }) => {
+      toast.promise(() => mutation.mutateAsync(value), {
+        loading: 'Creating an account...',
+        success: 'Account created successfully!',
+        error: 'Failed to create account',
+      })
+    },
   })
 
-  const mutation = useMutation(
-    tuyau.api.invites({ id: invite.id }).complete.$post.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.invites.$get.pathKey(),
-        })
-      },
-      onError(error) {
-        if (error instanceof TuyauHTTPError) {
-          const value = error.value as {
-            errors: Array<{
-              message: string
-              field: string
-              meta?: { otherField: string }
-            }>
-          }
-          value.errors.forEach((error) => {
-            form.setError(error.field as keyof InviteCompleteInput, {
-              message: error.message,
-            })
-            if (error.meta?.otherField) {
-              form.setError(
-                error.meta.otherField as keyof InviteCompleteInput,
-                {
-                  message: error.message,
-                },
-              )
-            }
-          })
-        }
-      },
-    }),
-  )
+  const mutation = useCompleteInvite(invite.id.toString(), {
+    onError: (err) => {
+      const errors = err.data?.data || []
 
-  const onSubmit = async (payload: InviteCompleteInput) => {
-    toast.promise(() => mutation.mutateAsync({ payload }), {
-      loading: 'Creating an account...',
-      success: 'Account created successfully!',
-      error: 'Failed to create account',
-    })
-  }
+      errors.forEach((error: { field: string; message: string }) => {
+        form.setErrorMap({
+          onSubmit: {
+            fields: { [error.field]: { onSubmit: error.message } },
+          },
+        })
+      })
+    },
+  })
 
   if (mutation.status === 'success') {
     return <CreatedAccount />
@@ -118,7 +98,13 @@ function AccountForm({ invite }: { invite: Invite }) {
 
   return (
     <PublicLayout>
-      <form id="complete-form" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        id="complete-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+      >
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <a
@@ -144,85 +130,96 @@ function AccountForm({ invite }: { invite: Invite }) {
             />
           </Field>
 
-          <Controller
+          <form.Field
             name="firstName"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
+            children={(field) => (
+              <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor={field.name}>First Name</FieldLabel>
                 <Input
-                  {...field}
                   id={field.name}
+                  name={field.name}
                   placeholder="John"
-                  aria-invalid={fieldState.invalid}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
                   autoComplete="false"
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
             )}
           />
 
-          <Controller
+          <form.Field
             name="lastName"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
+            children={(field) => (
+              <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
                 <Input
-                  {...field}
                   id={field.name}
+                  name={field.name}
                   placeholder="Doe"
-                  aria-invalid={fieldState.invalid}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
                   autoComplete="false"
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
             )}
           />
-          <Controller
+
+          <form.Field
             name="password"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field aria-invalid={fieldState.invalid}>
+            children={(field) => (
+              <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                 <Input
-                  {...field}
                   id={field.name}
+                  name={field.name}
                   type="password"
-                  aria-invalid={fieldState.invalid}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
                   autoComplete="false"
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
             )}
           />
-          <Controller
+
+          <form.Field
             name="password_confirmation"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field aria-invalid={fieldState.invalid}>
+            children={(field) => (
+              <Field data-invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor={field.name}>
                   Password Confirmation
                 </FieldLabel>
                 <Input
-                  {...field}
                   id={field.name}
+                  name={field.name}
                   type="password"
-                  aria-invalid={fieldState.invalid}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
                   autoComplete="false"
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
             )}
           />
+
           <Field>
             <Button type="submit" form="complete-form">
               Create account

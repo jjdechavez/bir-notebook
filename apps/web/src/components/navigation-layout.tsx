@@ -20,8 +20,6 @@ export function NavigationLayout({ children }: NavigationLayoutProps) {
 
   const navigationItems = getNavigationItems(data?.user)
 
-  console.log({ isLoading, navigationLayout })
-
   if (navigationLayout === 'navbar') {
     return (
       <div className="min-h-screen">

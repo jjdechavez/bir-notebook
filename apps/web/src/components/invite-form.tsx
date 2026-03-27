@@ -1,59 +1,84 @@
-import { Controller, type UseFormReturn } from 'react-hook-form'
+import {
+  createFormHook,
+  createFormHookContexts,
+  formOptions,
+} from '@tanstack/react-form'
 import { Field, FieldError, FieldLabel } from './ui/field'
 import { Input } from './ui/input'
-import type { InviteInput } from '@/types/invite'
-import { SelectRole } from './select-role'
+import { SimpleSelectRole } from './simple-select-role'
+import type { UserRole } from '@bir-notebook/shared/models/user'
+import { newInviteInputSchema } from '@bir-notebook/shared/models/invite'
 
-type InviteFormProps = {
-  onSubmit: (input: InviteInput) => void
-  form: UseFormReturn<InviteInput>
-}
+const { fieldContext, formContext } = createFormHookContexts()
+const { useAppForm: useInviteAppForm, withForm } = createFormHook({
+  fieldComponents: {},
+  formComponents: {},
+  fieldContext,
+  formContext,
+})
 
-export function InviteForm(props: InviteFormProps) {
-  const onSubmit = props.form.handleSubmit((payload) => {
-    props.onSubmit(payload)
-  })
+export { useInviteAppForm }
 
-  return (
-    <form id="invite-form" onSubmit={onSubmit} className="space-y-4">
-      <Controller
-        control={props.form.control}
-        name="roleId"
-        render={({ field, fieldState }) => {
-          return (
-            <Field data-invalid={fieldState.invalid}>
+export const inviteAppFormOpts = formOptions({
+  defaultValues: {
+    email: '',
+    role: 'user' as UserRole,
+  },
+  validators: {
+    onSubmit: newInviteInputSchema,
+  },
+})
+
+export const InviteForm = withForm({
+  ...inviteAppFormOpts,
+  render: ({ form }) => {
+    return (
+      <form
+        id="invite-form"
+        className="space-y-4"
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <form.Field
+          name="role"
+          children={(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>Role</FieldLabel>
-              <SelectRole
-                {...field}
-                value={field.value as number}
-                onChange={(role) => {
-                  field.onChange(role!.id)
+              <SimpleSelectRole
+                name={field.name}
+                value={field.state.value}
+                handleChange={(role) => {
+                  field.handleChange(role as UserRole)
                 }}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {field.state.meta.errors.length > 0 && (
+                <FieldError errors={field.state.meta.errors} />
+              )}
             </Field>
-          )
-        }}
-      />
-      <Controller
-        control={props.form.control}
-        name="email"
-        render={({ field, fieldState, formState }) => {
-          return (
-            <Field data-invalid={fieldState.invalid}>
+          )}
+        />
+
+        <form.Field
+          name="email"
+          children={(field) => (
+            <Field data-invalid={field.state.meta.errors.length > 0}>
               <FieldLabel htmlFor={field.name}>Email</FieldLabel>
               <Input
-                {...field}
+                id={field.name}
+                name={field.name}
                 type="email"
-                value={field.value ?? ''}
-                disabled={formState.isSubmitting}
-                aria-invalid={fieldState.invalid}
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                disabled={form.state.isSubmitting}
+                aria-invalid={field.state.meta.errors.length > 0}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {field.state.meta.errors.length > 0 && (
+                <FieldError errors={field.state.meta.errors} />
+              )}
             </Field>
-          )
-        }}
-      />
-    </form>
-  )
-}
+          )}
+        />
+      </form>
+    )
+  },
+})

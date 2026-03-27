@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useFilters } from '@/hooks/use-filters'
-import { tuyau } from '@/main'
 import type { Invite } from '@/types/invite'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
@@ -34,17 +33,28 @@ import {
 import { useState } from 'react'
 import { SettingPendingComponent } from '@/components/pending-component'
 import { GenericErrorComponent } from '@/components/error-component'
+import { invitesOptions } from '@/hooks/api/invite'
+import {
+  inviteStatusOptions,
+  type InviteListQuery,
+} from '@bir-notebook/shared/models/invite'
+import { formatOption } from '@bir-notebook/shared/models/common'
+import { userRoleOptions } from '@bir-notebook/shared/models/user'
 
 export const Route = createFileRoute('/(app)/settings/invites')({
-  loader: ({ context }) => {
+  validateSearch: () => ({}) as Partial<PaginationState> & InviteListQuery,
+  loaderDeps: ({ search }) => ({
+    page: (search?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
+    size: search?.pageSize || DEFAULT_PAGE_SIZE,
+    s: search?.s,
+    status: search.status,
+  }),
+  loader: ({ context, deps }) => {
     return {
       crumb: 'Invites',
-      ...context.queryClient.ensureQueryData(
-        context.tuyau.api.invites.$get.queryOptions(),
-      ),
+      ...context.queryClient.ensureQueryData(invitesOptions(deps)),
     }
   },
-  validateSearch: () => ({}) as Partial<PaginationState>,
   pendingComponent: SettingPendingComponent,
   component: InviteSettings,
   errorComponent: GenericErrorComponent,
@@ -68,10 +78,12 @@ const columns: ColumnDef<Invite>[] = [
   {
     header: 'Role',
     accessorKey: 'role',
+    cell: ({ row }) => formatOption(userRoleOptions, row.original.role),
   },
   {
     header: 'Status',
     accessorKey: 'status',
+    cell: ({ row }) => formatOption(inviteStatusOptions, row.original.status),
   },
   {
     header: 'Invited By',
@@ -117,14 +129,12 @@ function InviteSettings() {
   const { filters, setFilters } = useFilters(Route.id)
   const [selectedInvite, setSelectedInvite] = useState<Invite | null>(null)
   const query = {
-    page: filters.pageIndex || DEFAULT_PAGE_INDEX,
-    limit: filters.pageSize || DEFAULT_PAGE_SIZE,
+    page: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+    limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
   }
 
   const { status, data } = useSuspenseQuery(
-    tuyau.api.invites.$get.queryOptions({
-      payload: { ...query, page: query.page + 1 },
-    }),
+    invitesOptions({ ...query, page: query.page + 1 }),
   )
 
   const table = useReactTable({
