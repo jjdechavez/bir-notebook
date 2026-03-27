@@ -16,7 +16,7 @@ import {
   createInviteSchema,
   updateInviteSchema,
 } from "../validators/invite.js";
-import type { Selectable } from "kysely";
+import { type Selectable, sql } from "kysely";
 import type { Invites } from "../db/types.js";
 import { getUserWithProfile } from "../services/users.js";
 import { signUrl, verifySignedUrl } from "../utils/signed-url.js";
@@ -43,7 +43,10 @@ export const createInviteHandler = defineEventHandler({
 
     if (existingUser) {
       setResponseStatus(event, 400);
-      return { message: "Email is already in use" };
+      throw createError({
+        statusCode: 400,
+        message: "Email is already in use",
+      });
     }
 
     const roles = ["user", "admin"];
@@ -101,7 +104,22 @@ export const listInvitesHandler = defineEventHandler({
       .executeTakeFirst();
     const total = Number(totalResult?.total ?? 0);
 
-    let invitesQuery = event.context.db.selectFrom("invites").selectAll();
+    let invitesQuery = event.context.db
+      .selectFrom("invites")
+      .innerJoin("user", "user.id", "invites.invited_by_id")
+      .select(({ ref }) => [
+        "invites.id",
+        "invites.email",
+        "invites.role",
+        "invites.status",
+        "invites.accepted_at",
+        "invites.created_at",
+        "invites.updated_at",
+        "invites.invited_by_id",
+        sql<string>`concat(${ref("user.firstName")}, ' ', ${ref("user.lastName")})`.as(
+          "invited_by",
+        ),
+      ]);
 
     if (search.length > 0) {
       invitesQuery = invitesQuery.where("email", "ilike", `%${search}%`);
@@ -115,16 +133,6 @@ export const listInvitesHandler = defineEventHandler({
       .limit(limit)
       .offset(offset)
       .execute();
-
-    const invitedByIds = invites
-      .map((invite) => invite.invited_by_id)
-      .filter(Boolean) as string[];
-    const invitedByUsers = await Promise.all(
-      invitedByIds.map((id) => getUserWithProfile(event.context.db, id)),
-    );
-    const invitedByMap = new Map(
-      invitedByUsers.filter(Boolean).map((user) => [user!.user.id, user!]),
-    );
 
     const url = getRequestURL(event);
     const baseUrl = `${url.origin}${url.pathname}`;
