@@ -11,11 +11,13 @@ import {
   CommandItem,
   Command,
 } from '@/components/ui/command'
-import { Badge } from '@/components/ui/badge'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
-import { transactionCategoryKeys } from '@/hooks/api/transaction'
+import {
+  transactionCategoryKeys,
+  useTransactionCategory,
+} from '@/hooks/api/transaction'
 
 type SelectTransactionCategoryProps = {
   multiple?: boolean
@@ -56,9 +58,29 @@ export function SelectTransactionCategory({
 
   const categories = data?.pages.flatMap((page) => page.data) || []
 
+  const selectedValue =
+    !multiple && typeof value === 'number' && value > 0 ? value : null
+
   const selectedSingle = !multiple
-    ? categories.find((category) => category.id === value)
+    ? categories.find((category) => category.id === selectedValue)
     : null
+
+  const { data: selectedCategoryById } = useTransactionCategory(
+    selectedValue?.toString() || '',
+    {
+      enabled: !multiple && selectedValue !== null && !selectedSingle,
+    },
+  )
+
+  const resolvedSelectedSingle = selectedSingle ?? selectedCategoryById ?? null
+
+  const categoriesWithSelected =
+    !multiple &&
+    !search.trim() &&
+    resolvedSelectedSingle &&
+    !categories.some((category) => category.id === resolvedSelectedSingle.id)
+      ? [resolvedSelectedSingle, ...categories]
+      : categories
 
   const selectedMultiple = multiple
     ? categories.filter(
@@ -95,67 +117,45 @@ export function SelectTransactionCategory({
     handleMultipleChange(newValue)
   }
 
-  const handleRemoveMultiple = (categoryId: number) => {
-    if (!Array.isArray(value)) return
-
-    const newValue = value.filter((id) => id !== categoryId)
-    handleMultipleChange(newValue)
-  }
-
   return (
     <div className="select-category-container relative">
-      <div onClick={() => setOpen((prev) => !prev)}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full"
+      >
         {multiple ? (
-          <div className="min-h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent/50 transition-colors">
-            <div className="flex flex-wrap gap-1">
-              {selectedMultiple.map((category) => (
-                <Badge
-                  key={category.id}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  {category.name}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleRemoveMultiple(category.id)
-                    }}
-                    className="ml-1 rounded-sm hover:bg-secondary-80"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              <div className="text-muted-foreground">
-                {selectedMultiple.length === 0
-                  ? placeholder
-                  : `${selectedMultiple.length} selected`}
-              </div>
+          <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent/50 transition-colors">
+            <div className="text-muted-foreground">
+              {selectedMultiple.length === 0
+                ? placeholder
+                : `${selectedMultiple.length} selected`}
             </div>
+            <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground" />
           </div>
         ) : (
           <div className="relative cursor-pointer">
             <div className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-8">
-              {selectedSingle?.name || placeholder}
+              {resolvedSelectedSingle?.name || placeholder}
             </div>
-            {(selectedSingle || search) && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setSearch('')
-                  handleSingleChange(null)
-                }}
-                className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           </div>
         )}
-      </div>
+      </button>
+
+      {!multiple && (resolvedSelectedSingle || search) && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            setSearch('')
+            handleSingleChange(null)
+          }}
+          className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
 
       <div
         className={cn('absolute top-full left-0 right-0 z-50 mt-1', {
@@ -179,10 +179,10 @@ export function SelectTransactionCategory({
                   : 'Searching...'}
             </CommandEmpty>
 
-            {categories.length > 0 && (
+            {categoriesWithSelected.length > 0 && (
               <CommandGroup>
-                {categories.map((category, index) => {
-                  const isLast = index === categories.length - 1
+                {categoriesWithSelected.map((category, index) => {
+                  const isLast = index === categoriesWithSelected.length - 1
                   return (
                     <CommandItem
                       key={category.id}
