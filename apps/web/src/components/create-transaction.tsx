@@ -110,18 +110,32 @@ export function CreateTransaction({
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
+              <form.Subscribe
+                selector={(state) => [state.isSubmitting]}
+                children={([isSubmitting]) => (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              />
             </DrawerClose>
-            <Button
-              type="submit"
-              form="transaction-form"
-              disabled={createTransaction.isPending}
-              onClick={() => form.handleSubmit()}
-            >
-              {createTransaction.isPending ? 'Creating...' : 'Create'}
-            </Button>
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit, isSubmitting]) => (
+                <Button
+                  type="submit"
+                  form="transaction-form"
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={() => form.handleSubmit()}
+                >
+                  {isSubmitting ? 'Creating...' : 'Create'}
+                </Button>
+              )}
+            />
           </DrawerFooter>
         </DrawerContent>
       </Drawer>

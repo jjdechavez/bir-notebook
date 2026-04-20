@@ -1,7 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { BookOpen, FileText, TrendingDown, TrendingUp } from 'lucide-react'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import {
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+  type PaginationState,
+} from '@tanstack/react-table'
+import { useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
 import { formatCentsToCurrency } from '@bir-notebook/shared/helpers/currency'
 import { formatOption } from '@bir-notebook/shared/models/common'
 import {
@@ -9,12 +16,7 @@ import {
   transactionCategoryBookTypes,
   transactionVatTypeOptions,
 } from '@bir-notebook/shared/models/transaction'
-import {
-  getCoreRowModel,
-  useReactTable,
-  type ColumnDef,
-  type PaginationState,
-} from '@tanstack/react-table'
+import { type TransactionListQueryParam } from '@bir-notebook/shared/models/transaction'
 import { DEFAULT_LIST_META } from '@/lib/api'
 
 import { TransactionCard } from '@/components/transaction-summary-card'
@@ -25,24 +27,36 @@ import {
 } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { tuyau } from '@/main'
-import type { Transaction, TransactionSearch } from '@/types/transaction'
+import type { Transaction } from '@/types/transaction'
 import { useFilters } from '@/hooks/use-filters'
 import { CreateTransaction } from '@/components/create-transaction'
-import { useState } from 'react'
 import { EditTransaction } from '@/components/edit-transaction'
 import { authClient } from '@/lib/auth-client'
+import {
+  transactionsOptions,
+  transactionSummaryOptions,
+} from '@/hooks/api/transaction'
 
 export const Route = createFileRoute('/(app)/dashboard')({
-  component: DashboardComponent,
-  loader: () => ({
-    crumb: 'Dashboard',
+  validateSearch: () =>
+    ({}) as Partial<PaginationState> & TransactionListQueryParam,
+  loaderDeps: ({ search }) => ({
+    page: (search?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
+    limit: search?.pageSize || DEFAULT_PAGE_SIZE,
+    bookType: search?.bookType,
+    dateFrom: search?.dateFrom,
+    dateTo: search?.dateTo,
   }),
-  validateSearch: () => ({}) as Partial<TransactionSearch & PaginationState>,
+  loader: ({ context, deps }) => ({
+    crumb: 'Dashboard',
+    ...context.queryClient.ensureQueryData(transactionsOptions(deps)),
+    ...context.queryClient.ensureQueryData(transactionSummaryOptions()),
+  }),
+  component: DashboardComponent,
 })
 
 function DashboardComponent() {
-  const {data} = authClient.useSession()
+  const { data } = authClient.useSession()
 
   return (
     <div className="bg-background">
@@ -62,9 +76,7 @@ function DashboardComponent() {
 }
 
 function TransactionSummary() {
-  const { data } = useQuery(
-    tuyau.api.transactions.summary.$get.queryOptions({}),
-  )
+  const { data } = useSuspenseQuery(transactionSummaryOptions())
   const totalIncome = data?.totalIncome || 0
   const totalExpenses = data?.totalExpenses || 0
   return (
@@ -205,14 +217,12 @@ export function TransactionList() {
     limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
   }
 
-  const { data: transactionsData, status } = useQuery(
-    tuyau.api.transactions.$get.queryOptions({
-      payload: {
-        ...filters,
-        ...query,
-        page: query.page + 1,
-        exclude: transactionCategoryBookTypes.generalLedger,
-      },
+  const { data: transactionsData, status } = useSuspenseQuery(
+    transactionsOptions({
+      ...filters,
+      ...query,
+      page: query.page + 1,
+      exclude: transactionCategoryBookTypes.generalLedger,
     }),
   )
   const [selectedTransaction, setSelectedTransaction] =
@@ -263,7 +273,8 @@ export function TransactionList() {
               value={filters.bookType || ''}
               onChange={(e) =>
                 setFilters({
-                  bookType: e.target.value as TransactionSearch['bookType'],
+                  bookType: e.target
+                    .value as TransactionListQueryParam['bookType'],
                 })
               }
               className="w-full p-2 border rounded-md"

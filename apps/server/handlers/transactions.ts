@@ -9,12 +9,13 @@ import {
   createError,
   readValidatedBody,
 } from "h3";
+import { transactionListQueryParamSchema } from "@bir-notebook/shared/models/transaction"
+
 import {
   bulkRecordTransactionSchema,
   bulkTransferToGeneralLedgerSchema,
   createTransactionSchema,
   generalLedgerViewSchema,
-  transactionListSchema,
   transferHistorySchema,
   transferToGeneralLedgerSchema,
   updateTransactionSchema,
@@ -41,6 +42,7 @@ import { parseDateInput } from "../utils/date-parse.js";
 import { serializeTransaction } from "../serializers/transaction.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
 import { toValidationError } from "../utils/validation.js";
+import { ZodError } from "zod";
 
 function parseTransactionDate(value: string) {
   const parsed = parseDateInput(value);
@@ -65,7 +67,7 @@ export const listTransactions = defineEventHandler({
   handler: async (event) => {
     const query = await getValidatedQuery(
       event,
-      transactionListSchema.safeParse,
+      transactionListQueryParamSchema.safeParse,
     );
 
     if (!query.success) {
@@ -262,16 +264,23 @@ export const updateTransactionHandler = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
     const params = getRouterParams(event);
-    const payload = updateTransactionSchema.parse(await readBody(event));
+    const validate = await readValidatedBody(event, updateTransactionSchema.safeParse);
+
+    if (!validate.success) {
+      throw toValidationError(validate.error);
+    }
+
+    const payload = validate.data;
+
     const transactionDate = parseTransactionDate(payload.transactionDate);
 
     const accountsOk = await ensureAccountsExist(event, [
       payload.debitAccountId,
       payload.creditAccountId,
     ]);
+
     if (!accountsOk) {
-      setResponseStatus(event, 400);
-      return { message: "Account not found" };
+      throw createError({ statusCode: 400, message: "Account not found" })
     }
 
     const updatePayload: {
@@ -304,21 +313,26 @@ export const updateTransactionHandler = defineEventHandler({
     const result = await updateTransaction(
       event.context.db,
       Number(params["id"]),
+      event.context.currentUser?.id!,
       updatePayload,
     );
 
     if (result.status === "not_found") {
-      setResponseStatus(event, 404);
-      return { message: result.message };
+      throw createError({
+        statusCode: 404,
+        message: result.message
+      })
     }
 
     if (result.status === "bad_request") {
-      setResponseStatus(event, 400);
-      return { message: result.message };
+      throw createError({
+        statusCode: 400,
+        message: result.message
+      })
     }
 
     return {
-      data: serializeTransaction(result.data as any),
+      data: serializeTransaction(result.data),
       message: "Transaction updated successfully",
     };
   },

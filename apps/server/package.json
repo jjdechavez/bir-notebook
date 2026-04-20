@@ -18,7 +18,8 @@
     "h3": "^1.12.0",
     "kysely": "^0.27.3",
     "pg": "^8.12.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@bir-notebook/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",

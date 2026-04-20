@@ -314,6 +314,7 @@ export async function paginateTransactions(
 export async function updateTransaction(
   db: Kysely<DB>,
   id: number,
+  userId: string,
   payload: {
     categoryId: number;
     amount: number;
@@ -329,6 +330,7 @@ export async function updateTransaction(
     .selectFrom("transactions")
     .selectAll()
     .where("id", "=", id)
+    .where("user_id", '=', userId)
     .executeTakeFirst();
 
   if (!transaction) {

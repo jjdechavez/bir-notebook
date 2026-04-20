@@ -73,7 +73,16 @@ export type CreatedTransaction = {
   message: string;
 }
 
+export type UpdatedTransaction = {
+  data: Transaction;
+  message: string;
+}
+
 export type TransactionList = ListResponse<Transaction>
-export type TransactionListQueryParam = ListQueryParam & {
-  s?: string;
+
+export type TransactionSummary = {
+  totalIncome: number;
+  totalExpenses: number;
+  netIncome: number;
+  totalChartOfAccounts: number;
 }

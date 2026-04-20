@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export const transactionCategoryBookTypes = {
   cashReceiptJournal: "cash_receipt_journal",
   cashDisbursementJournal: "cash_disbursement_journal",
@@ -53,3 +55,20 @@ export function calculateVatAmount(
 
   return vat;
 }
+
+export const transactionListQueryParamSchema =
+  z.object({
+    page: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().positive().optional(),
+    bookType: z.enum(
+      Object.values(transactionCategoryBookTypes) as [string, ...string[]]
+    ).optional(),
+    categoryId: z.coerce.number().int().optional(),
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
+    search: z.string().optional(),
+    record: z.string().optional(),
+    exclude: z.string().optional()
+  });
+
+export type TransactionListQueryParam = z.infer<typeof transactionListQueryParamSchema>

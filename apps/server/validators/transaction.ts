@@ -20,20 +20,6 @@ export const createTransactionSchema = z.object({
   ).optional()
 });
 
-export const transactionListSchema = z.object({
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().optional(),
-  bookType: z.enum(
-    Object.values(transactionCategoryBookTypes) as [string, ...string[]]
-  ).optional(),
-  categoryId: z.coerce.number().int().optional(),
-  dateFrom: z.string().optional(),
-  dateTo: z.string().optional(),
-  search: z.string().optional(),
-  record: z.string().optional(),
-  exclude: z.string().optional()
-});
-
 export const updateTransactionSchema = z.object({
   categoryId: z.number().int(),
   amount: z.number().positive(),

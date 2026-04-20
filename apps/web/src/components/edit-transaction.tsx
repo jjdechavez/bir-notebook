@@ -1,5 +1,4 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useStore } from '@tanstack/react-form'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   Dialog,
@@ -20,16 +19,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import {
+  transactionAppFormOpts,
   TransactionForm,
-  transactionSchema,
+  useTransactionAppForm,
   type TransactionFormData,
 } from './transaction-form'
 import { TransactionPreview } from './transaction-preview'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { tuyau } from '@/main'
 import { toast } from 'sonner'
 import type { Transaction } from '@/types/transaction'
 import { fromCentsToPrice } from '@bir-notebook/shared/helpers/currency'
+import { useUpdateTransaction } from '@/hooks/api/transaction'
 
 interface EditTransactionProps {
   open: boolean
@@ -44,70 +43,51 @@ export function EditTransaction({
   open,
   onToggleOpen,
 }: EditTransactionProps) {
-  const queryClient = useQueryClient()
   const isMobile = useIsMobile()
 
-  const updateTransaction = useMutation(
-    tuyau.api.transactions({ id: transaction.id }).$put.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.transactions.$get.pathKey(),
-        })
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api
-            .transactions({ id: transaction.id })
-            .$get.pathKey(),
-        })
-
-        onSuccess?.()
-      },
-    }),
-  )
-
-  const getDefaultValues = (): TransactionFormData => {
-    if (transaction) {
-      return {
-        categoryId: transaction.categoryId,
-        amount: fromCentsToPrice(transaction.amount),
-        description: transaction.description,
-        transactionDate: new Date(transaction.transactionDate)
-          .toISOString()
-          .split('T')[0],
-        debitAccountId: transaction.debitAccountId,
-        creditAccountId: transaction.creditAccountId,
-        referenceNumber: transaction.referenceNumber || '',
-        vatType: transaction.vatType,
-      }
-    }
-
-    // Fallback values (shouldn't be used when transaction is loaded)
-    return {
-      categoryId: 0,
-      amount: 0,
-      description: '',
-      transactionDate: new Date().toISOString().split('T')[0],
-      debitAccountId: 0,
-      creditAccountId: 0,
-      referenceNumber: '',
-      vatType: 'vat_exempt',
-    }
-  }
-
-  const form = useForm({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: getDefaultValues(),
+  const updateTransaction = useUpdateTransaction(transaction.id, {
+    onSuccess: () => {
+      onSuccess?.()
+    },
   })
 
-  const formData = form.watch()
-  const isValid = form.formState.isValid
+  const form = useTransactionAppForm({
+    ...transactionAppFormOpts,
+    defaultValues: {
+      categoryId: transaction.categoryId,
+      amount: fromCentsToPrice(transaction.amount),
+      description: transaction.description,
+      transactionDate: new Date(transaction.transactionDate)
+        .toISOString()
+        .split('T')[0],
+      debitAccountId: transaction.debitAccountId,
+      creditAccountId: transaction.creditAccountId,
+      referenceNumber: transaction.referenceNumber || '',
+      vatType: transaction.vatType as string,
+    },
+    onSubmit: async ({ value }) => {
+      toast.promise(
+        updateTransaction.mutateAsync(value as TransactionFormData),
+        {
+          loading: 'Updating transaction...',
+          success: () => 'Transaction updated successfully',
+          error: () => 'Failed to update transaction',
+        },
+      )
+    },
+  })
 
-  const onSubmit = async (data: TransactionFormData) => {
-    toast.promise(updateTransaction.mutateAsync({ payload: data }), {
-      loading: 'Updating transaction...',
-      success: () => 'Transaction updated successfully',
-      error: () => 'Failed to update transaction',
-    })
-  }
+  const formData = useStore(
+    form.store,
+    (state) => state.values,
+  ) as TransactionFormData
+  const isValid =
+    formData.categoryId > 0 &&
+    formData.amount > 0 &&
+    formData.description.length > 0 &&
+    formData.transactionDate.length > 0 &&
+    formData.debitAccountId > 0 &&
+    formData.creditAccountId > 0
 
   if (isMobile) {
     return (
@@ -124,7 +104,7 @@ export function EditTransaction({
               </TabsList>
 
               <TabsContent value="form" className="mt-4">
-                <TransactionForm form={form} onSubmit={onSubmit} />
+                <TransactionForm form={form} />
               </TabsContent>
 
               <TabsContent value="preview" className="mt-4">
@@ -134,17 +114,32 @@ export function EditTransaction({
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
+              <form.Subscribe
+                selector={(state) => [state.isSubmitting]}
+                children={([isSubmitting]) => (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              />
             </DrawerClose>
-            <Button
-              type="submit"
-              form="transaction-form"
-              disabled={updateTransaction.isPending}
-            >
-              {updateTransaction.isPending ? 'Updating...' : 'Update'}
-            </Button>
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit, isSubmitting]) => (
+                <Button
+                  type="submit"
+                  form="transaction-form"
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={() => form.handleSubmit()}
+                >
+                  {isSubmitting ? 'Updating...' : 'Update'}
+                </Button>
+              )}
+            />
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -161,7 +156,7 @@ export function EditTransaction({
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <TransactionForm form={form} onSubmit={onSubmit} />
+              <TransactionForm form={form} />
             </div>
             <div className="lg:sticky lg:top-0">
               <TransactionPreview formData={formData} isValid={isValid} />
@@ -170,17 +165,32 @@ export function EditTransaction({
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
+              <form.Subscribe
+                selector={(state) => [state.isSubmitting]}
+                children={([isSubmitting]) => (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              />
             </DialogClose>
-            <Button
-              type="submit"
-              form="transaction-form"
-              disabled={updateTransaction.isPending}
-            >
-              {updateTransaction.isPending ? 'Updating...' : 'Update'}
-            </Button>
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit, isSubmitting]) => (
+                <Button
+                  type="submit"
+                  form="transaction-form"
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={() => form.handleSubmit()}
+                >
+                  {isSubmitting ? 'Updating...' : 'Update'}
+                </Button>
+              )}
+            />
           </DialogFooter>
         </>
       </DialogContent>

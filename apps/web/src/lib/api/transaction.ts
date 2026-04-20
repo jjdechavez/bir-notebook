@@ -3,6 +3,8 @@ import type {
   TransactionCategory,
   TransactionCategoryListQueryParam,
   CreatedTransaction,
+  UpdatedTransaction,
+  TransactionSummary,
 } from '@/types/transaction'
 import { requestApi } from '../request'
 import { cleanEmptyParams } from '../api'
@@ -21,6 +23,16 @@ export const transaction = {
       method: 'POST',
       body: payload,
     }),
+  update: async (id: number, payload: TransactionFormData) =>
+    requestApi<UpdatedTransaction>(`${TRANSACTION_ENDPOINT}/${id}`, {
+      method: 'PUT',
+      body: payload,
+    }),
+  summary: async () =>
+    requestApi<TransactionSummary>(`${TRANSACTION_ENDPOINT}/summary`, {
+      method: 'GET',
+    }),
+
   categories: {
     list: async (query: TransactionCategoryListQueryParam = {}) => {
       const qs = cleanEmptyParams(query)

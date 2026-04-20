@@ -5,6 +5,7 @@ import {
   useQueryClient,
   type UseMutationOptions,
 } from '@tanstack/react-query'
+import { type TransactionListQueryParam } from '@bir-notebook/shared/models/transaction'
 
 import { api } from '@/lib/api'
 import {
@@ -17,7 +18,8 @@ import type {
   TransactionCategory,
   TransactionCategoryList,
   TransactionCategoryListQueryParam,
-  TransactionListQueryParam,
+  TransactionSummary,
+  UpdatedTransaction,
 } from '@/types/transaction'
 import type { TransactionFormData } from '@/components/transaction-form'
 
@@ -71,6 +73,32 @@ export const useTransactionCategoryies = (
   })
 }
 
+const TRANSACTION_SUMMARY_QUERY_KEY = `transaction-summary` as const
+
+export const transactionSummaryKeys = queryKeysFactory(
+  TRANSACTION_SUMMARY_QUERY_KEY,
+)
+
+type TransactionSummaryQueryKeys = typeof transactionSummaryKeys
+
+export const transactionSummaryOptions = () =>
+  queryOptions({
+    queryKey: transactionSummaryKeys.details(),
+    queryFn: () => api.transaction.summary(),
+  })
+
+export const useTransactionSummary = (
+  options?: UseQueryOptionsWrapper<
+    TransactionSummary,
+    Error,
+    ReturnType<TransactionSummaryQueryKeys['details']>
+  >,
+) => {
+  return useQuery({
+    ...transactionSummaryOptions(),
+    ...options,
+  })
+}
 const TRANSACTION_QUERY_KEY = `transaction` as const
 
 export const transactionKeys = queryKeysFactory(TRANSACTION_QUERY_KEY)
@@ -103,6 +131,30 @@ export const useCreateTransaction = (
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: TransactionFormData) => api.transaction.create(input),
-    ...buildOptions(queryClient, [transactionKeys.all], options),
+    ...buildOptions(
+      queryClient,
+      [transactionKeys.all, transactionSummaryKeys.details()],
+      options,
+    ),
+  })
+}
+
+export const useUpdateTransaction = (
+  id: number,
+  options?: UseMutationOptions<UpdatedTransaction, Error, TransactionFormData>,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: TransactionFormData) =>
+      api.transaction.update(id, input),
+    ...buildOptions(
+      queryClient,
+      [
+        transactionKeys.all,
+        transactionKeys.detail(id.toString()),
+        transactionSummaryKeys.details(),
+      ],
+      options,
+    ),
   })
 }
