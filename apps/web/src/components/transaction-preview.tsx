@@ -1,7 +1,4 @@
 import { Badge } from '@/components/ui/badge'
-import { type TransactionFormData } from './transaction-form'
-import { useQuery } from '@tanstack/react-query'
-import { tuyau } from '@/main'
 import {
   calculateVatAmount,
   transactionCategoryBookTypeOptions,
@@ -9,6 +6,8 @@ import {
 } from '@bir-notebook/shared/models/transaction'
 import { formatAmountToCurrency } from '@bir-notebook/shared/helpers/currency'
 import { formatOption } from '@bir-notebook/shared/models/common'
+import { useTransactionCategory } from '@/hooks/api/transaction'
+import type { TransactionFormData } from './transaction-form'
 
 interface TransactionPreviewProps {
   formData: TransactionFormData
@@ -19,23 +18,9 @@ export function TransactionPreview({
   formData,
   isValid,
 }: TransactionPreviewProps) {
-  const { data: selectedCategory } = useQuery(
-    tuyau.api['transaction-categories'][':id'].$get.queryOptions(
-      {
-        payload: { id: formData.categoryId },
-      },
-      { enabled: !!formData.categoryId },
-    ),
-  )
-  const { data: accounts } = useQuery(
-    tuyau.api['transaction-accounts'].$get.queryOptions({}),
-  )
-
-  const selectedDebitAccount = accounts?.data.find(
-    (a) => a.id === formData.debitAccountId,
-  )
-  const selectedCreditAccount = accounts?.data.find(
-    (a) => a.id === formData.creditAccountId,
+  const { data: selectedCategory } = useTransactionCategory(
+    formData.categoryId.toString(),
+    { enabled: !!formData.categoryId },
   )
 
   const vatAmount = calculateVatAmount(formData.amount, formData.vatType)
@@ -65,12 +50,12 @@ export function TransactionPreview({
               <p className="text-sm text-muted-foreground mb-1">Debit</p>
               <div className="bg-background p-3 rounded border">
                 <p className="font-medium">
-                  {selectedDebitAccount?.name || 'N/A'}
+                  {selectedCategory?.defaultDebitAccount?.name || 'N/A'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedDebitAccount?.code || 'N/A'}
+                  {selectedCategory?.defaultDebitAccount?.code || 'N/A'}
                 </p>
-                <p className="text-lg font-bold text-green-600 mt-2">
+                <p className="text-lg font-bold text-success-foreground mt-2">
                   {formatAmountToCurrency(formData.amount)}
                 </p>
               </div>
@@ -79,10 +64,10 @@ export function TransactionPreview({
               <p className="text-sm text-muted-foreground mb-1">Credit</p>
               <div className="bg-background p-3 rounded border">
                 <p className="font-medium">
-                  {selectedCreditAccount?.name || 'N/A'}
+                  {selectedCategory?.defaultCreditAccount?.name || 'N/A'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedCreditAccount?.code || 'N/A'}
+                  {selectedCategory?.defaultCreditAccount?.code || 'N/A'}
                 </p>
                 <p className="text-lg font-bold text-destructive-foreground mt-2">
                   {formatAmountToCurrency(formData.amount)}

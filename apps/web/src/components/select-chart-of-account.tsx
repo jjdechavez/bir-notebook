@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -16,20 +15,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { tuyau } from '@/main'
-import type { TransactionAccount } from '@/types/transaction'
+import type { ChartOfAccount } from '@/types/transaction'
+import { useChartOfAccounts } from '@/hooks/api/chart-of-account'
 
-interface SelectTransactionAccountProps {
+interface SelectChartOfAccountProps {
   value?: number | null
-  onChange?: (item: TransactionAccount | null) => void
+  onChange?: (item: ChartOfAccount | null) => void
   placeholder?: string
 }
 
-export function SelectTransactionAccount({
+export function SelectChartOfAccount({
   value,
   onChange,
   placeholder = 'Select account...',
-}: SelectTransactionAccountProps) {
+}: SelectChartOfAccountProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -44,13 +43,9 @@ export function SelectTransactionAccount({
     limit: 100,
   }
 
-  const { data } = useQuery(
-    tuyau.api['transaction-accounts']['$get'].queryOptions({
-      payload,
-    }),
-  )
+  const { data } = useChartOfAccounts(payload)
 
-  const accounts: TransactionAccount[] = data?.data || []
+  const accounts: ChartOfAccount[] = data?.data || []
   const selected = accounts.find((account) => account.id === value)
 
   return (
@@ -73,7 +68,7 @@ export function SelectTransactionAccount({
             value={search}
             onValueChange={setSearch}
           />
-          <CommandEmpty>No role found.</CommandEmpty>
+          <CommandEmpty>No chart of account.</CommandEmpty>
           <CommandGroup>
             {accounts.map((account) => (
               <CommandItem

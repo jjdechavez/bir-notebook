@@ -12,10 +12,10 @@ import {
   Command,
 } from '@/components/ui/command'
 import { Badge } from '@/components/ui/badge'
-import { tuyau } from '@/main'
-import type { TransactionCategory } from '@/types/transaction'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
+import { transactionCategoryKeys } from '@/hooks/api/transaction'
 
 type SelectTransactionCategoryProps = {
   multiple?: boolean
@@ -34,31 +34,27 @@ export function SelectTransactionCategory({
   const [search, setSearch] = useState('')
   const [debouncedSearch] = useDebounce(search, 1000)
 
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery(
-      tuyau.api['transaction-categories']['$get'].infiniteQueryOptions(
-        {
-          payload: {
-            s: debouncedSearch,
-            limit: 20,
-          },
-        },
-        {
-          pageParamKey: 'page',
-          initialPageParam: 1,
-          getNextPageParam: (lastPage) => {
-            if (lastPage.meta.currentPage === lastPage.meta.lastPage) {
-              return undefined
-            }
-            return lastPage.meta.currentPage + 1
-          },
-          getPreviousPageParam: (firstPage) => firstPage.meta.currentPage - 1,
-        },
-      ),
-    )
+  const query = {
+    limit: 20,
+    s: debouncedSearch,
+  }
 
-  const categories: TransactionCategory[] =
-    data?.pages.flatMap((page) => page.data) || []
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: transactionCategoryKeys.list(query),
+      queryFn: ({ pageParam }) =>
+        api.transaction.categories.list({ ...query, page: pageParam }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) => {
+        if (lastPage.meta.currentPage === lastPage.meta.lastPage) {
+          return undefined
+        }
+        return lastPage.meta.currentPage + 1
+      },
+      getPreviousPageParam: (firstPage) => firstPage.meta.currentPage - 1,
+    })
+
+  const categories = data?.pages.flatMap((page) => page.data) || []
 
   const selectedSingle = !multiple
     ? categories.find((category) => category.id === value)
@@ -105,62 +101,6 @@ export function SelectTransactionCategory({
     const newValue = value.filter((id) => id !== categoryId)
     handleMultipleChange(newValue)
   }
-
-  // // Keyboard navigation and dropdown management
-  // useEffect(() => {
-  //   const handleClickOutside = (event: MouseEvent) => {
-  //     if (
-  //       !event.target ||
-  //       !(event.target as Element).closest('.select-category-container')
-  //     ) {
-  //       setOpen(false)
-  //     }
-  //   }
-
-  //   const handleEscape = (event: KeyboardEvent) => {
-  //     if (event.key === 'Escape') {
-  //       setOpen(false)
-  //     }
-  //   }
-
-  //   const handleKeyDown = (event: KeyboardEvent) => {
-  //     if (!open) return
-
-  //     // Arrow keys and Enter for navigation when dropdown is open
-  //     if (
-  //       event.key === 'ArrowDown' ||
-  //       event.key === 'ArrowUp' ||
-  //       event.key === 'Enter'
-  //     ) {
-  //       // Let cmdk handle keyboard navigation
-  //       return
-  //     }
-
-  //     // Type to search when dropdown is open and not focused on input
-  //     if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
-  //       const input = document.querySelector(
-  //         '.select-category-container input[placeholder*="Search"]',
-  //       ) as HTMLInputElement
-  //       if (input && document.activeElement !== input) {
-  //         input.focus()
-  //         input.value += event.key
-  //         setSearch(input.value)
-  //       }
-  //     }
-  //   }
-
-  //   if (open) {
-  //     document.addEventListener('mousedown', handleClickOutside)
-  //     document.addEventListener('keydown', handleEscape)
-  //     document.addEventListener('keydown', handleKeyDown)
-  //   }
-
-  //   return () => {
-  //     document.removeEventListener('mousedown', handleClickOutside)
-  //     document.removeEventListener('keydown', handleEscape)
-  //     document.removeEventListener('keydown', handleKeyDown)
-  //   }
-  // }, [open, setSearch])
 
   return (
     <div className="select-category-container relative">
@@ -227,12 +167,16 @@ export function SelectTransactionCategory({
             placeholder="Search categories..."
             value={search}
             onValueChange={setSearch}
-            autoFocus
+            autoFocus={open}
           />
 
           <CommandList>
             <CommandEmpty>
-              {search ? 'No category found.' : 'Start typing to search...'}
+              {search && categories.length === 0
+                ? 'No category found.'
+                : !search
+                  ? 'Start typing to search...'
+                  : 'Searching...'}
             </CommandEmpty>
 
             {categories.length > 0 && (

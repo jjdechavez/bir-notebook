@@ -21,9 +21,9 @@ export function getNavigationItems(user: User): NavItem[] {
       icon: IconBook,
     },
   ]
-  
+
   // Add admin-only items
-  if (user.role === 'admin') {
+  if (user?.role === 'admin') {
     items.push({
       title: 'Users',
       url: '/settings/users',

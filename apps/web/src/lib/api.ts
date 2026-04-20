@@ -2,6 +2,8 @@ import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/components/data-table'
 import { systems } from './api/systems'
 import { user } from './api/user'
 import { invite } from './api/invite'
+import { transaction } from './api/transaction'
+import { chartOfAccount } from './api/chart-of-account'
 
 export type ListQueryParam = Partial<{
   page: number
@@ -69,4 +71,6 @@ export const api = {
   systems,
   user,
   invite,
+  transaction,
+  chartOfAccount,
 }

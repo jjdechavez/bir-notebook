@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   Dialog,
@@ -23,27 +21,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import {
+  transactionAppFormOpts,
   TransactionForm,
-  transactionSchema,
+  useTransactionAppForm,
   type TransactionFormData,
 } from './transaction-form'
 import { TransactionPreview } from './transaction-preview'
 import { Plus } from 'lucide-react'
-import { transactionVatTypes } from '@bir-notebook/shared/models/transaction'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { tuyau } from '@/main'
 import { toast } from 'sonner'
-
-const defaultValues: TransactionFormData = {
-  categoryId: 0, // Keep as 0, validation will require selection
-  amount: 0,
-  description: '',
-  transactionDate: new Date().toISOString().split('T')[0],
-  debitAccountId: 0,
-  creditAccountId: 0,
-  referenceNumber: '',
-  vatType: transactionVatTypes.vatExempt,
-}
+import { useStore } from '@tanstack/react-form'
+import { useCreateTransaction } from '@/hooks/api/transaction'
 
 interface CreateTransactionProps {
   children?: React.ReactNode
@@ -54,40 +41,41 @@ export function CreateTransaction({
   children,
   onSuccess,
 }: CreateTransactionProps) {
-  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const isMobile = useIsMobile()
 
-  const form = useForm({
-    resolver: zodResolver(transactionSchema),
-    defaultValues,
+  const createTransaction = useCreateTransaction({
+    onSuccess: () => {
+      setOpen(false)
+      onSuccess?.()
+    },
   })
 
-  const createTransaction = useMutation(
-    tuyau.api.transactions.$post.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.transactions.$get.pathKey(),
-        })
+  const form = useTransactionAppForm({
+    ...transactionAppFormOpts,
+    onSubmit: async ({ value }) => {
+      toast.promise(
+        createTransaction.mutateAsync(value as TransactionFormData),
+        {
+          loading: 'Creating transaction...',
+          success: () => 'Transaction created successfully',
+          error: () => 'Failed to create transaction',
+        },
+      )
+    },
+  })
 
-        form.reset(defaultValues)
-        setOpen(false)
-        onSuccess?.()
-      },
-    }),
-  )
-
-  const formData = form.watch()
-  const isValid = form.formState.isValid
-
-  const onSubmit = async (data: TransactionFormData) => {
-    toast
-      .promise(createTransaction.mutateAsync({ payload: data }), {
-        loading: 'Creating transaction...',
-        success: () => 'Transaction created successfully',
-        error: () => 'Failed to create transaction',
-      })
-  }
+  const formData = useStore(
+    form.store,
+    (state) => state.values,
+  ) as TransactionFormData
+  const isValid =
+    formData.categoryId > 0 &&
+    formData.amount > 0 &&
+    formData.description.length > 0 &&
+    formData.transactionDate.length > 0 &&
+    formData.debitAccountId > 0 &&
+    formData.creditAccountId > 0
 
   const trigger = children || (
     <Button>
@@ -112,7 +100,7 @@ export function CreateTransaction({
               </TabsList>
 
               <TabsContent value="form" className="mt-4">
-                <TransactionForm form={form} onSubmit={onSubmit} />
+                <TransactionForm form={form} />
               </TabsContent>
 
               <TabsContent value="preview" className="mt-4">
@@ -130,6 +118,7 @@ export function CreateTransaction({
               type="submit"
               form="transaction-form"
               disabled={createTransaction.isPending}
+              onClick={() => form.handleSubmit()}
             >
               {createTransaction.isPending ? 'Creating...' : 'Create'}
             </Button>
@@ -149,7 +138,7 @@ export function CreateTransaction({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <TransactionForm form={form} onSubmit={onSubmit} />
+            <TransactionForm form={form} />
           </div>
           <div className="lg:sticky lg:top-0">
             <TransactionPreview formData={formData} isValid={isValid} />
@@ -158,17 +147,32 @@ export function CreateTransaction({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Cancel
-            </Button>
+            <form.Subscribe
+              selector={(state) => [state.isSubmitting]}
+              children={([isSubmitting]) => (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+              )}
+            />
           </DialogClose>
-          <Button
-            type="submit"
-            form="transaction-form"
-            disabled={createTransaction.isPending}
-          >
-            {createTransaction.isPending ? 'Creating...' : 'Create'}
-          </Button>
+          <form.Subscribe
+            selector={(state) => [state.canSubmit, state.isSubmitting]}
+            children={([canSubmit, isSubmitting]) => (
+              <Button
+                type="submit"
+                form="transaction-form"
+                disabled={!canSubmit || isSubmitting}
+                onClick={() => form.handleSubmit()}
+              >
+                {isSubmitting ? 'Creating...' : 'Create'}
+              </Button>
+            )}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>
