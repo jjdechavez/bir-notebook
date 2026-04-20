@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { EyeIcon, EyeOffIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from './input-group'
 
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
@@ -58,4 +60,19 @@ function DebounceInput({
   )
 }
 
-export { Input, DebounceInput }
+function PasswordInput({ className, ...props }: React.ComponentProps<'input'>) {
+  const [showPasswordText, setShowPasswordText] = React.useState(false)
+  return (
+    <InputGroup>
+      <InputGroupInput {...props} type={showPasswordText ? "text" : "password"} className={cn(className)} />    
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton onClick={() => setShowPasswordText(prev => !prev)} size="icon-xs">
+          {showPasswordText ? <EyeIcon /> : <EyeOffIcon />}
+          <span className="sr-only">Show password</span>
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
+  )
+}
+
+export { Input, DebounceInput, PasswordInput }
