@@ -10,5 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "tsr-adonis-template": "link:"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
   }
 }
