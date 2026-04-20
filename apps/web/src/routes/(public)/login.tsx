@@ -11,7 +11,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { GalleryVerticalEnd, Loader2 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Input, PasswordInput } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Spinner } from '@/components/ui/spinner'
@@ -89,16 +89,17 @@ function LoginComponent() {
     onSubmit: async ({ value }) => {
       setIsSubmitting(true)
       setLoginError(null)
-      try {
         await authClient.signIn.email({
           email: value.email,
           password: value.password,
-        })
-      } catch (err) {
-        setIsSubmitting(false)
-        setLoginError('Invalid email or password')
-        throw err
-      }
+        },
+        {
+         onError: (ctx) => {
+          setIsSubmitting(false)
+          setLoginError(ctx.error.message)
+          } 
+          }
+        )
     },
   })
 
@@ -106,19 +107,6 @@ function LoginComponent() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          {setup === 'success' && (
-            <Alert className="border-green-500 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200">
-              <AlertDescription>
-                Admin account created successfully. Please login with your
-                credentials.
-              </AlertDescription>
-            </Alert>
-          )}
-          {loginError && (
-            <Alert className="border-red-500 bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200">
-              <AlertDescription>{loginError}</AlertDescription>
-            </Alert>
-          )}
           <form
             id="login-form"
             onSubmit={(e) => {
@@ -139,6 +127,19 @@ function LoginComponent() {
                   <span className="sr-only">BIR Notebook</span>
                 </a>
                 <h1 className="text-xl font-bold">Welcome to BIR Notebook</h1>
+                {setup === 'success' && (
+                  <Alert variant="success">
+                    <AlertDescription>
+                      Admin account created successfully. Please login with your
+                      credentials.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {loginError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{loginError}</AlertDescription>
+                  </Alert>
+                )}
               </div>
               <form.Field
                 name="email"
@@ -175,7 +176,7 @@ function LoginComponent() {
                         Forgot your password?
                       </a>
                     </div>
-                    <Input
+                    <PasswordInput
                       id={field.name}
                       name={field.name}
                       type="password"
