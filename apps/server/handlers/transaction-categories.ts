@@ -61,10 +61,10 @@ export const listTransactionCategories = defineEventHandler({
 
     const accounts: Array<Selectable<ChartOfAccounts>> = accountIds.length
       ? await event.context.db
-          .selectFrom("chart_of_accounts")
-          .selectAll()
-          .where("id", "in", accountIds)
-          .execute()
+        .selectFrom("chart_of_accounts")
+        .selectAll()
+        .where("id", "in", accountIds)
+        .execute()
       : [];
 
     const accountMap = new Map(
@@ -80,11 +80,11 @@ export const listTransactionCategories = defineEventHandler({
           category as any,
           category.default_debit_account_id
             ? ((accountMap.get(category.default_debit_account_id) as any) ??
-                null)
+              null)
             : null,
           category.default_credit_account_id
             ? ((accountMap.get(category.default_credit_account_id) as any) ??
-                null)
+              null)
             : null,
         ),
       ),
@@ -124,14 +124,10 @@ export const getTransactionCategoryDefaults = defineEventHandler({
       accounts.map((account) => [account.id, account]),
     );
 
-    return serializeTransactionCategory(
-      category as any,
-      category.default_debit_account_id
-        ? ((accountMap.get(category.default_debit_account_id) as any) ?? null)
-        : null,
-      category.default_credit_account_id
-        ? ((accountMap.get(category.default_credit_account_id) as any) ?? null)
-        : null,
-    );
+    return {
+      ...category,
+      default_credit_account: accountMap.get(category.default_credit_account_id!) ?? null,
+      default_debit_account: accountMap.get(category.default_debit_account_id!) ?? null
+    }
   },
 });

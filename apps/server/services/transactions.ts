@@ -8,8 +8,7 @@ import type {
 import { toCents } from "../utils/currency.js";
 import { transactionVatTypes } from "../constants/transaction.js";
 
-type TransactionWithRelations = {
-  transaction: Selectable<Transactions>;
+type TransactionWithRelations = Selectable<Transactions> & {
   category: Selectable<TransactionCategories> | null;
   debitAccount: Selectable<ChartOfAccounts> | null;
   creditAccount: Selectable<ChartOfAccounts> | null;
@@ -37,42 +36,42 @@ function mapTransactionRow(row: Record<string, any>): TransactionWithRelations {
 
   const category: Selectable<TransactionCategories> | null = row["c_id"]
     ? {
-        id: row["c_id"],
-        name: row["c_name"],
-        book_type: row["c_book_type"],
-        default_debit_account_id: row["c_default_debit_account_id"],
-        default_credit_account_id: row["c_default_credit_account_id"],
-        created_at: row["c_created_at"],
-        updated_at: row["c_updated_at"],
-        deleted_at: row["c_deleted_at"],
-      }
+      id: row["c_id"],
+      name: row["c_name"],
+      book_type: row["c_book_type"],
+      default_debit_account_id: row["c_default_debit_account_id"],
+      default_credit_account_id: row["c_default_credit_account_id"],
+      created_at: row["c_created_at"],
+      updated_at: row["c_updated_at"],
+      deleted_at: row["c_deleted_at"],
+    }
     : null;
 
   const debitAccount: Selectable<ChartOfAccounts> | null = row["da_id"]
     ? {
-        id: row["da_id"],
-        code: row["da_code"],
-        name: row["da_name"],
-        type: row["da_type"],
-        created_at: row["da_created_at"],
-        updated_at: row["da_updated_at"],
-        deleted_at: row["da_deleted_at"],
-      }
+      id: row["da_id"],
+      code: row["da_code"],
+      name: row["da_name"],
+      type: row["da_type"],
+      created_at: row["da_created_at"],
+      updated_at: row["da_updated_at"],
+      deleted_at: row["da_deleted_at"],
+    }
     : null;
 
   const creditAccount: Selectable<ChartOfAccounts> | null = row["ca_id"]
     ? {
-        id: row["ca_id"],
-        code: row["ca_code"],
-        name: row["ca_name"],
-        type: row["ca_type"],
-        created_at: row["ca_created_at"],
-        updated_at: row["ca_updated_at"],
-        deleted_at: row["ca_deleted_at"],
-      }
+      id: row["ca_id"],
+      code: row["ca_code"],
+      name: row["ca_name"],
+      type: row["ca_type"],
+      created_at: row["ca_created_at"],
+      updated_at: row["ca_updated_at"],
+      deleted_at: row["ca_deleted_at"],
+    }
     : null;
 
-  return { transaction, category, debitAccount, creditAccount };
+  return { ...transaction, category, debitAccount, creditAccount };
 }
 
 function withTransactionJoins(db: Kysely<DB>) {
@@ -528,7 +527,7 @@ export async function getUsedChartOfAccounts(db: Kysely<DB>, userId: string) {
     new Set([...debitIds, ...creditIds].map((row) => row.accountId)),
   ).filter((id) => typeof id === "number");
 
-  if (accountIds.length === 0) return [] as ChartOfAccounts[];
+  if (accountIds.length === 0) return [];
 
   return db
     .selectFrom("chart_of_accounts")

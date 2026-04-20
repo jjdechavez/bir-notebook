@@ -1,20 +1,20 @@
 import type { Selectable } from "kysely";
 import type {
-  ChartOfAccountsTable,
-  TransactionCategoryTable,
-  TransactionTable
+  ChartOfAccounts,
+  TransactionCategories,
+  Transactions
 } from "../db/types.js";
-import { calculateVatAmount, transactionVatTypes } from "../constants/transaction.js";
+import { calculateVatAmount, TransactionVatType, transactionVatTypes } from "../constants/transaction.js";
 import { toIsoString } from "../utils/date.js";
 import { serializeAccount } from "./account.js";
 import { serializeTransactionCategory } from "./transaction-category.js";
 
 export function serializeTransaction(
-  transaction: Selectable<TransactionTable>,
-  category?: Selectable<TransactionCategoryTable> | null,
-  debitAccount?: Selectable<ChartOfAccountsTable> | null,
-  creditAccount?: Selectable<ChartOfAccountsTable> | null,
-  generalLedger?: Selectable<TransactionTable> | null
+  transaction: Selectable<Transactions>,
+  category?: Selectable<TransactionCategories> | null,
+  debitAccount?: Selectable<ChartOfAccounts> | null,
+  creditAccount?: Selectable<ChartOfAccounts> | null,
+  generalLedger?: Selectable<Transactions> | null
 ) {
   return {
     id: transaction.id,
@@ -36,7 +36,7 @@ export function serializeTransaction(
     createdAt: toIsoString(transaction.created_at),
     vatAmount: calculateVatAmount(
       transaction.amount,
-      (transaction.vat_type ?? transactionVatTypes.vatExempt) as any
+      (transaction.vat_type as TransactionVatType ?? transactionVatTypes.vatExempt)
     ),
     recorded: Boolean(transaction.recorded_at),
     transferredToGlAt: toIsoString(transaction.transferred_to_gl_at),

@@ -5,6 +5,9 @@ import {
   readBody,
   setResponseStatus,
   defineEventHandler,
+  getValidatedQuery,
+  createError,
+  readValidatedBody,
 } from "h3";
 import {
   bulkRecordTransactionSchema,
@@ -37,6 +40,7 @@ import {
 import { parseDateInput } from "../utils/date-parse.js";
 import { serializeTransaction } from "../serializers/transaction.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
+import { toValidationError } from "../utils/validation.js";
 
 function parseTransactionDate(value: string) {
   const parsed = parseDateInput(value);
@@ -59,16 +63,27 @@ async function ensureAccountsExist(event: any, accountIds: number[]) {
 export const listTransactions = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
-    const query = transactionListSchema.parse(getQuery(event));
+    const query = await getValidatedQuery(
+      event,
+      transactionListSchema.safeParse,
+    );
 
-    if (query.dateFrom && !parseDateInput(query.dateFrom)) {
-      setResponseStatus(event, 400);
-      return { message: "Invalid dateFrom" };
+    if (!query.success) {
+      throw toValidationError(query.error);
     }
 
-    if (query.dateTo && !parseDateInput(query.dateTo)) {
-      setResponseStatus(event, 400);
-      return { message: "Invalid dateTo" };
+    if (query.data.dateFrom && !parseDateInput(query.data.dateFrom)) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid date from",
+      });
+    }
+
+    if (query.data.dateTo && !parseDateInput(query.data.dateTo)) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid date to",
+      });
     }
 
     const filters: {
@@ -81,22 +96,22 @@ export const listTransactions = defineEventHandler({
       exclude?: string[];
     } = {};
 
-    if (query.bookType) filters.bookType = query.bookType;
-    if (query.categoryId) filters.categoryId = query.categoryId;
-    if (query.dateFrom) {
-      const parsed = parseDateInput(query.dateFrom);
+    if (query.data.bookType) filters.bookType = query.data.bookType;
+    if (query.data.categoryId) filters.categoryId = query.data.categoryId;
+    if (query.data.dateFrom) {
+      const parsed = parseDateInput(query.data.dateFrom);
       if (parsed) filters.dateFrom = parsed;
     }
-    if (query.dateTo) {
-      const parsed = parseDateInput(query.dateTo);
+    if (query.data.dateTo) {
+      const parsed = parseDateInput(query.data.dateTo);
       if (parsed) filters.dateTo = parsed;
     }
-    if (query.search) filters.search = query.search;
-    if (query.record) filters.record = query.record;
-    if (query.exclude) filters.exclude = query.exclude.split(",");
+    if (query.data.search) filters.search = query.data.search;
+    if (query.data.record) filters.record = query.data.record;
+    if (query.data.exclude) filters.exclude = query.data.exclude.split(",");
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = query.data.page ?? 1;
+    const limit = query.data.limit ?? 10;
 
     const result = await paginateTransactions(event.context.db, {
       page,
@@ -111,7 +126,7 @@ export const listTransactions = defineEventHandler({
     return {
       data: result.rows.map((row) =>
         serializeTransaction(
-          row.transaction,
+          row,
           row.category,
           row.debitAccount,
           row.creditAccount,
@@ -126,7 +141,14 @@ export const createTransactionHandler = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
     try {
-      const payload = createTransactionSchema.parse(await readBody(event));
+      const validate = await readValidatedBody(event, createTransactionSchema.safeParse)
+
+      if (!validate.success) {
+        return toValidationError(validate.error)
+      }
+
+      const payload = validate.data
+
       const transactionDate = parseTransactionDate(payload.transactionDate);
 
       const accountsOk = await ensureAccountsExist(event, [
@@ -134,8 +156,10 @@ export const createTransactionHandler = defineEventHandler({
         payload.creditAccountId,
       ]);
       if (!accountsOk) {
-        setResponseStatus(event, 400);
-        return { message: "Account not found" };
+        throw createError({
+          statusCode: 400,
+          message: "Account not found",
+        });
       }
 
       const createPayload: {
@@ -169,16 +193,21 @@ export const createTransactionHandler = defineEventHandler({
 
       if (result.status === "not_found") {
         setResponseStatus(event, 404);
-        return { message: result.message };
+        throw createError({
+          statusCode: 404,
+          message: result.message
+        })
       }
 
       if (result.status === "bad_request") {
-        setResponseStatus(event, 400);
-        return { message: result.message };
+        throw createError({
+          statusCode: 400,
+          message: result.message
+        })
       }
 
       return {
-        data: serializeTransaction(result.data as any),
+        data: serializeTransaction(result.data),
         message: "Transaction created successfully",
       };
     } catch (error) {
@@ -205,12 +234,15 @@ export const showTransaction = defineEventHandler({
 
     if (!transaction) {
       setResponseStatus(event, 404);
-      return { message: "Transaction not found" };
+      throw createError({
+        statusCode: 404,
+        message: "Transaction not found"
+      })
     }
 
     return {
       data: serializeTransaction(
-        transaction.transaction,
+        transaction,
         transaction.category,
         transaction.debitAccount,
         transaction.creditAccount,
@@ -392,9 +424,8 @@ export const transferToGeneralLedgerHandler = defineEventHandler({
     return {
       status: result.status,
       data: result.result,
-      message: `Successfully transferred ${
-        result.result?.totalTransactions
-      } transactions to ${result.result?.totalGroups} GL group(s)`,
+      message: `Successfully transferred ${result.result?.totalTransactions
+        } transactions to ${result.result?.totalGroups} GL group(s)`,
     };
   },
 });
@@ -423,9 +454,8 @@ export const bulkTransferToGeneralLedgerHandler = defineEventHandler({
 
     return {
       status: failed.length === 0 ? "success" : "partial",
-      message: `Processed ${payload.transfers.length} transfer groups. ${
-        successful.length
-      } successful, ${failed.length} failed.`,
+      message: `Processed ${payload.transfers.length} transfer groups. ${successful.length
+        } successful, ${failed.length} failed.`,
       summary: {
         totalGroups: payload.transfers.length,
         successful: successful.length,

@@ -1,12 +1,12 @@
 import type { Selectable } from "kysely";
-import type { ChartOfAccountsTable, TransactionCategoryTable } from "../db/types.js";
+import type { ChartOfAccounts, TransactionCategories } from "../db/types.js";
 import { toIsoString } from "../utils/date.js";
 import { serializeAccount } from "./account.js";
 
 export function serializeTransactionCategory(
-  category: Selectable<TransactionCategoryTable>,
-  defaultDebitAccount?: Selectable<ChartOfAccountsTable> | null,
-  defaultCreditAccount?: Selectable<ChartOfAccountsTable> | null
+  category: Selectable<TransactionCategories>,
+  defaultDebitAccount?: Selectable<ChartOfAccounts> | null,
+  defaultCreditAccount?: Selectable<ChartOfAccounts> | null
 ) {
   return {
     id: category.id,

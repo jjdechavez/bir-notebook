@@ -40,7 +40,6 @@ export const createInviteHandler = defineEventHandler({
       .executeTakeFirst();
 
     if (existingUser) {
-      setResponseStatus(event, 400);
       throw createError({
         statusCode: 400,
         message: "Email is already in use",

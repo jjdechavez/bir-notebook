@@ -1,23 +1,35 @@
+import { defineEventHandler, getQuery } from "h3";
+
 import { requireAuth } from "../middleware/auth.js";
-import type { Selectable } from "kysely";
-import type { ChartOfAccounts } from "../db/types.js";
 import { getUsedChartOfAccounts } from "../services/transactions.js";
 import { serializeAccount } from "../serializers/account.js";
-import { defineEventHandler } from "h3";
 
-export const listTransactionAccounts = defineEventHandler({
+export const listChartOfAccounts = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
-    const accounts: Array<Selectable<ChartOfAccounts>> = await event.context.db
+    const query = getQuery(event);
+    const search = typeof query["s"] === "string" ? query["s"] : "";
+    const page = Number(query["page"] ?? 1);
+    const limit = Number(query["limit"] ?? 10);
+    const offset = (page - 1) * limit;
+
+    let accounts = event.context.db
       .selectFrom("chart_of_accounts")
       .selectAll()
       .where("deleted_at", "is", null)
-      .orderBy("type")
-      .orderBy("name")
-      .execute();
+
+    if (search) {
+      accounts = accounts.where("name", "ilike", `%${search}%`)
+    }
+
+    const result = await accounts
+      .orderBy("name asc")
+      .limit(limit)
+      .offset(offset)
+      .execute()
 
     return {
-      data: accounts.map((account) => serializeAccount(account as any)),
+      data: result.map((account) => serializeAccount(account)),
     };
   },
 });
@@ -31,7 +43,7 @@ export const currentChartOfAccounts = defineEventHandler({
     );
 
     return {
-      data: accounts.map((account) => serializeAccount(account as any)),
+      data: accounts.map((account) => serializeAccount(account)),
     };
   },
 });

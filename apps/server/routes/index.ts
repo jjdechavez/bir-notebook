@@ -29,8 +29,8 @@ import {
   getTransactionCategoryDefaults,
 } from "../handlers/transaction-categories.js";
 import {
-  listTransactionAccounts,
   currentChartOfAccounts,
+  listChartOfAccounts,
 } from "../handlers/transaction-accounts.js";
 import {
   getUserPreferences,
@@ -114,8 +114,8 @@ export function createApiRouter() {
   apiRouter.get("/transaction-categories", listTransactionCategories);
   apiRouter.get("/transaction-categories/:id", getTransactionCategoryDefaults);
 
-  apiRouter.get("/transaction-accounts", listTransactionAccounts);
-  apiRouter.get("/transaction-accounts/accounts", currentChartOfAccounts);
+  apiRouter.get("/chart-of-accounts", listChartOfAccounts);
+  apiRouter.get("/chart-of-accounts/accounts", currentChartOfAccounts);
 
   apiRouter.get("/preferences", getUserPreferences);
   apiRouter.put("/preferences", updateUserPreferences);
