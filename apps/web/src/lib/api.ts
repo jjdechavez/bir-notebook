@@ -1,76 +1,76 @@
-import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/components/data-table'
-import { systems } from './api/systems'
-import { user } from './api/user'
-import { invite } from './api/invite'
-import { transaction } from './api/transaction'
-import { chartOfAccount } from './api/chart-of-account'
+import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from "@/components/data-table";
+import { chartOfAccount } from "./api/chart-of-account";
+import { invite } from "./api/invite";
+import { systems } from "./api/systems";
+import { transaction } from "./api/transaction";
+import { user } from "./api/user";
 
 export type ListQueryParam = Partial<{
-  page: number
-  limit: number
-}>
+	page: number;
+	limit: number;
+}>;
 
 export type ListMeta = {
-  total: number
-  perPage: number
-  currentPage: number
-  lastPage: number
-  firstPage: number
-  previousPageUrl: string
-  nextPageUrl: string
-  firstPageUrl: string
-  lastPageUrl: string
-}
+	total: number;
+	perPage: number;
+	currentPage: number;
+	lastPage: number;
+	firstPage: number;
+	previousPageUrl: string;
+	nextPageUrl: string;
+	firstPageUrl: string;
+	lastPageUrl: string;
+};
 
 export type ListResponse<T> = {
-  data: Array<T>
-  meta: ListMeta
-}
+	data: Array<T>;
+	meta: ListMeta;
+};
 
 export const DEFAULT_LIST_META: ListMeta = {
-  total: 0,
-  perPage: 0,
-  currentPage: 0,
-  lastPage: 0,
-  firstPage: 1,
-  previousPageUrl: '',
-  nextPageUrl: '',
-  firstPageUrl: '',
-  lastPageUrl: '',
-}
+	total: 0,
+	perPage: 0,
+	currentPage: 0,
+	lastPage: 0,
+	firstPage: 1,
+	previousPageUrl: "",
+	nextPageUrl: "",
+	firstPageUrl: "",
+	lastPageUrl: "",
+};
 
 export const cleanEmptyParams = <T extends Record<string, unknown>>(
-  search: T,
+	search: T,
 ) => {
-  const newSearch = { ...search }
-  Object.keys(newSearch).forEach((key) => {
-    const value = newSearch[key]
-    if (
-      value === undefined ||
-      value === '' ||
-      (typeof value === 'number' && isNaN(value))
-    )
-      delete newSearch[key]
-  })
+	const newSearch = { ...search };
+	Object.keys(newSearch).forEach((key) => {
+		const value = newSearch[key];
+		if (
+			value === undefined ||
+			value === "" ||
+			(typeof value === "number" && Number.isNaN(value))
+		)
+			delete newSearch[key];
+	});
 
-  if (search.pageIndex === DEFAULT_PAGE_INDEX) delete newSearch.pageIndex
-  if (search.pageSize === DEFAULT_PAGE_SIZE) delete newSearch.pageSize
+	if (search.pageIndex === DEFAULT_PAGE_INDEX) delete newSearch.pageIndex;
+	if (search.pageSize === DEFAULT_PAGE_SIZE) delete newSearch.pageSize;
 
-  return newSearch
-}
+	return newSearch;
+};
 
 export type ServerValidationError = {
-  data: {
-    data: Array<{ field: string; message: string }>
-    statusCode: number
-    statusMessage: string
-  }
-}
+	data: {
+		data: Array<{ field: string; message: string }>;
+		statusCode: number;
+		statusMessage: string;
+	};
+};
 
 export const api = {
-  systems,
-  user,
-  invite,
-  transaction,
-  chartOfAccount,
-}
+	systems,
+	user,
+	invite,
+	transaction,
+	chartOfAccount,
+};

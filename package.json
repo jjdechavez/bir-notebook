@@ -1,17 +1,22 @@
 {
-  "name": "bir-notebook",
-  "version": "1.0.0",
-  "description": "Template for TanStack Router + Adonis Tuyau",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "John Jerald De Chavez",
-  "license": "MIT",
-  "dependencies": {
-    "tsr-adonis-template": "link:"
-  },
-  "devDependencies": {
-    "typescript": "^6.0.3"
-  }
+	"name": "bir-notebook",
+	"version": "1.0.0",
+	"description": "BIR Notebook",
+	"main": "index.js",
+	"scripts": {
+		"web": "pnpm -F @bir-notebook/web",
+		"server": "pnpm -F @bir-notebook/server",
+		"typecheck:web": "pnpm -F @bir-notebook/web exec tsc -b",
+		"typecheck:server": "pnpm -F @bir-notebook/server exec tsc -p tsconfig.json --noEmit",
+		"typecheck:shared": "pnpm -F @bir-notebook/shared exec tsc -p tsconfig.json --noEmit",
+		"typecheck": "pnpm run typecheck:web && pnpm run typecheck:server && pnpm run typecheck:shared",
+		"lint": "pnpm -r --if-present run lint",
+		"format": "pnpm -r --if-present run format"
+	},
+	"author": "John Jerald De Chavez",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "2.4.12",
+		"typescript": "^6.0.3"
+	}
 }

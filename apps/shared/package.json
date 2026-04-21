@@ -1,60 +1,62 @@
 {
-  "name": "@bir-notebook/shared",
-  "version": "1.0.0",
-  "description": "Shared core utilities for the monorepo",
-  "type": "module",
-  "scripts": {
-    "dev": "tsc --watch",
-    "build": "tsup"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.12.1",
-  "files": ["dist"],
-  "exports": {
-    "./models/invite": {
-      "types": "./dist/models/invite.d.ts",
-      "import": "./dist/models/invite.js",
-      "require": "./dist/models/invite.cjs"
-    },
-    "./models/account": {
-      "types": "./dist/models/account.d.ts",
-      "import": "./dist/models/account.js",
-      "require": "./dist/models/account.cjs"
-    },
-    "./models/transaction": {
-      "types": "./dist/models/transaction.d.ts",
-      "import": "./dist/models/transaction.js",
-      "require": "./dist/models/transaction.cjs"
-    },
-    "./helpers/currency": {
-      "types": "./dist/helpers/currency.d.ts",
-      "import": "./dist/helpers/currency.js",
-      "require": "./dist/helpers/currency.cjs"
-    },
-    "./models/common": {
-      "types": "./dist/models/common.d.ts",
-      "import": "./dist/models/common.js",
-      "require": "./dist/models/common.cjs"
-    },
-    "./models/system": {
-      "types": "./dist/models/system.d.ts",
-      "import": "./dist/models/system.js",
-      "require": "./dist/models/system.cjs"
-    },
-    "./models/user": {
-      "types": "./dist/models/user.d.ts",
-      "import": "./dist/models/user.js",
-      "require": "./dist/models/user.cjs"
-    }
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.7",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "zod": "^4.3.6"
-  }
+	"name": "@bir-notebook/shared",
+	"version": "1.0.0",
+	"description": "Shared core utilities for the monorepo",
+	"type": "module",
+	"scripts": {
+		"dev": "pnpm exec tsc --watch",
+		"build": "tsup",
+		"typecheck": "pnpm exec tsc -p tsconfig.json --noEmit"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"packageManager": "pnpm@10.12.1",
+	"files": [
+		"dist"
+	],
+	"exports": {
+		"./models/invite": {
+			"types": "./dist/models/invite.d.ts",
+			"import": "./dist/models/invite.js",
+			"require": "./dist/models/invite.cjs"
+		},
+		"./models/account": {
+			"types": "./dist/models/account.d.ts",
+			"import": "./dist/models/account.js",
+			"require": "./dist/models/account.cjs"
+		},
+		"./models/transaction": {
+			"types": "./dist/models/transaction.d.ts",
+			"import": "./dist/models/transaction.js",
+			"require": "./dist/models/transaction.cjs"
+		},
+		"./helpers/currency": {
+			"types": "./dist/helpers/currency.d.ts",
+			"import": "./dist/helpers/currency.js",
+			"require": "./dist/helpers/currency.cjs"
+		},
+		"./models/common": {
+			"types": "./dist/models/common.d.ts",
+			"import": "./dist/models/common.js",
+			"require": "./dist/models/common.cjs"
+		},
+		"./models/system": {
+			"types": "./dist/models/system.d.ts",
+			"import": "./dist/models/system.js",
+			"require": "./dist/models/system.cjs"
+		},
+		"./models/user": {
+			"types": "./dist/models/user.d.ts",
+			"import": "./dist/models/user.js",
+			"require": "./dist/models/user.cjs"
+		}
+	},
+	"devDependencies": {
+		"@types/node": "^25.0.7",
+		"tsup": "^8.5.1"
+	},
+	"dependencies": {
+		"zod": "^4.3.6"
+	}
 }
