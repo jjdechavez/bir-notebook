@@ -1,5 +1,5 @@
+import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
 import { Columns } from "lucide-react"
-
 import {
 	Select,
 	SelectContent,
@@ -7,7 +7,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select"
-import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
 import { getColorClasses } from "./utils"
 
 type BookCountedColumnFilterProps = {
@@ -19,10 +18,12 @@ export function BookCountedColumnFilter(props: BookCountedColumnFilterProps) {
 		<div className="flex items-center gap-4 mb-6">
 			<div className="flex items-center gap-2">
 				<Columns className="h-4 w-4" />
-				<label className="text-sm font-medium">Counted Columns:</label>
+				<label htmlFor="column" className="text-sm font-medium">
+					Counted Columns:
+				</label>
 				<Select
 					value={props.count.toString()}
-					onValueChange={(value) => props.setCount(parseInt(value))}
+					onValueChange={(value) => props.setCount(parseInt(value, 10))}
 				>
 					<SelectTrigger className="w-20">
 						<SelectValue />

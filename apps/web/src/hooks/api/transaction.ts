@@ -1,17 +1,17 @@
+import type { TransactionListQueryParam } from "@bir-notebook/shared/models/transaction"
 import {
 	queryOptions,
+	type UseMutationOptions,
 	useMutation,
 	useQuery,
 	useQueryClient,
-	type UseMutationOptions,
 } from "@tanstack/react-query"
-import { type TransactionListQueryParam } from "@bir-notebook/shared/models/transaction"
-
+import type { TransactionFormData } from "@/components/transaction-form"
 import { api } from "@/lib/api"
 import {
+	buildOptions,
 	queryKeysFactory,
 	type UseQueryOptionsWrapper,
-	buildOptions,
 } from "@/lib/tanstack-query/root-provider"
 import type {
 	BulkRecordTransactionInput,
@@ -20,10 +20,10 @@ import type {
 	TransactionCategory,
 	TransactionCategoryList,
 	TransactionCategoryListQueryParam,
+	TransactionList,
 	TransactionSummary,
 	UpdatedTransaction,
 } from "@/types/transaction"
-import type { TransactionFormData } from "@/components/transaction-form"
 
 const TRANSACTION_CATEGORY_QUERY_KEY = `transaction-category` as const
 
@@ -116,7 +116,7 @@ export const transactionsOptions = (query?: TransactionListQueryParam) =>
 export const useTransactions = (
 	query?: TransactionListQueryParam,
 	options?: UseQueryOptionsWrapper<
-		TransactionListQueryParam,
+		TransactionList,
 		Error,
 		ReturnType<TransactionQueryKeys["list"]>
 	>,

@@ -1,7 +1,6 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import { useCurrentChartOfAccounts } from "@/hooks/api/chart-of-account"
 import type { Transaction } from "@/types/transaction"
-import { useQuery } from "@tanstack/react-query"
-import { tuyau } from "@/main"
 
 type GeneralLedgerProps = {
 	transactions: Transaction[]
@@ -118,12 +117,10 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 	)
 }
 
-type ChartOfAccountsProps = {}
+type ChartOfAccountsProps = { className?: string }
 
-export function ChartOfAccounts({}: ChartOfAccountsProps) {
-	const { data, status } = useQuery(
-		tuyau.api["transaction-accounts"].accounts.$get.queryOptions(),
-	)
+export function ChartOfAccounts(_: ChartOfAccountsProps) {
+	const { data, status } = useCurrentChartOfAccounts()
 
 	if (status === "pending") {
 		return (

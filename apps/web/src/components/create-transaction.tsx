@@ -1,5 +1,8 @@
+import { useStore } from "@tanstack/react-form"
+import { Plus } from "lucide-react"
 import { useState } from "react"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogClose,
@@ -19,18 +22,15 @@ import {
 	DrawerTrigger,
 } from "@/components/ui/drawer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
+import { useCreateTransaction } from "@/hooks/api/transaction"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
-	transactionAppFormOpts,
 	TransactionForm,
-	useTransactionAppForm,
 	type TransactionFormData,
+	transactionAppFormOpts,
+	useTransactionAppForm,
 } from "./transaction-form"
 import { TransactionPreview } from "./transaction-preview"
-import { Plus } from "lucide-react"
-import { toast } from "sonner"
-import { useStore } from "@tanstack/react-form"
-import { useCreateTransaction } from "@/hooks/api/transaction"
 
 interface CreateTransactionProps {
 	children?: React.ReactNode
@@ -110,9 +110,8 @@ export function CreateTransaction({
 					</div>
 					<DrawerFooter>
 						<DrawerClose asChild>
-							<form.Subscribe
-								selector={(state) => [state.isSubmitting]}
-								children={([isSubmitting]) => (
+							<form.Subscribe selector={(state) => [state.isSubmitting]}>
+								{([isSubmitting]) => (
 									<Button
 										type="button"
 										variant="secondary"
@@ -121,11 +120,12 @@ export function CreateTransaction({
 										Cancel
 									</Button>
 								)}
-							/>
+							</form.Subscribe>
 						</DrawerClose>
 						<form.Subscribe
 							selector={(state) => [state.canSubmit, state.isSubmitting]}
-							children={([canSubmit, isSubmitting]) => (
+						>
+							{([canSubmit, isSubmitting]) => (
 								<Button
 									type="submit"
 									form="transaction-form"
@@ -135,7 +135,7 @@ export function CreateTransaction({
 									{isSubmitting ? "Creating..." : "Create"}
 								</Button>
 							)}
-						/>
+						</form.Subscribe>
 					</DrawerFooter>
 				</DrawerContent>
 			</Drawer>
@@ -161,9 +161,8 @@ export function CreateTransaction({
 
 				<DialogFooter>
 					<DialogClose asChild>
-						<form.Subscribe
-							selector={(state) => [state.isSubmitting]}
-							children={([isSubmitting]) => (
+						<form.Subscribe selector={(state) => [state.isSubmitting]}>
+							{([isSubmitting]) => (
 								<Button
 									type="button"
 									variant="secondary"
@@ -172,11 +171,12 @@ export function CreateTransaction({
 									Cancel
 								</Button>
 							)}
-						/>
+						</form.Subscribe>
 					</DialogClose>
 					<form.Subscribe
 						selector={(state) => [state.canSubmit, state.isSubmitting]}
-						children={([canSubmit, isSubmitting]) => (
+					>
+						{([canSubmit, isSubmitting]) => (
 							<Button
 								type="submit"
 								form="transaction-form"
@@ -186,7 +186,7 @@ export function CreateTransaction({
 								{isSubmitting ? "Creating..." : "Create"}
 							</Button>
 						)}
-					/>
+					</form.Subscribe>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

@@ -1,4 +1,3 @@
-import * as React from "react"
 import {
 	IconBook,
 	IconCamera,
@@ -13,7 +12,8 @@ import {
 	IconSearch,
 	IconSettings,
 } from "@tabler/icons-react"
-
+import { Link } from "@tanstack/react-router"
+import type React from "react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -141,12 +141,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<SidebarMenuItem>
 						<SidebarMenuButton
 							asChild
-							className="data-[slot=sidebar-menu-button]:!p-1.5"
+							className="data-[slot=sidebar-menu-button]:p-1.5!"
 						>
-							<a href="#">
-								<IconInnerShadowTop className="!size-5" />
+							<Link to="/dashboard">
+								<IconInnerShadowTop className="size-5!" />
 								<span className="text-base font-semibold">BIR Notebook</span>
-							</a>
+							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</SidebarMenu>

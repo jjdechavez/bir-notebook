@@ -1,11 +1,14 @@
+import type {
+	UserPreference,
+	UserPreferenceInput,
+} from "@bir-notebook/shared/models/user"
 import {
 	queryOptions,
+	type UseMutationOptions,
 	useMutation,
 	useQuery,
 	useQueryClient,
-	type UseMutationOptions,
 } from "@tanstack/react-query"
-
 import { api } from "@/lib/api"
 import {
 	buildOptions,
@@ -13,19 +16,15 @@ import {
 	type UseQueryOptionsWrapper,
 } from "@/lib/tanstack-query/root-provider"
 import type {
-	UserPreference,
-	UserPreferenceInput,
-} from "@bir-notebook/shared/models/user"
+	ChangePasswordInput,
+	PersonalInformationInput,
+} from "@/types/account"
 import type {
 	ListUserQueryParam,
 	User,
 	UserInput,
 	UserList,
 } from "@/types/user"
-import type {
-	ChangePasswordInput,
-	PersonalInformationInput,
-} from "@/types/account"
 
 const USER_PREFERENCE_QUERY_KEY = `user-preference` as const
 

@@ -2,8 +2,8 @@ import type {
 	ChartOfAccountList,
 	ChartOfAccountListQueryParam,
 } from "@/types/transaction"
-import { requestApi } from "../request"
 import { cleanEmptyParams } from "../api"
+import { requestApi } from "../request"
 
 const CHART_OF_ACCOUNTS_ENDPOINT = "/chart-of-accounts"
 

@@ -1,20 +1,20 @@
 import { useForm } from "@tanstack/react-form"
-import { z } from "zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
-import type { LedgerTransaction } from "@/types/general-ledger"
+import { toast } from "sonner"
+import { z } from "zod"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { FieldError } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { tuyau } from "@/main"
-import { FieldError } from "@/components/ui/field"
+import type { LedgerTransaction } from "@/types/general-ledger"
 
 const glEditSchema = z.object({
 	description: z
@@ -90,9 +90,8 @@ export function EditGlTransaction({
 				</DialogHeader>
 
 				<div className="space-y-4">
-					<form.Field
-						name="description"
-						children={(field) => (
+					<form.Field name="description">
+						{(field) => (
 							<div className="space-y-2">
 								<Label htmlFor={field.name}>GL Description</Label>
 								<Textarea
@@ -114,7 +113,7 @@ export function EditGlTransaction({
 								)}
 							</div>
 						)}
-					/>
+					</form.Field>
 
 					<div className="text-sm text-muted-foreground space-y-1">
 						<p>

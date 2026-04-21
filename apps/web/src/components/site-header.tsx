@@ -1,6 +1,7 @@
+import { isMatch, Link, useLocation, useMatches } from "@tanstack/react-router"
+import React from "react"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { isMatch, Link, useLocation, useMatches } from "@tanstack/react-router"
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -9,7 +10,6 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "./ui/breadcrumb"
-import React from "react"
 
 export function SiteHeader() {
 	const matches = useMatches()
@@ -34,7 +34,7 @@ export function SiteHeader() {
 						{matchesWithCrumbs.map((crumb, index, arr) => {
 							const isLast = index === arr.length - 1
 							const isActive = location.pathname === crumb.fullPath
-							const crumbName = crumb.loaderData!.crumb
+							const crumbName = crumb.loaderData?.crumb
 							return (
 								<React.Fragment key={crumbName + index}>
 									<BreadcrumbItem>

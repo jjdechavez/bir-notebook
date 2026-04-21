@@ -1,54 +1,54 @@
 import { createRouter, useBase } from "h3"
-import healthHandler from "../handlers/health.js"
-import readyHandler from "../handlers/ready.js"
+import { changePassword, updateAccount } from "../handlers/accounts.js"
 import authHandler from "../handlers/auth.js"
+import healthHandler from "../handlers/health.js"
+import {
+	completeInviteHandler,
+	confirmInviteHandler,
+	createInviteHandler,
+	generateInviteLinkHandler,
+	listInvitesHandler,
+	showInviteHandler,
+	updateInviteHandler,
+} from "../handlers/invites.js"
+import readyHandler from "../handlers/ready.js"
+import { listRolesHandler } from "../handlers/roles.js"
 import {
 	createSession,
 	destroySession,
 	getSession,
 } from "../handlers/session.js"
-import {
-	listTransactions,
-	createTransactionHandler,
-	showTransaction,
-	summaryTransactions,
-	updateTransactionHandler,
-	recordTransactionHandler,
-	undoRecordTransactionHandler,
-	bulkRecordTransactionHandler,
-	bulkUndoRecordTransactionHandler,
-	transferToGeneralLedgerHandler,
-	bulkTransferToGeneralLedgerHandler,
-	validateTransferEligibilityHandler,
-	transferHistoryHandler,
-	generalLedgerViewHandler,
-	updateGlDescriptionHandler,
-} from "../handlers/transactions.js"
-import {
-	listTransactionCategories,
-	getTransactionCategoryDefaults,
-} from "../handlers/transaction-categories.js"
+import { systemHasBeenSetup } from "../handlers/setup.js"
 import {
 	currentChartOfAccounts,
 	listChartOfAccounts,
 } from "../handlers/transaction-accounts.js"
 import {
+	getTransactionCategoryDefaults,
+	listTransactionCategories,
+} from "../handlers/transaction-categories.js"
+import {
+	bulkRecordTransactionHandler,
+	bulkTransferToGeneralLedgerHandler,
+	bulkUndoRecordTransactionHandler,
+	createTransactionHandler,
+	generalLedgerViewHandler,
+	listTransactions,
+	recordTransactionHandler,
+	showTransaction,
+	summaryTransactions,
+	transferHistoryHandler,
+	transferToGeneralLedgerHandler,
+	undoRecordTransactionHandler,
+	updateGlDescriptionHandler,
+	updateTransactionHandler,
+	validateTransferEligibilityHandler,
+} from "../handlers/transactions.js"
+import {
 	getUserPreferences,
 	updateUserPreferences,
 } from "../handlers/user-preferences.js"
-import { updateAccount, changePassword } from "../handlers/accounts.js"
 import { listUsersHandler, updateUserHandler } from "../handlers/users.js"
-import { listRolesHandler } from "../handlers/roles.js"
-import {
-	createInviteHandler,
-	listInvitesHandler,
-	generateInviteLinkHandler,
-	confirmInviteHandler,
-	showInviteHandler,
-	completeInviteHandler,
-	updateInviteHandler,
-} from "../handlers/invites.js"
-import { systemHasBeenSetup } from "../handlers/setup.js"
 
 export function createApiRouter() {
 	const router = createRouter()

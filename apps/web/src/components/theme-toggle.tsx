@@ -1,5 +1,5 @@
+import { IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { IconMoon, IconSun, IconDeviceDesktop } from "@tabler/icons-react"
 import { useUserPreferencesContext } from "@/lib/user-preferences"
 
 const icons = {
@@ -14,9 +14,7 @@ export function ThemeToggle() {
 	const { setTheme, isUpdating, theme } = useUserPreferencesContext()
 
 	const handleToggleTheme = () => {
-		const currentThemeIndex = themes.findIndex(
-			(itemTheme) => itemTheme === theme,
-		)
+		const currentThemeIndex = themes.indexOf(theme)
 		const nextThemeIndex = (currentThemeIndex + 1) % themes.length
 		const nextTheme = themes[nextThemeIndex]
 		setTheme(nextTheme as "light" | "dark" | "system")

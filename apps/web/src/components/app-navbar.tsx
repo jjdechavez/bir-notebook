@@ -1,8 +1,8 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { NavUserNavbar } from "@/components/nav-user-navbar"
-import { getNavigationItems } from "@/lib/navigation-data"
 import { Link } from "@tanstack/react-router"
+import { useState } from "react"
+import { NavUserNavbar } from "@/components/nav-user-navbar"
+import { Button } from "@/components/ui/button"
+import type { getNavigationItems } from "@/lib/navigation-data"
 
 interface AppNavbarProps {
 	navigationItems: ReturnType<typeof getNavigationItems>
@@ -12,7 +12,7 @@ export function AppNavbar({ navigationItems }: AppNavbarProps) {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
 	return (
-		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
 			<div className="container h-14 flex items-center px-4 md:px-0 mx-auto">
 				{/* Logo */}
 				<div className="mr-4 flex">
@@ -54,6 +54,7 @@ export function AppNavbar({ navigationItems }: AppNavbarProps) {
 						viewBox="0 0 24 24"
 						xmlns="http://www.w3.org/2000/svg"
 					>
+						<title>menu button</title>
 						{mobileMenuOpen ? (
 							<path
 								strokeLinecap="round"

@@ -1,9 +1,9 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { type GeneralLedgerView } from "@/types/general-ledger"
-import { EnhancedGeneralLedgerView } from "./enhanced-general-ledger-view"
-import type { TransactionSearch } from "@/types/transaction"
-import { tuyau } from "@/main"
 import { Card, CardContent } from "@/components/ui/card"
+import { tuyau } from "@/main"
+import type { GeneralLedgerView } from "@/types/general-ledger"
+import type { TransactionSearch } from "@/types/transaction"
+import { EnhancedGeneralLedgerView } from "./enhanced-general-ledger-view"
 
 type EnhancedGeneralLedgerAccountViewProps = {
 	accountId: number
@@ -19,7 +19,7 @@ export function EnhancedGeneralLedgerAccountView({
 		new Date(new Date().getFullYear(), 0, 1).toISOString().split("T")[0]
 	const dateTo = filters.dateTo || new Date().toISOString().split("T")[0]
 
-	const { data: ledgerData, isLoading: isGlLoading } = useSuspenseQuery(
+	const { data: ledgerData } = useSuspenseQuery(
 		tuyau.api.transactions["general-ledger"].view.$get.queryOptions(
 			{
 				payload: {

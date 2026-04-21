@@ -1,20 +1,22 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { useReactTable } from "@tanstack/react-table"
-import { getCoreRowModel, getPaginationRowModel } from "@tanstack/react-table"
-import { tuyau } from "@/main"
-import { useFilters } from "@/hooks/use-filters"
-import type { Transaction } from "@/types/transaction"
-import type { TransactionSearch } from "@/types/transaction"
 import { transactionCategoryBookTypes } from "@bir-notebook/shared/models/transaction"
-import { BooksDataTable } from "./books-data-table"
-import { createGeneralJournalColumns } from "./columns/general-journal-columns"
-import { GeneralJournalFooter } from "./footers/general-journal-footer"
-import { BulkActionBar } from "./bulk-action-bar"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import {
+	getCoreRowModel,
+	getPaginationRowModel,
+	useReactTable,
+} from "@tanstack/react-table"
+import { transactionsOptions } from "@/hooks/api/transaction"
+import { useFilters } from "@/hooks/use-filters"
+import {
+	DEFAULT_LIST_META,
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
-	DEFAULT_LIST_META,
 } from "@/lib/constants"
+import type { Transaction, TransactionSearch } from "@/types/transaction"
+import { BooksDataTable } from "./books-data-table"
+import { BulkActionBar } from "./bulk-action-bar"
+import { createGeneralJournalColumns } from "./columns/general-journal-columns"
+import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
 interface GeneralJournalProps {
 	filters: TransactionSearch
@@ -28,11 +30,9 @@ export function GeneralJournal({
 	const { setFilters } = useFilters("/(app)/books")
 
 	const { data: transactionsData, status } = useSuspenseQuery(
-		tuyau.api.transactions.$get.queryOptions({
-			payload: {
-				...filters,
-				bookType: transactionCategoryBookTypes.generalJournal,
-			},
+		transactionsOptions({
+			...filters,
+			bookType: transactionCategoryBookTypes.generalJournal,
 		}),
 	)
 

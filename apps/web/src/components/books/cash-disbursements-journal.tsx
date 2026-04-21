@@ -1,25 +1,27 @@
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query"
-import { useReactTable } from "@tanstack/react-table"
-import { getCoreRowModel, getPaginationRowModel } from "@tanstack/react-table"
-import { tuyau } from "@/main"
-import { useFilters } from "@/hooks/use-filters"
-import type { Transaction } from "@/types/transaction"
-import type { TransactionSearch } from "@/types/transaction"
 import { transactionCategoryBookTypes } from "@bir-notebook/shared/models/transaction"
-import { BooksDataTable } from "./books-data-table"
-import { createCashDisbursementsColumns } from "./columns/cash-disbursements-columns"
-import { CashDisbursementsFooter } from "./footers/cash-disbursements-footer"
-import { BulkActionBar } from "./bulk-action-bar"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import {
+	getCoreRowModel,
+	getPaginationRowModel,
+	useReactTable,
+} from "@tanstack/react-table"
+import { toast } from "sonner"
+import {
+	transactionsOptions,
+	useBulkRecordTransaction,
+	useBulkUndoRecordTransaction,
+} from "@/hooks/api/transaction"
+import { useFilters } from "@/hooks/use-filters"
+import {
+	DEFAULT_LIST_META,
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
-	DEFAULT_LIST_META,
 } from "@/lib/constants"
-import { toast } from "sonner"
+import type { Transaction, TransactionSearch } from "@/types/transaction"
+import { BooksDataTable } from "./books-data-table"
+import { BulkActionBar } from "./bulk-action-bar"
+import { createCashDisbursementsColumns } from "./columns/cash-disbursements-columns"
+import { CashDisbursementsFooter } from "./footers/cash-disbursements-footer"
 
 interface CashDisbursementsJournalProps {
 	filters: TransactionSearch
@@ -35,11 +37,9 @@ export function CashDisbursementsJournal({
 	const { setFilters } = useFilters("/(app)/books")
 
 	const { data: transactionsData, status } = useSuspenseQuery(
-		tuyau.api.transactions.$get.queryOptions({
-			payload: {
-				...filters,
-				bookType: transactionCategoryBookTypes.cashDisbursementJournal,
-			},
+		transactionsOptions({
+			...filters,
+			bookType: transactionCategoryBookTypes.cashDisbursementJournal,
 		}),
 	)
 
@@ -76,29 +76,17 @@ export function CashDisbursementsJournal({
 		getRowId: (row) => row.id.toString(),
 	})
 
-	const queryClient = useQueryClient()
+	const bulkRecordTransactionsMutation = useBulkRecordTransaction({
+		onSuccess: () => {
+			toast.success("Transactions has been recorded")
+		},
+	})
 
-	const bulkRecordTransactionsMutation = useMutation(
-		tuyau.api.transactions.record.bulk.$post.mutationOptions({
-			onSuccess: () => {
-				toast.success("Transactions has been recorded")
-				queryClient.invalidateQueries({
-					queryKey: tuyau.api.transactions.$get.queryKey(),
-				})
-			},
-		}),
-	)
-
-	const bulkUndoRecordTransactionsMutation = useMutation(
-		tuyau.api.transactions.record.undo.bulk.$post.mutationOptions({
-			onSuccess: () => {
-				toast.success("Transactions record has been undo")
-				queryClient.invalidateQueries({
-					queryKey: tuyau.api.transactions.$get.queryKey(),
-				})
-			},
-		}),
-	)
+	const bulkUndoRecordTransactionsMutation = useBulkUndoRecordTransaction({
+		onSuccess: () => {
+			toast.success("Transactions record has been undo")
+		},
+	})
 
 	return (
 		<BooksDataTable
@@ -119,14 +107,14 @@ export function CashDisbursementsJournal({
 						const selectedRows = table.getSelectedRowModel().rows
 						const transactions = selectedRows.map((row) => row.original)
 						bulkRecordTransactionsMutation.mutate({
-							payload: { transactionIds: transactions.map((t) => t.id) },
+							transactionIds: transactions.map((t) => t.id),
 						})
 					}}
 					onUndoSelected={() => {
 						const selectedRows = table.getSelectedRowModel().rows
 						const transactions = selectedRows.map((row) => row.original)
 						bulkUndoRecordTransactionsMutation.mutate({
-							payload: { transactionIds: transactions.map((t) => t.id) },
+							transactionIds: transactions.map((t) => t.id),
 						})
 					}}
 					onClearSelection={() => table.resetRowSelection()}

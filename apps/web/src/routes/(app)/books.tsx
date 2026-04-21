@@ -1,21 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Calendar, Download, Search, Filter } from "lucide-react"
-import { SettingPendingComponent } from "@/components/pending-component"
-import { GenericErrorComponent } from "@/components/error-component"
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
-import { tuyau } from "@/main"
-import { useFilters } from "@/hooks/use-filters"
-import type { TransactionSearch } from "@/types/transaction"
 import {
-	transactionCategoryBookTypes,
 	type TransactionCategoryBookType,
+	transactionCategoryBookTypes,
 } from "@bir-notebook/shared/models/transaction"
-import { CashReceiptsJournal } from "@/components/books/cash-receipts-journal"
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute } from "@tanstack/react-router"
+import { Calendar, Download, Filter, Search } from "lucide-react"
+import { useState } from "react"
 import { CashDisbursementsJournal } from "@/components/books/cash-disbursements-journal"
+import { CashReceiptsJournal } from "@/components/books/cash-receipts-journal"
+import {
+	BookCountedColumnFilter,
+	BookTransactionTotals,
+	NoTransactionFound,
+} from "@/components/books/common"
 import { GeneralJournal } from "@/components/books/general-journal"
 import {
 	ChartOfAccounts,
@@ -24,13 +21,12 @@ import {
 import { EnhancedGeneralLedgerWithSidebar } from "@/components/books/general-ledger/enhanced-general-ledger-with-sidebar"
 import { GeneralLedgerTransferDialog } from "@/components/books/general-ledger/transfer-dialog"
 import { TransferHistory } from "@/components/books/general-ledger/transfer-history"
-import { useState } from "react"
-import {
-	BookCountedColumnFilter,
-	BookTransactionTotals,
-	NoTransactionFound,
-} from "@/components/books/common"
-
+import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from "@/components/data-table"
+import { GenericErrorComponent } from "@/components/error-component"
+import { SettingPendingComponent } from "@/components/pending-component"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -43,12 +39,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
 	transactionsOptions,
 	useRecordTransaction,
 	useUndoRecordTransaction,
 } from "@/hooks/api/transaction"
-import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from "@/components/data-table"
+import { useFilters } from "@/hooks/use-filters"
+import { tuyau } from "@/main"
+import type { TransactionSearch } from "@/types/transaction"
 
 export const Route = createFileRoute("/(app)/books")({
 	validateSearch: () => ({}) as Partial<TransactionSearch & { count?: number }>,
@@ -61,6 +60,7 @@ export const Route = createFileRoute("/(app)/books")({
 			search?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
 		search: search?.search || "",
 		record: search?.record || "",
+		count: search?.count || 6,
 	}),
 	loader: ({ context, deps }) => ({
 		crumb: "Books",
@@ -156,7 +156,10 @@ function BooksPage() {
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-5 gap-4">
 						<div>
-							<label className="block text-sm font-medium mb-2">
+							<label
+								htmlFor="dateFrom"
+								className="block text-sm font-medium mb-2"
+							>
 								Date From
 							</label>
 							<Input
@@ -166,7 +169,12 @@ function BooksPage() {
 							/>
 						</div>
 						<div>
-							<label className="block text-sm font-medium mb-2">Date To</label>
+							<label
+								htmlFor="dateTo"
+								className="block text-sm font-medium mb-2"
+							>
+								Date To
+							</label>
 							<Input
 								type="date"
 								value={filters.dateTo || ""}
@@ -175,7 +183,12 @@ function BooksPage() {
 						</div>
 
 						<div>
-							<label className="block text-sm font-medium mb-2">Search</label>
+							<label
+								htmlFor="search"
+								className="block text-sm font-medium mb-2"
+							>
+								Search
+							</label>
 							<InputGroup>
 								<InputGroupDebounceInput
 									placeholder="Search transactions..."
@@ -188,7 +201,12 @@ function BooksPage() {
 							</InputGroup>
 						</div>
 						<div>
-							<label className="block text-sm font-medium mb-2">Status</label>
+							<label
+								htmlFor="status"
+								className="block text-sm font-medium mb-2"
+							>
+								Status
+							</label>
 							<Select
 								value={filters.record || ""}
 								onValueChange={(value) =>

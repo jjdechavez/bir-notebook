@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react"
+import { Search } from "lucide-react"
+import { useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { useCurrentChartOfAccounts } from "@/hooks/api/chart-of-account"
 import type { TransactionAccount } from "@/types/transaction"
-import { useQuery } from "@tanstack/react-query"
-import { tuyau } from "@/main"
 
 interface AccountSidebarProps {
 	selectedAccountId?: number | null
@@ -23,14 +22,12 @@ interface AccountGroup {
 export function AccountSidebar({
 	selectedAccountId,
 	onAccountSelect,
-	dateFrom,
-	dateTo,
+	// _dateFrom,
+	// dateTo,
 }: AccountSidebarProps) {
 	const [searchTerm, setSearchTerm] = useState("")
 
-	const { data: accountsData, status } = useQuery(
-		tuyau.api["transaction-accounts"].accounts.$get.queryOptions(),
-	)
+	const { data: accountsData, status } = useCurrentChartOfAccounts()
 
 	const accountGroups = useMemo(() => {
 		if (!accountsData?.data) {
@@ -143,8 +140,9 @@ export function AccountSidebar({
 						</CardHeader>
 						<CardContent className="space-y-2">
 							{group.accounts.map((account) => (
-								<div
+								<button
 									key={account.id}
+									type="button"
 									onClick={() => onAccountSelect(account.id)}
 									className={`p-3 border rounded-lg cursor-pointer transition-colors ${
 										selectedAccountId === account.id
@@ -165,7 +163,7 @@ export function AccountSidebar({
 											<p className="font-medium text-sm">{account.name}</p>
 										</div>
 									</div>
-								</div>
+								</button>
 							))}
 						</CardContent>
 					</Card>

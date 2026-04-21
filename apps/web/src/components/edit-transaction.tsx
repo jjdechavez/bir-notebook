@@ -1,5 +1,7 @@
+import { fromCentsToPrice } from "@bir-notebook/shared/helpers/currency"
 import { useStore } from "@tanstack/react-form"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogClose,
@@ -17,18 +19,16 @@ import {
 	DrawerTitle,
 } from "@/components/ui/drawer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
+import { useUpdateTransaction } from "@/hooks/api/transaction"
+import { useIsMobile } from "@/hooks/use-mobile"
+import type { Transaction } from "@/types/transaction"
 import {
-	transactionAppFormOpts,
 	TransactionForm,
-	useTransactionAppForm,
 	type TransactionFormData,
+	transactionAppFormOpts,
+	useTransactionAppForm,
 } from "./transaction-form"
 import { TransactionPreview } from "./transaction-preview"
-import { toast } from "sonner"
-import type { Transaction } from "@/types/transaction"
-import { fromCentsToPrice } from "@bir-notebook/shared/helpers/currency"
-import { useUpdateTransaction } from "@/hooks/api/transaction"
 
 interface EditTransactionProps {
 	open: boolean
@@ -114,9 +114,8 @@ export function EditTransaction({
 					</div>
 					<DrawerFooter>
 						<DrawerClose asChild>
-							<form.Subscribe
-								selector={(state) => [state.isSubmitting]}
-								children={([isSubmitting]) => (
+							<form.Subscribe selector={(state) => [state.isSubmitting]}>
+								{([isSubmitting]) => (
 									<Button
 										type="button"
 										variant="secondary"
@@ -125,11 +124,12 @@ export function EditTransaction({
 										Cancel
 									</Button>
 								)}
-							/>
+							</form.Subscribe>
 						</DrawerClose>
 						<form.Subscribe
 							selector={(state) => [state.canSubmit, state.isSubmitting]}
-							children={([canSubmit, isSubmitting]) => (
+						>
+							{([canSubmit, isSubmitting]) => (
 								<Button
 									type="submit"
 									form="transaction-form"
@@ -139,7 +139,7 @@ export function EditTransaction({
 									{isSubmitting ? "Updating..." : "Update"}
 								</Button>
 							)}
-						/>
+						</form.Subscribe>
 					</DrawerFooter>
 				</DrawerContent>
 			</Drawer>
@@ -153,46 +153,44 @@ export function EditTransaction({
 					<DialogTitle>Edit Transaction</DialogTitle>
 				</DialogHeader>
 
-				<>
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-						<div>
-							<TransactionForm form={form} />
-						</div>
-						<div className="lg:sticky lg:top-0">
-							<TransactionPreview formData={formData} isValid={isValid} />
-						</div>
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div>
+						<TransactionForm form={form} />
 					</div>
+					<div className="lg:sticky lg:top-0">
+						<TransactionPreview formData={formData} isValid={isValid} />
+					</div>
+				</div>
 
-					<DialogFooter>
-						<DialogClose asChild>
-							<form.Subscribe
-								selector={(state) => [state.isSubmitting]}
-								children={([isSubmitting]) => (
-									<Button
-										type="button"
-										variant="secondary"
-										disabled={isSubmitting}
-									>
-										Cancel
-									</Button>
-								)}
-							/>
-						</DialogClose>
-						<form.Subscribe
-							selector={(state) => [state.canSubmit, state.isSubmitting]}
-							children={([canSubmit, isSubmitting]) => (
+				<DialogFooter>
+					<DialogClose asChild>
+						<form.Subscribe selector={(state) => [state.isSubmitting]}>
+							{([isSubmitting]) => (
 								<Button
-									type="submit"
-									form="transaction-form"
-									disabled={!canSubmit || isSubmitting}
-									onClick={() => form.handleSubmit()}
+									type="button"
+									variant="secondary"
+									disabled={isSubmitting}
 								>
-									{isSubmitting ? "Updating..." : "Update"}
+									Cancel
 								</Button>
 							)}
-						/>
-					</DialogFooter>
-				</>
+						</form.Subscribe>
+					</DialogClose>
+					<form.Subscribe
+						selector={(state) => [state.canSubmit, state.isSubmitting]}
+					>
+						{([canSubmit, isSubmitting]) => (
+							<Button
+								type="submit"
+								form="transaction-form"
+								disabled={!canSubmit || isSubmitting}
+								onClick={() => form.handleSubmit()}
+							>
+								{isSubmitting ? "Updating..." : "Update"}
+							</Button>
+						)}
+					</form.Subscribe>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	)

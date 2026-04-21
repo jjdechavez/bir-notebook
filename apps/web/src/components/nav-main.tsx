@@ -1,5 +1,5 @@
-import { type Icon } from "@tabler/icons-react"
-
+import type { Icon } from "@tabler/icons-react"
+import { Link } from "@tanstack/react-router"
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -7,7 +7,6 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Link } from "@tanstack/react-router"
 
 export function NavMain({
 	items,

@@ -1,25 +1,27 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { useReactTable } from "@tanstack/react-table"
-import { getCoreRowModel, getPaginationRowModel } from "@tanstack/react-table"
-import { useFilters } from "@/hooks/use-filters"
-import type { Transaction } from "@/types/transaction"
-import type { TransactionSearch } from "@/types/transaction"
 import { transactionCategoryBookTypes } from "@bir-notebook/shared/models/transaction"
-import { BooksDataTable } from "./books-data-table"
-import { createCashReceiptsColumns } from "./columns/cash-receipts-columns"
-import { CashReceiptsFooter } from "./footers/cash-receipts-footer"
-import { BulkActionBar } from "./bulk-action-bar"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import {
-	DEFAULT_PAGE_INDEX,
-	DEFAULT_PAGE_SIZE,
-	DEFAULT_LIST_META,
-} from "@/lib/constants"
+	getCoreRowModel,
+	getPaginationRowModel,
+	useReactTable,
+} from "@tanstack/react-table"
 import { toast } from "sonner"
 import {
 	transactionsOptions,
 	useBulkRecordTransaction,
 	useBulkUndoRecordTransaction,
 } from "@/hooks/api/transaction"
+import { useFilters } from "@/hooks/use-filters"
+import {
+	DEFAULT_LIST_META,
+	DEFAULT_PAGE_INDEX,
+	DEFAULT_PAGE_SIZE,
+} from "@/lib/constants"
+import type { Transaction, TransactionSearch } from "@/types/transaction"
+import { BooksDataTable } from "./books-data-table"
+import { BulkActionBar } from "./bulk-action-bar"
+import { createCashReceiptsColumns } from "./columns/cash-receipts-columns"
+import { CashReceiptsFooter } from "./footers/cash-receipts-footer"
 
 type CashReceiptsJournalProps = {
 	filters: TransactionSearch

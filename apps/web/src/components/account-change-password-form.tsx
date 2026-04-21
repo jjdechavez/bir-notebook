@@ -1,11 +1,11 @@
-import { Field, FieldError, FieldLabel } from "./ui/field"
-import { Input } from "./ui/input"
 import {
 	createFormHook,
 	createFormHookContexts,
 	formOptions,
 } from "@tanstack/react-form"
 import { cn } from "@/lib/utils"
+import { Field, FieldError, FieldLabel } from "./ui/field"
+import { Input } from "./ui/input"
 
 const { fieldContext, formContext } = createFormHookContexts()
 
@@ -40,9 +40,8 @@ export const ChangePasswordForm = withForm({
 				onSubmit={(e) => e.preventDefault()}
 			>
 				<div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-					<form.Field
-						name="currentPassword"
-						children={(field) => (
+					<form.Field name="currentPassword">
+						{(field) => (
 							<Field
 								data-invalid={field.state.meta.errors.length > 0}
 								className="col-span-full"
@@ -63,11 +62,10 @@ export const ChangePasswordForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="newPassword"
-						children={(field) => (
+					<form.Field name="newPassword">
+						{(field) => (
 							<Field
 								data-invalid={field.state.meta.errors.length > 0}
 								className="col-span-full"
@@ -88,11 +86,10 @@ export const ChangePasswordForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="newPassword_confirmation"
-						children={(field) => (
+					<form.Field name="newPassword_confirmation">
+						{(field) => (
 							<Field
 								data-invalid={field.state.meta.errors.length > 0}
 								className="col-span-full"
@@ -112,7 +109,7 @@ export const ChangePasswordForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 				</div>
 			</form>
 		)

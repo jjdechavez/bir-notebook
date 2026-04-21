@@ -3,9 +3,9 @@ import {
 	createFormHookContexts,
 	formOptions,
 } from "@tanstack/react-form"
+import { cn } from "@/lib/utils"
 import { Field, FieldError, FieldLabel } from "./ui/field"
 import { Input } from "./ui/input"
-import { cn } from "@/lib/utils"
 
 const { fieldContext, formContext } = createFormHookContexts()
 
@@ -40,9 +40,8 @@ export const PersonalInformationForm = withForm({
 				onSubmit={(e) => e.preventDefault()}
 			>
 				<div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-					<form.Field
-						name="firstName"
-						children={(field) => (
+					<form.Field name="firstName">
+						{(field) => (
 							<Field
 								data-invalid={field.state.meta.errors.length > 0}
 								className="sm:col-span-3"
@@ -62,11 +61,10 @@ export const PersonalInformationForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="lastName"
-						children={(field) => (
+					<form.Field name="lastName">
+						{(field) => (
 							<Field
 								data-invalid={field.state.meta.errors.length > 0}
 								className="sm:col-span-3"
@@ -86,11 +84,10 @@ export const PersonalInformationForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="email"
-						children={(field) => (
+					<form.Field name="email">
+						{(field) => (
 							<Field
 								data-invalid={field.state.meta.errors.length > 0}
 								className="col-span-full"
@@ -108,7 +105,7 @@ export const PersonalInformationForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 				</div>
 			</form>
 		)
