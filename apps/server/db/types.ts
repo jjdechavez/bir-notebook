@@ -3,144 +3,145 @@
  * Please do not edit it manually.
  */
 
-import type { ColumnType } from "kysely";
+import type { ColumnType } from "kysely"
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+	T extends ColumnType<infer S, infer I, infer U>
+		? ColumnType<S, I | undefined, U>
+		: ColumnType<T, T | undefined, T>
 
-export type Timestamp = ColumnType<Date, Date | string>;
+export type Timestamp = ColumnType<Date, Date | string>
 
 export interface Account {
-  accessToken: string | null;
-  accessTokenExpiresAt: Timestamp | null;
-  accountId: string;
-  createdAt: Generated<Timestamp>;
-  id: string;
-  idToken: string | null;
-  password: string | null;
-  providerId: string;
-  refreshToken: string | null;
-  refreshTokenExpiresAt: Timestamp | null;
-  scope: string | null;
-  updatedAt: Timestamp;
-  userId: string;
+	accessToken: string | null
+	accessTokenExpiresAt: Timestamp | null
+	accountId: string
+	createdAt: Generated<Timestamp>
+	id: string
+	idToken: string | null
+	password: string | null
+	providerId: string
+	refreshToken: string | null
+	refreshTokenExpiresAt: Timestamp | null
+	scope: string | null
+	updatedAt: Timestamp
+	userId: string
 }
 
 export interface ChartOfAccounts {
-  code: string;
-  created_at: Generated<Timestamp>;
-  deleted_at: Timestamp | null;
-  id: Generated<number>;
-  name: string;
-  type: string;
-  updated_at: Generated<Timestamp>;
+	code: string
+	created_at: Generated<Timestamp>
+	deleted_at: Timestamp | null
+	id: Generated<number>
+	name: string
+	type: string
+	updated_at: Generated<Timestamp>
 }
 
 export interface Invites {
-  accepted_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  email: string;
-  id: Generated<number>;
-  invited_by_id: string | null;
-  role: string | null;
-  status: Generated<string>;
-  updated_at: Generated<Timestamp>;
+	accepted_at: Timestamp | null
+	created_at: Generated<Timestamp>
+	email: string
+	id: Generated<number>
+	invited_by_id: string | null
+	role: string | null
+	status: Generated<string>
+	updated_at: Generated<Timestamp>
 }
 
 export interface Jwks {
-  createdAt: Timestamp;
-  expiresAt: Timestamp | null;
-  id: string;
-  privateKey: string;
-  publicKey: string;
+	createdAt: Timestamp
+	expiresAt: Timestamp | null
+	id: string
+	privateKey: string
+	publicKey: string
 }
 
 export interface Session {
-  createdAt: Generated<Timestamp>;
-  expiresAt: Timestamp;
-  id: string;
-  impersonatedBy: string | null;
-  ipAddress: string | null;
-  token: string;
-  updatedAt: Timestamp;
-  userAgent: string | null;
-  userId: string;
+	createdAt: Generated<Timestamp>
+	expiresAt: Timestamp
+	id: string
+	impersonatedBy: string | null
+	ipAddress: string | null
+	token: string
+	updatedAt: Timestamp
+	userAgent: string | null
+	userId: string
 }
 
 export interface TransactionCategories {
-  book_type: string;
-  created_at: Generated<Timestamp>;
-  default_credit_account_id: number | null;
-  default_debit_account_id: number | null;
-  deleted_at: Timestamp | null;
-  id: Generated<number>;
-  name: string;
-  updated_at: Generated<Timestamp>;
+	book_type: string
+	created_at: Generated<Timestamp>
+	default_credit_account_id: number | null
+	default_debit_account_id: number | null
+	deleted_at: Timestamp | null
+	id: Generated<number>
+	name: string
+	updated_at: Generated<Timestamp>
 }
 
 export interface Transactions {
-  amount: number;
-  book_type: string;
-  category_id: number | null;
-  created_at: Generated<Timestamp>;
-  credit_account_id: number;
-  debit_account_id: number;
-  description: string | null;
-  gl_id: number | null;
-  gl_posting_month: string | null;
-  id: Generated<number>;
-  recorded_at: Timestamp | null;
-  reference_number: string | null;
-  transaction_date: Timestamp | null;
-  transferred_to_gl_at: Timestamp | null;
-  user_id: string;
-  vat_type: string | null;
+	amount: number
+	book_type: string
+	category_id: number | null
+	created_at: Generated<Timestamp>
+	credit_account_id: number
+	debit_account_id: number
+	description: string | null
+	gl_id: number | null
+	gl_posting_month: string | null
+	id: Generated<number>
+	recorded_at: Timestamp | null
+	reference_number: string | null
+	transaction_date: Timestamp | null
+	transferred_to_gl_at: Timestamp | null
+	user_id: string
+	vat_type: string | null
 }
 
 export interface User {
-  banExpires: Timestamp | null;
-  banned: boolean | null;
-  banReason: string | null;
-  createdAt: Generated<Timestamp>;
-  email: string;
-  emailVerified: boolean;
-  firstName: string;
-  id: string;
-  image: string | null;
-  lastName: string;
-  name: string;
-  role: string | null;
-  updatedAt: Generated<Timestamp>;
+	banExpires: Timestamp | null
+	banned: boolean | null
+	banReason: string | null
+	createdAt: Generated<Timestamp>
+	email: string
+	emailVerified: boolean
+	firstName: string
+	id: string
+	image: string | null
+	lastName: string
+	name: string
+	role: string | null
+	updatedAt: Generated<Timestamp>
 }
 
 export interface UserPreferences {
-  created_at: Generated<Timestamp>;
-  id: Generated<number>;
-  navigation_layout: Generated<string>;
-  theme: Generated<string>;
-  updated_at: Generated<Timestamp>;
-  user_id: string;
+	created_at: Generated<Timestamp>
+	id: Generated<number>
+	navigation_layout: Generated<string>
+	theme: Generated<string>
+	updated_at: Generated<Timestamp>
+	user_id: string
 }
 
 export interface Verification {
-  createdAt: Generated<Timestamp>;
-  expiresAt: Timestamp;
-  id: string;
-  identifier: string;
-  updatedAt: Generated<Timestamp>;
-  value: string;
+	createdAt: Generated<Timestamp>
+	expiresAt: Timestamp
+	id: string
+	identifier: string
+	updatedAt: Generated<Timestamp>
+	value: string
 }
 
 export interface DB {
-  account: Account;
-  chart_of_accounts: ChartOfAccounts;
-  invites: Invites;
-  jwks: Jwks;
-  session: Session;
-  transaction_categories: TransactionCategories;
-  transactions: Transactions;
-  user: User;
-  user_preferences: UserPreferences;
-  verification: Verification;
+	account: Account
+	chart_of_accounts: ChartOfAccounts
+	invites: Invites
+	jwks: Jwks
+	session: Session
+	transaction_categories: TransactionCategories
+	transactions: Transactions
+	user: User
+	user_preferences: UserPreferences
+	verification: Verification
 }

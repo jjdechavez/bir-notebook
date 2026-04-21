@@ -10,7 +10,9 @@
 		"make:migration": "node scripts/make-migration.mjs",
 		"migration:run": "tsx scripts/migrate.ts latest",
 		"migration:rollback": "tsx scripts/migrate.ts down",
-		"generate:db": "node --env-file .env ./node_modules/kysely-codegen/dist/cli/bin.js --dialect postgres --out-file db/types.ts --url='env(DATABASE_URL)'"
+		"generate:db": "node --env-file .env ./node_modules/kysely-codegen/dist/cli/bin.js --dialect postgres --out-file db/types.ts --url='env(DATABASE_URL)'",
+		"format": "pnpm exec biome format --write .",
+		"lint": "pnpm exec biome lint"
 	},
 	"dependencies": {
 		"better-auth": "^1.0.0",

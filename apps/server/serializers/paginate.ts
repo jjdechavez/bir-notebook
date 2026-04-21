@@ -1,10 +1,10 @@
-import { buildPaginationMeta } from "../utils/pagination.js";
+import { buildPaginationMeta } from "../utils/pagination.js"
 
 export function serializePagination(
-  total: number,
-  page: number,
-  limit: number,
-  baseUrl: string
+	total: number,
+	page: number,
+	limit: number,
+	baseUrl: string,
 ) {
-  return buildPaginationMeta(total, limit, page, baseUrl);
+	return buildPaginationMeta(total, limit, page, baseUrl)
 }
