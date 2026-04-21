@@ -14,6 +14,8 @@ import {
   buildOptions,
 } from '@/lib/tanstack-query/root-provider'
 import type {
+  BulkRecordTransactionInput,
+  BulkRecordTransactionResponse,
   CreatedTransaction,
   TransactionCategory,
   TransactionCategoryList,
@@ -156,5 +158,63 @@ export const useUpdateTransaction = (
       ],
       options,
     ),
+  })
+}
+
+const TRANSACTION_RECORD_QUERY_KEY = `transaction-record` as const
+
+export const transactionRecordKeys = queryKeysFactory(
+  TRANSACTION_RECORD_QUERY_KEY,
+)
+
+// type TransactionRecordQueryKeys = typeof transactionRecordKeys
+
+export const useBulkRecordTransaction = (
+  options?: UseMutationOptions<
+    BulkRecordTransactionResponse,
+    Error,
+    BulkRecordTransactionInput
+  >,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: BulkRecordTransactionInput) =>
+      api.transaction.record.bulk(input),
+    ...buildOptions(queryClient, [transactionKeys.all], options),
+  })
+}
+
+export const useBulkUndoRecordTransaction = (
+  options?: UseMutationOptions<
+    BulkRecordTransactionResponse,
+    Error,
+    BulkRecordTransactionInput
+  >,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: BulkRecordTransactionInput) =>
+      api.transaction.record.undo.bulk(input),
+    ...buildOptions(queryClient, [transactionKeys.all], options),
+  })
+}
+
+export const useRecordTransaction = (
+  options?: UseMutationOptions<BulkRecordTransactionResponse, Error, number>,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.transaction.record.withId(id),
+    ...buildOptions(queryClient, [transactionKeys.all], options),
+  })
+}
+
+export const useUndoRecordTransaction = (
+  options?: UseMutationOptions<BulkRecordTransactionResponse, Error, number>,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.transaction.record.undo.withId(id),
+    ...buildOptions(queryClient, [transactionKeys.all], options),
   })
 }

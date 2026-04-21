@@ -353,7 +353,7 @@ export const recordTransactionHandler = defineEventHandler({
     }
 
     return {
-      data: serializeTransaction(result.data as any),
+      data: serializeTransaction(result.data),
       message: result.message,
     };
   },
@@ -383,7 +383,14 @@ export const undoRecordTransactionHandler = defineEventHandler({
 export const bulkRecordTransactionHandler = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
-    const payload = bulkRecordTransactionSchema.parse(await readBody(event));
+    const validate = await readValidatedBody(event, bulkRecordTransactionSchema.safeParse);
+
+    if (!validate.success) {
+      throw toValidationError(validate.error)
+    }
+
+    const payload = validate.data
+
     const result = await bulkRecordTransactions(
       event.context.db,
       payload.transactionIds,
@@ -400,7 +407,14 @@ export const bulkRecordTransactionHandler = defineEventHandler({
 export const bulkUndoRecordTransactionHandler = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
-    const payload = bulkRecordTransactionSchema.parse(await readBody(event));
+    const validate = await readValidatedBody(event, bulkRecordTransactionSchema.safeParse);
+
+    if (!validate.success) {
+      throw toValidationError(validate.error)
+    }
+
+    const payload = validate.data
+
     const result = await bulkUndoRecordTransactions(
       event.context.db,
       payload.transactionIds,

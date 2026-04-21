@@ -86,3 +86,16 @@ export type TransactionSummary = {
   netIncome: number;
   totalChartOfAccounts: number;
 }
+
+export type BulkRecordTransactionInput = {
+  transactionIds: Array<number>;
+}
+
+export type BulkRecordTransactionResponse = {
+  status: "success"
+  data: {
+    total: number;
+    updated: number
+  };
+  message: string;
+}

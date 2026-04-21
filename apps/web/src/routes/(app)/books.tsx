@@ -6,11 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Calendar, Download, Search, Filter } from 'lucide-react'
 import { SettingPendingComponent } from '@/components/pending-component'
 import { GenericErrorComponent } from '@/components/error-component'
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query'
+import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { tuyau } from '@/main'
 import { useFilters } from '@/hooks/use-filters'
 import type { TransactionSearch } from '@/types/transaction'
@@ -47,18 +43,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  transactionsOptions,
+  useRecordTransaction,
+  useUndoRecordTransaction,
+} from '@/hooks/api/transaction'
+import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/components/data-table'
 
 export const Route = createFileRoute('/(app)/books')({
-  component: BooksPage,
-  loader: ({ context }) => ({
-    crumb: 'Books',
-    ...context.queryClient.ensureQueryData(
-      context.tuyau.api.transactions.$get.queryOptions(),
-    ),
+  validateSearch: () => ({}) as Partial<TransactionSearch & { count?: number }>,
+  loaderDeps: ({ search }) => ({
+    page: (search?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
+    size: search?.pageSize || DEFAULT_PAGE_SIZE,
+    dateFrom: search?.dateFrom || '',
+    dateTo: search?.dateTo || '',
+    bookType:
+      search?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
+    search: search?.search || '',
+    record: search?.record || '',
   }),
+  loader: ({ context, deps }) => ({
+    crumb: 'Books',
+    ...context.queryClient.ensureQueryData(transactionsOptions(deps)),
+  }),
+  component: BooksPage,
   pendingComponent: SettingPendingComponent,
   errorComponent: GenericErrorComponent,
-  validateSearch: () => ({}) as Partial<TransactionSearch & { count?: number }>,
 })
 
 const cashReceiptJournalBook = {
@@ -102,15 +112,13 @@ function BooksPage() {
   const [showTransferDialog, setShowTransferDialog] = useState(false)
 
   const { data: transactionsData } = useSuspenseQuery(
-    tuyau.api.transactions.$get.queryOptions({
-      payload: {
-        dateFrom: filters.dateFrom,
-        dateTo: filters.dateTo,
-        bookType:
-          filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
-        search: filters?.search || '',
-        record: filters?.record || '',
-      },
+    transactionsOptions({
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      bookType:
+        filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
+      search: filters?.search || '',
+      record: filters?.record || '',
     }),
   )
 
@@ -122,23 +130,9 @@ function BooksPage() {
 
   const queryClient = useQueryClient()
 
-  const recordMutation = useMutation(
-    tuyau.api.transactions[':id']['record'].$post.mutationOptions({
-      onSuccess: () =>
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.transactions.$get.queryKey(),
-        }),
-    }),
-  )
+  const recordMutation = useRecordTransaction()
 
-  const undoRecordMutation = useMutation(
-    tuyau.api.transactions[':id']['record']['undo'].$post.mutationOptions({
-      onSuccess: () =>
-        queryClient.invalidateQueries({
-          queryKey: tuyau.api.transactions.$get.queryKey(),
-        }),
-    }),
-  )
+  const undoRecordMutation = useUndoRecordTransaction()
 
   return (
     <div className="space-y-6">
@@ -269,9 +263,9 @@ function BooksPage() {
               columnCount={columnCountFilter}
               onRecordAction={(action, transaction) => {
                 if (action === 'record') {
-                  recordMutation.mutate({ params: { id: transaction.id } })
+                  recordMutation.mutate(transaction.id)
                 } else if (action === 'undo') {
-                  undoRecordMutation.mutate({ params: { id: transaction.id } })
+                  undoRecordMutation.mutate(transaction.id)
                 }
               }}
             />
@@ -301,9 +295,9 @@ function BooksPage() {
               columnCount={columnCountFilter}
               onRecordAction={(action, transaction) => {
                 if (action === 'record') {
-                  recordMutation.mutate({ params: { id: transaction.id } })
+                  recordMutation.mutate(transaction.id)
                 } else if (action === 'undo') {
-                  undoRecordMutation.mutate({ params: { id: transaction.id } })
+                  undoRecordMutation.mutate(transaction.id)
                 }
               }}
             />
@@ -314,9 +308,9 @@ function BooksPage() {
             filters={{ ...filters, bookType: generalJournalBook.key }}
             onRecordAction={(action, transaction) => {
               if (action === 'record') {
-                recordMutation.mutate({ params: { id: transaction.id } })
+                recordMutation.mutate(transaction.id)
               } else if (action === 'undo') {
-                undoRecordMutation.mutate({ params: { id: transaction.id } })
+                undoRecordMutation.mutate(transaction.id)
               }
             }}
           />

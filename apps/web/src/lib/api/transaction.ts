@@ -5,13 +5,15 @@ import type {
   CreatedTransaction,
   UpdatedTransaction,
   TransactionSummary,
+  BulkRecordTransactionInput,
 } from '@/types/transaction'
 import { requestApi } from '../request'
 import { cleanEmptyParams } from '../api'
 import type { TransactionFormData } from '@/components/transaction-form'
 
-const TRANSACTION_ENDPOINT = '/transactions'
-const TRANSACTION_CATEGORY_ENDPOINT = '/transaction-categories'
+const TRANSACTION_ENDPOINT = '/transactions' as const
+const TRANSACTION_CATEGORY_ENDPOINT = '/transaction-categories' as const
+const TRANSACTION_RECORD_ENDPOINT = `${TRANSACTION_ENDPOINT}/record` as const
 
 export const transaction = {
   list: async (query: TransactionCategoryListQueryParam = {}) => {
@@ -46,5 +48,26 @@ export const transaction = {
         `${TRANSACTION_CATEGORY_ENDPOINT}/${id}`,
         { method: 'GET' },
       ),
+  },
+
+  record: {
+    withId: async (id: number) =>
+      requestApi(`${TRANSACTION_ENDPOINT}/${id}/record`, { method: 'POST' }),
+    bulk: async (input: BulkRecordTransactionInput) =>
+      requestApi(`${TRANSACTION_RECORD_ENDPOINT}/bulk`, {
+        method: 'POST',
+        body: input,
+      }),
+    undo: {
+      withId: async (id: number) =>
+        requestApi(`${TRANSACTION_ENDPOINT}/${id}/record/undo`, {
+          method: 'POST',
+        }),
+      bulk: async (input: BulkRecordTransactionInput) =>
+        requestApi(`${TRANSACTION_RECORD_ENDPOINT}/undo/bulk`, {
+          method: 'POST',
+          body: input,
+        }),
+    },
   },
 }
