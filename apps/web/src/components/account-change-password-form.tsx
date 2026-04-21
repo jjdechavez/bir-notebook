@@ -1,101 +1,120 @@
-import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Field, FieldError, FieldLabel } from './ui/field'
 import { Input } from './ui/input'
-import type { ChangePasswordInput } from '@/types/account'
+import {
+  createFormHook,
+  createFormHookContexts,
+  formOptions,
+} from '@tanstack/react-form'
 import { cn } from '@/lib/utils'
 
-type ChangePasswordFormProps = {
-  onSubmit: (input: ChangePasswordInput) => void
-  form: UseFormReturn<ChangePasswordInput>
-  className?: string
-}
+const { fieldContext, formContext } = createFormHookContexts()
 
-export function ChangePasswordForm(props: ChangePasswordFormProps) {
-  const onSubmit = props.form.handleSubmit((payload) => {
-    props.onSubmit(payload)
-  })
+const { useAppForm: useChangePasswordAppForm, withForm } = createFormHook({
+  fieldComponents: {},
+  formComponents: {},
+  fieldContext,
+  formContext,
+})
 
-  return (
-    <form
-      id="change-password-form"
-      onSubmit={onSubmit}
-      className={cn(props.className)}
-    >
-      <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-        <Controller
-          control={props.form.control}
-          name="currentPassword"
-          render={({ field, fieldState, formState }) => {
-            return (
+export { useChangePasswordAppForm }
+
+export const changePasswordAppFormOpts = formOptions({
+  defaultValues: {
+    currentPassword: '',
+    newPassword: '',
+    newPassword_confirmation: '',
+  },
+  validators: {},
+})
+
+export const ChangePasswordForm = withForm({
+  ...changePasswordAppFormOpts,
+  props: {
+    className: '',
+  },
+  render: ({ form, className }) => {
+    return (
+      <form
+        id="change-password-form"
+        className={cn(className)}
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
+          <form.Field
+            name="currentPassword"
+            children={(field) => (
               <Field
-                data-invalid={fieldState.invalid}
+                data-invalid={field.state.meta.errors.length > 0}
                 className="col-span-full"
               >
                 <FieldLabel htmlFor={field.name}>Current password</FieldLabel>
                 <Input
-                  {...field}
+                  id={field.name}
+                  name={field.name}
                   type="password"
-                  value={field.value ?? ''}
-                  disabled={formState.isSubmitting}
-                  aria-invalid={fieldState.invalid}
+                  value={field.state.value as string}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  disabled={form.state.isSubmitting}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
-            )
-          }}
-        />
+            )}
+          />
 
-        <Controller
-          control={props.form.control}
-          name="newPassword"
-          render={({ field, fieldState, formState }) => {
-            return (
+          <form.Field
+            name="newPassword"
+            children={(field) => (
               <Field
-                data-invalid={fieldState.invalid}
+                data-invalid={field.state.meta.errors.length > 0}
                 className="col-span-full"
               >
                 <FieldLabel htmlFor={field.name}>New password</FieldLabel>
                 <Input
-                  {...field}
-                  type='password'
-                  value={field.value ?? ''}
-                  disabled={formState.isSubmitting}
-                  aria-invalid={fieldState.invalid}
+                  id={field.name}
+                  name={field.name}
+                  type="password"
+                  value={field.state.value as string}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  disabled={form.state.isSubmitting}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
-            )
-          }}
-        />
+            )}
+          />
 
-        <Controller
-          control={props.form.control}
-          name="newPassword_confirmation"
-          render={({ field, fieldState }) => {
-            return (
+          <form.Field
+            name="newPassword_confirmation"
+            children={(field) => (
               <Field
-                data-invalid={fieldState.invalid}
+                data-invalid={field.state.meta.errors.length > 0}
                 className="col-span-full"
               >
                 <FieldLabel htmlFor={field.name}>Confirm password</FieldLabel>
                 <Input
-                  {...field}
-                  type='password'
-                  value={field.value ?? ''}
-                  aria-invalid={fieldState.invalid}
+                  id={field.name}
+                  name={field.name}
+                  type="password"
+                  value={field.state.value as string}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
-            )
-          }}
-        />
-      </div>
-    </form>
-  )
-}
+            )}
+          />
+        </div>
+      </form>
+    )
+  },
+})

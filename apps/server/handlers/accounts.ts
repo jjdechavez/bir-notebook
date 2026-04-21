@@ -1,7 +1,6 @@
 import {
   createError,
   defineEventHandler,
-  readBody,
   readValidatedBody,
 } from "h3";
 import { requireAuth } from "../middleware/auth.js";
@@ -10,6 +9,7 @@ import {
   updateAccountSchema,
 } from "../validators/account.js";
 import { getUserWithProfile } from "../services/users.js";
+import { toValidationError } from "../utils/validation.js";
 
 export const updateAccount = defineEventHandler({
   onRequest: [requireAuth()],
@@ -61,7 +61,13 @@ export const updateAccount = defineEventHandler({
 export const changePassword = defineEventHandler({
   onRequest: [requireAuth()],
   handler: async (event) => {
-    const payload = changePasswordSchema.parse(await readBody(event));
+    const validate = await readValidatedBody(event, changePasswordSchema.safeParse);
+
+    if (!validate.success) {
+      throw toValidationError(validate.error)
+    }
+
+    const payload = validate.data
 
     try {
       await event.context.auth.api.changePassword({

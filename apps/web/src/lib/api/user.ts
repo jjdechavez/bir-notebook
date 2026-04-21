@@ -10,9 +10,14 @@ import type {
   UserList,
 } from '@/types/user'
 import { cleanEmptyParams } from '../api'
+import type {
+  ChangePasswordInput,
+  PersonalInformationInput,
+} from '@/types/account'
 
-const USERS_ENDPOINT = '/users'
-const PREFERENCES_ENDPOINT = '/preferences'
+const USERS_ENDPOINT = '/users' as const
+const PREFERENCES_ENDPOINT = '/preferences' as const
+const ACCOUNT_ENDPOINT = '/accounts' as const
 
 export const user = {
   list: async (query: ListUserQueryParam = {}) => {
@@ -30,5 +35,11 @@ export const user = {
         body: input,
       })
     },
+  },
+  account: {
+    update: async (input: PersonalInformationInput) =>
+      requestApi(ACCOUNT_ENDPOINT, { method: 'PUT', body: input }),
+    changePassword: async (input: ChangePasswordInput) =>
+      requestApi<User>(ACCOUNT_ENDPOINT, { method: 'POST', body: input }),
   },
 }

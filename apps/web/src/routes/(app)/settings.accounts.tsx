@@ -1,17 +1,21 @@
-import { ChangePasswordForm } from '@/components/account-change-password-form'
-import { PersonalInformationForm } from '@/components/personal-information-form'
+import {
+  changePasswordAppFormOpts,
+  ChangePasswordForm,
+  useChangePasswordAppForm,
+} from '@/components/account-change-password-form'
+import {
+  PersonalInformationForm,
+  usePersonalInformationAppForm,
+} from '@/components/personal-information-form'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/lib/auth'
-import { tuyau } from '@/main'
-import type {
-  ChangePasswordInput,
-  PersonalInformationInput,
-} from '@/types/account'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { PersonalInformationInput } from '@/types/account'
 import { createFileRoute } from '@tanstack/react-router'
-import { TuyauHTTPError } from '@tuyau/client'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { authClient } from '@/lib/auth-client'
+import {
+  useChangePassword,
+  useUpdatePersonalInformation,
+} from '@/hooks/api/user'
 
 export const Route = createFileRoute('/(app)/settings/accounts')({
   loader: () => {
@@ -94,40 +98,34 @@ function AccountsSetting() {
 }
 
 function PersonalInformation() {
-  const queryClient = useQueryClient()
-  const { user } = useAuth()
-  const form = useForm<PersonalInformationInput>({
-    defaultValues: {
-      firstName: user?.firstName,
-      lastName: user?.lastName,
-      email: user?.email,
+  const { data: user } = authClient.useSession()
+
+  const updatePersonalInformationMutation = useUpdatePersonalInformation({
+    onSuccess: () => {
+      toast.success('Personal information updated successfully')
+    },
+    onError: () => {
+      toast.error('Failed to update personal information')
     },
   })
 
-  const updatePersonalInformationMutation = useMutation(
-    tuyau.api.accounts.$put.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: [
-            tuyau.api.session.$get.pathKey(),
-            tuyau.api.users.$get.pathKey(),
-          ],
-        })
-      },
-    }),
-  )
-
-  const onSubmit = async (payload: PersonalInformationInput) => {
-    toast.promise(
-      async () =>
-        await updatePersonalInformationMutation.mutateAsync({ payload }),
-      {
-        loading: 'Updating personal information...',
-        success: () => `Personal information updated successfully`,
-        error: () => 'Failed to update personal information',
-      },
-    )
-  }
+  const form = usePersonalInformationAppForm({
+    defaultValues: {
+      firstName: user?.user.firstName ?? '',
+      lastName: user?.user.lastName ?? '',
+      email: user?.user.email ?? '',
+    } as PersonalInformationInput,
+    onSubmit: async ({ value }) => {
+      toast.promise(
+        async () => await updatePersonalInformationMutation.mutateAsync(value),
+        {
+          loading: 'Updating personal information...',
+          success: () => `Personal information updated successfully`,
+          error: () => 'Failed to update personal information',
+        },
+      )
+    },
+  })
 
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-10 py-16 md:grid-cols-3">
@@ -140,14 +138,14 @@ function PersonalInformation() {
         </p>
       </div>
 
-      <PersonalInformationForm
-        className="md:col-span-2"
-        form={form}
-        onSubmit={onSubmit}
-      />
+      <PersonalInformationForm className="md:col-span-2" form={form} />
 
       <div className="mt-8 flex md:col-start-2">
-        <Button type="submit" form="personal-information-form">
+        <Button
+          type="submit"
+          form="personal-information-form"
+          onClick={() => form.handleSubmit()}
+        >
           Save
         </Button>
       </div>
@@ -156,48 +154,28 @@ function PersonalInformation() {
 }
 
 function ChangePassword() {
-  const form = useForm<ChangePasswordInput>({
-    defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      newPassword_confirmation: '',
+  const changePasswordMutation = useChangePassword({
+    onSuccess: () => {
+      toast.success('Password updated successfully')
+    },
+    onError: () => {
+      toast.error('Failed to update password')
     },
   })
 
-  const changePasswordMutation = useMutation(
-    tuyau.api.accounts.passwords.$post.mutationOptions({
-      onError: (e) => {
-        if (e instanceof TuyauHTTPError) {
-          const value = e.value as {
-            errors: Array<{
-              message: string
-              field: string
-              meta?: { otherField: string }
-            }>
-          }
-          value.errors.forEach((err) => {
-            form.setError(err.field as keyof ChangePasswordInput, { message: err.message })
-            if (err.meta?.otherField) {
-              form.setError(err.meta.otherField as keyof ChangePasswordInput, {
-                message: 'New password and confirm password must be the same',
-              })
-            }
-          })
-        }
-      },
-    }),
-  )
-
-  const onSubmit = async (payload: ChangePasswordInput) => {
-    toast.promise(
-      async () => await changePasswordMutation.mutateAsync({ payload }),
-      {
-        loading: 'Updating password...',
-        success: () => `Password updated successfully`,
-        error: () => 'Failed to update password',
-      },
-    )
-  }
+  const form = useChangePasswordAppForm({
+    ...changePasswordAppFormOpts,
+    onSubmit: async ({ value }) => {
+      toast.promise(
+        async () => await changePasswordMutation.mutateAsync(value),
+        {
+          loading: 'Updating password...',
+          success: () => `Password updated successfully`,
+          error: () => 'Failed to update password',
+        },
+      )
+    },
+  })
 
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-10 py-16 md:grid-cols-3">
@@ -210,14 +188,14 @@ function ChangePassword() {
         </p>
       </div>
 
-      <ChangePasswordForm
-        form={form}
-        onSubmit={onSubmit}
-        className="md:col-span-2"
-      />
+      <ChangePasswordForm form={form} className="md:col-span-2" />
 
       <div className="mt-8 flex md:col-start-2">
-        <Button type="submit" form="change-password-form">
+        <Button
+          type="submit"
+          form="change-password-form"
+          onClick={() => form.handleSubmit()}
+        >
           Save
         </Button>
       </div>

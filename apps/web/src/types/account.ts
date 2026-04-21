@@ -1,10 +1,11 @@
-import type { tuyau } from '@/main'
-import type { InferRequestType } from '@tuyau/react-query'
+export type PersonalInformationInput = {
+  firstName: string
+  lastName: string
+  email: string
+}
 
-export type PersonalInformationInput = InferRequestType<
-  (typeof tuyau.api.accounts)['$put']
-> & { email: string }
-
-export type ChangePasswordInput = InferRequestType<
-  typeof tuyau.api.accounts.passwords.$post
-> & { newPassword_confirmation: string }
+export type ChangePasswordInput = {
+  currentPassword: string
+  newPassword: string
+  newPassword_confirmation: string
+}

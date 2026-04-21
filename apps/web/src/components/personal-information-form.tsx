@@ -1,99 +1,116 @@
-import { Controller, type UseFormReturn } from 'react-hook-form'
+import {
+  createFormHook,
+  createFormHookContexts,
+  formOptions,
+} from '@tanstack/react-form'
 import { Field, FieldError, FieldLabel } from './ui/field'
 import { Input } from './ui/input'
-import type { PersonalInformationInput } from '@/types/account'
 import { cn } from '@/lib/utils'
 
-type PersonalInformationFormProps = {
-  onSubmit: (input: PersonalInformationInput) => void
-  form: UseFormReturn<PersonalInformationInput>
-  className?: string
-}
+const { fieldContext, formContext } = createFormHookContexts()
 
-export function PersonalInformationForm(props: PersonalInformationFormProps) {
-  const onSubmit = props.form.handleSubmit((payload) => {
-    props.onSubmit(payload)
-  })
+const { useAppForm: usePersonalInformationAppForm, withForm } = createFormHook({
+  fieldComponents: {},
+  formComponents: {},
+  fieldContext,
+  formContext,
+})
 
-  return (
-    <form
-      id="personal-information-form"
-      onSubmit={onSubmit}
-      className={cn(props.className)}
-    >
-      <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-        <Controller
-          control={props.form.control}
-          name="firstName"
-          render={({ field, fieldState, formState }) => {
-            return (
+export { usePersonalInformationAppForm }
+
+export const personalInformationAppFormOpts = formOptions({
+  defaultValues: {
+    firstName: '',
+    lastName: '',
+    email: '',
+  },
+  validators: {},
+})
+
+export const PersonalInformationForm = withForm({
+  ...personalInformationAppFormOpts,
+  props: {
+    className: '',
+  },
+  render: ({ form, className }) => {
+    return (
+      <form
+        id="personal-information-form"
+        className={cn(className)}
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
+          <form.Field
+            name="firstName"
+            children={(field) => (
               <Field
-                data-invalid={fieldState.invalid}
+                data-invalid={field.state.meta.errors.length > 0}
                 className="sm:col-span-3"
               >
                 <FieldLabel htmlFor={field.name}>First Name</FieldLabel>
                 <Input
-                  {...field}
-                  value={field.value ?? ''}
-                  disabled={formState.isSubmitting}
-                  aria-invalid={fieldState.invalid}
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value as string}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  disabled={form.state.isSubmitting}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
-            )
-          }}
-        />
+            )}
+          />
 
-        <Controller
-          control={props.form.control}
-          name="lastName"
-          render={({ field, fieldState, formState }) => {
-            return (
+          <form.Field
+            name="lastName"
+            children={(field) => (
               <Field
-                data-invalid={fieldState.invalid}
+                data-invalid={field.state.meta.errors.length > 0}
                 className="sm:col-span-3"
               >
                 <FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
                 <Input
-                  {...field}
-                  value={field.value ?? ''}
-                  disabled={formState.isSubmitting}
-                  aria-invalid={fieldState.invalid}
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value as string}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  disabled={form.state.isSubmitting}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
-            )
-          }}
-        />
+            )}
+          />
 
-        <Controller
-          control={props.form.control}
-          name="email"
-          render={({ field, fieldState }) => {
-            return (
+          <form.Field
+            name="email"
+            children={(field) => (
               <Field
-                data-invalid={fieldState.invalid}
+                data-invalid={field.state.meta.errors.length > 0}
                 className="col-span-full"
               >
                 <FieldLabel htmlFor={field.name}>Email address</FieldLabel>
                 <Input
-                  {...field}
-                  value={field.value ?? ''}
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value as string}
                   disabled={true}
-                  aria-invalid={fieldState.invalid}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError errors={field.state.meta.errors} />
                 )}
               </Field>
-            )
-          }}
-        />
-      </div>
-    </form>
-  )
-}
+            )}
+          />
+        </div>
+      </form>
+    )
+  },
+})

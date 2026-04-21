@@ -22,6 +22,7 @@ import type {
   UserInput,
   UserList,
 } from '@/types/user'
+import type { ChangePasswordInput, PersonalInformationInput } from '@/types/account'
 
 const USER_PREFERENCE_QUERY_KEY = `user-preference` as const
 
@@ -88,5 +89,25 @@ export const useUpdateUser = (
   return useMutation({
     mutationFn: (input: UserInput) => api.user.update(id, input),
     ...buildOptions(queryClient, [userKeys.all], options),
+  })
+}
+
+export const useChangePassword = (
+  options?: UseMutationOptions<User, Error, ChangePasswordInput>,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ChangePasswordInput) => api.user.account.changePassword(input),
+    ...buildOptions(queryClient, [], options),
+  })
+}
+
+export const useUpdatePersonalInformation = (
+  options?: UseMutationOptions<User, Error, PersonalInformationInput>,
+) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: PersonalInformationInput) => api.user.account.update(input),
+    ...buildOptions(queryClient, [], options),
   })
 }
