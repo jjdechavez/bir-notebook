@@ -1,211 +1,212 @@
-import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
-import { PublicNotFound } from '@/components/public-not-found'
-import { useEffect, useState } from 'react'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router"
+import { PublicNotFound } from "@/components/public-not-found"
+import { useEffect, useState } from "react"
+import { useForm } from "@tanstack/react-form"
+import { z } from "zod"
 
 import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
-import { GalleryVerticalEnd, Loader2 } from 'lucide-react'
-import { Input, PasswordInput } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Spinner } from '@/components/ui/spinner'
-import { api } from '@/lib/api'
-import { authClient } from '@/lib/auth-client'
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "@/components/ui/field"
+import { GalleryVerticalEnd, Loader2 } from "lucide-react"
+import { Input, PasswordInput } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Spinner } from "@/components/ui/spinner"
+import { api } from "@/lib/api"
+import { authClient } from "@/lib/auth-client"
 
 const schema = z.object({
-  email: z.email(),
-  password: z.string(),
+	email: z.email(),
+	password: z.string(),
 })
 
-export const Route = createFileRoute('/(public)/login')({
-  validateSearch: z.object({
-    redirect: z.string().optional(),
-    setup: z.string().optional(),
-  }),
-  beforeLoad: async ({ context }) => {
-    if (context.auth.isLoading) {
-      return
-    }
+export const Route = createFileRoute("/(public)/login")({
+	validateSearch: z.object({
+		redirect: z.string().optional(),
+		setup: z.string().optional(),
+	}),
+	beforeLoad: async ({ context }) => {
+		if (context.auth.isLoading) {
+			return
+		}
 
-    if (context.auth.isAuthenticated) {
-      throw redirect({
-        to: '/dashboard',
-      })
-    }
+		if (context.auth.isAuthenticated) {
+			throw redirect({
+				to: "/dashboard",
+			})
+		}
 
-    const needsSetup = await api.systems
-      .systemSetupStatus()
-      .then((res) => {
-        return res.setup === 'pending'
-      })
-      .catch(() => false)
+		const needsSetup = await api.systems
+			.systemSetupStatus()
+			.then((res) => {
+				return res.setup === "pending"
+			})
+			.catch(() => false)
 
-    if (needsSetup) {
-      throw redirect({
-        to: '/setup',
-      })
-    }
-  },
-  pendingComponent: () => (
-    <div className="flex min-h-svh w-full items-center justify-center">
-      <Spinner />
-    </div>
-  ),
-  component: LoginComponent,
-  notFoundComponent: PublicNotFound,
+		if (needsSetup) {
+			throw redirect({
+				to: "/setup",
+			})
+		}
+	},
+	pendingComponent: () => (
+		<div className="flex min-h-svh w-full items-center justify-center">
+			<Spinner />
+		</div>
+	),
+	component: LoginComponent,
+	notFoundComponent: PublicNotFound,
 })
 
 function LoginComponent() {
-  const navigate = useNavigate()
-  const { setup } = Route.useSearch()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [loginError, setLoginError] = useState<string | null>(null)
+	const navigate = useNavigate()
+	const { setup } = Route.useSearch()
+	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [loginError, setLoginError] = useState<string | null>(null)
 
-  const session = authClient.useSession()
+	const session = authClient.useSession()
 
-  useEffect(() => {
-    if (session.data?.session && isSubmitting) {
-      setIsSubmitting(false)
-      navigate({ to: '/dashboard' })
-    }
-  }, [session.data, isSubmitting, navigate])
+	useEffect(() => {
+		if (session.data?.session && isSubmitting) {
+			setIsSubmitting(false)
+			navigate({ to: "/dashboard" })
+		}
+	}, [session.data, isSubmitting, navigate])
 
-  const form = useForm({
-    defaultValues: {
-      email: '',
-      password: '',
-    } as z.infer<typeof schema>,
-    validators: {
-      onChange: schema,
-      onSubmit: schema,
-      onBlur: schema,
-    },
-    onSubmit: async ({ value }) => {
-      setIsSubmitting(true)
-      setLoginError(null)
-        await authClient.signIn.email({
-          email: value.email,
-          password: value.password,
-        },
-        {
-         onError: (ctx) => {
-          setIsSubmitting(false)
-          setLoginError(ctx.error.message)
-          } 
-          }
-        )
-    },
-  })
+	const form = useForm({
+		defaultValues: {
+			email: "",
+			password: "",
+		} as z.infer<typeof schema>,
+		validators: {
+			onChange: schema,
+			onSubmit: schema,
+			onBlur: schema,
+		},
+		onSubmit: async ({ value }) => {
+			setIsSubmitting(true)
+			setLoginError(null)
+			await authClient.signIn.email(
+				{
+					email: value.email,
+					password: value.password,
+				},
+				{
+					onError: (ctx) => {
+						setIsSubmitting(false)
+						setLoginError(ctx.error.message)
+					},
+				},
+			)
+		},
+	})
 
-  return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <form
-            id="login-form"
-            onSubmit={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              form.handleSubmit()
-            }}
-          >
-            <FieldGroup>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <a
-                  href="#"
-                  className="flex flex-col items-center gap-2 font-medium"
-                >
-                  <div className="flex size-8 items-center justify-center rounded-md">
-                    <GalleryVerticalEnd className="size-6" />
-                  </div>
-                  <span className="sr-only">BIR Notebook</span>
-                </a>
-                <h1 className="text-xl font-bold">Welcome to BIR Notebook</h1>
-                {setup === 'success' && (
-                  <Alert variant="success">
-                    <AlertDescription>
-                      Admin account created successfully. Please login with your
-                      credentials.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                {loginError && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{loginError}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
-              <form.Field
-                name="email"
-                children={(field) => (
-                  <Field data-invalid={field.state.meta.errors.length > 0}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      type="email"
-                      placeholder="m@example.com"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      autoComplete="false"
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                )}
-              />
-              <form.Field
-                name="password"
-                children={(field) => (
-                  <Field data-invalid={field.state.meta.errors.length > 0}>
-                    <div className="flex items-center">
-                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                      <a
-                        href="#"
-                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                      >
-                        Forgot your password?
-                      </a>
-                    </div>
-                    <PasswordInput
-                      id={field.name}
-                      name={field.name}
-                      type="password"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Field>
-                <Button type="submit" form="login-form" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    'Login'
-                  )}
-                </Button>
-              </Field>
-            </FieldGroup>
-          </form>
-        </div>
-      </div>
-    </div>
-  )
+	return (
+		<div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+			<div className="w-full max-w-sm">
+				<div className="flex flex-col gap-6">
+					<form
+						id="login-form"
+						onSubmit={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							form.handleSubmit()
+						}}
+					>
+						<FieldGroup>
+							<div className="flex flex-col items-center gap-2 text-center">
+								<a
+									href="#"
+									className="flex flex-col items-center gap-2 font-medium"
+								>
+									<div className="flex size-8 items-center justify-center rounded-md">
+										<GalleryVerticalEnd className="size-6" />
+									</div>
+									<span className="sr-only">BIR Notebook</span>
+								</a>
+								<h1 className="text-xl font-bold">Welcome to BIR Notebook</h1>
+								{setup === "success" && (
+									<Alert variant="success">
+										<AlertDescription>
+											Admin account created successfully. Please login with your
+											credentials.
+										</AlertDescription>
+									</Alert>
+								)}
+								{loginError && (
+									<Alert variant="destructive">
+										<AlertDescription>{loginError}</AlertDescription>
+									</Alert>
+								)}
+							</div>
+							<form.Field
+								name="email"
+								children={(field) => (
+									<Field data-invalid={field.state.meta.errors.length > 0}>
+										<FieldLabel htmlFor={field.name}>Email</FieldLabel>
+										<Input
+											id={field.name}
+											name={field.name}
+											type="email"
+											placeholder="m@example.com"
+											value={field.state.value}
+											onChange={(e) => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+											aria-invalid={field.state.meta.errors.length > 0}
+											autoComplete="false"
+										/>
+										{field.state.meta.errors.length > 0 && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								)}
+							/>
+							<form.Field
+								name="password"
+								children={(field) => (
+									<Field data-invalid={field.state.meta.errors.length > 0}>
+										<div className="flex items-center">
+											<FieldLabel htmlFor={field.name}>Password</FieldLabel>
+											<a
+												href="#"
+												className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+											>
+												Forgot your password?
+											</a>
+										</div>
+										<PasswordInput
+											id={field.name}
+											name={field.name}
+											type="password"
+											value={field.state.value}
+											onChange={(e) => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors.length > 0 && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								)}
+							/>
+							<Field>
+								<Button type="submit" form="login-form" disabled={isSubmitting}>
+									{isSubmitting ? (
+										<>
+											<Loader2 className="size-4 animate-spin" />
+											Logging in...
+										</>
+									) : (
+										"Login"
+									)}
+								</Button>
+							</Field>
+						</FieldGroup>
+					</form>
+				</div>
+			</div>
+		</div>
+	)
 }

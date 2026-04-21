@@ -1,236 +1,236 @@
-import { useState } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { Loader2, X, ChevronDown } from 'lucide-react'
-import { useDebounce } from 'use-debounce'
+import { useState } from "react"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { Loader2, X, ChevronDown } from "lucide-react"
+import { useDebounce } from "use-debounce"
 
 import {
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  Command,
-} from '@/components/ui/command'
-import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
-import { cn } from '@/lib/utils'
-import { api } from '@/lib/api'
+	CommandInput,
+	CommandList,
+	CommandEmpty,
+	CommandGroup,
+	CommandItem,
+	Command,
+} from "@/components/ui/command"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
+import { cn } from "@/lib/utils"
+import { api } from "@/lib/api"
 import {
-  transactionCategoryKeys,
-  useTransactionCategory,
-} from '@/hooks/api/transaction'
+	transactionCategoryKeys,
+	useTransactionCategory,
+} from "@/hooks/api/transaction"
 
 type SelectTransactionCategoryProps = {
-  multiple?: boolean
-  value?: number | null | number[]
-  onChange?: (value: number | number[] | null) => void
-  placeholder?: string
+	multiple?: boolean
+	value?: number | null | number[]
+	onChange?: (value: number | number[] | null) => void
+	placeholder?: string
 }
 
 export function SelectTransactionCategory({
-  multiple = false,
-  value,
-  onChange,
-  placeholder = 'Select category...',
+	multiple = false,
+	value,
+	onChange,
+	placeholder = "Select category...",
 }: SelectTransactionCategoryProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch] = useDebounce(search, 1000)
+	const [open, setOpen] = useState(false)
+	const [search, setSearch] = useState("")
+	const [debouncedSearch] = useDebounce(search, 1000)
 
-  const query = {
-    limit: 20,
-    s: debouncedSearch,
-  }
+	const query = {
+		limit: 20,
+		s: debouncedSearch,
+	}
 
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      queryKey: transactionCategoryKeys.list(query),
-      queryFn: ({ pageParam }) =>
-        api.transaction.categories.list({ ...query, page: pageParam }),
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) => {
-        if (lastPage.meta.currentPage === lastPage.meta.lastPage) {
-          return undefined
-        }
-        return lastPage.meta.currentPage + 1
-      },
-      getPreviousPageParam: (firstPage) => firstPage.meta.currentPage - 1,
-    })
+	const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
+		useInfiniteQuery({
+			queryKey: transactionCategoryKeys.list(query),
+			queryFn: ({ pageParam }) =>
+				api.transaction.categories.list({ ...query, page: pageParam }),
+			initialPageParam: 1,
+			getNextPageParam: (lastPage) => {
+				if (lastPage.meta.currentPage === lastPage.meta.lastPage) {
+					return undefined
+				}
+				return lastPage.meta.currentPage + 1
+			},
+			getPreviousPageParam: (firstPage) => firstPage.meta.currentPage - 1,
+		})
 
-  const categories = data?.pages.flatMap((page) => page.data) || []
+	const categories = data?.pages.flatMap((page) => page.data) || []
 
-  const selectedValue =
-    !multiple && typeof value === 'number' && value > 0 ? value : null
+	const selectedValue =
+		!multiple && typeof value === "number" && value > 0 ? value : null
 
-  const selectedSingle = !multiple
-    ? categories.find((category) => category.id === selectedValue)
-    : null
+	const selectedSingle = !multiple
+		? categories.find((category) => category.id === selectedValue)
+		: null
 
-  const { data: selectedCategoryById } = useTransactionCategory(
-    selectedValue?.toString() || '',
-    {
-      enabled: !multiple && selectedValue !== null && !selectedSingle,
-    },
-  )
+	const { data: selectedCategoryById } = useTransactionCategory(
+		selectedValue?.toString() || "",
+		{
+			enabled: !multiple && selectedValue !== null && !selectedSingle,
+		},
+	)
 
-  const resolvedSelectedSingle = selectedSingle ?? selectedCategoryById ?? null
+	const resolvedSelectedSingle = selectedSingle ?? selectedCategoryById ?? null
 
-  const categoriesWithSelected =
-    !multiple &&
-    !search.trim() &&
-    resolvedSelectedSingle &&
-    !categories.some((category) => category.id === resolvedSelectedSingle.id)
-      ? [resolvedSelectedSingle, ...categories]
-      : categories
+	const categoriesWithSelected =
+		!multiple &&
+		!search.trim() &&
+		resolvedSelectedSingle &&
+		!categories.some((category) => category.id === resolvedSelectedSingle.id)
+			? [resolvedSelectedSingle, ...categories]
+			: categories
 
-  const selectedMultiple = multiple
-    ? categories.filter(
-        (category) => Array.isArray(value) && value.includes(category.id),
-      )
-    : []
+	const selectedMultiple = multiple
+		? categories.filter(
+				(category) => Array.isArray(value) && value.includes(category.id),
+			)
+		: []
 
-  const lastItemRef = useInfiniteScroll(
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  )
+	const lastItemRef = useInfiniteScroll(
+		hasNextPage,
+		fetchNextPage,
+		isFetchingNextPage,
+	)
 
-  const handleSingleChange = (selectedValue: number | null) => {
-    if (selectedValue == null) {
-      onChange?.(null)
-      setSearch('')
-      return
-    }
-    onChange?.(selectedValue)
-  }
+	const handleSingleChange = (selectedValue: number | null) => {
+		if (selectedValue == null) {
+			onChange?.(null)
+			setSearch("")
+			return
+		}
+		onChange?.(selectedValue)
+	}
 
-  const handleMultipleChange = (selectedValues: number[]) => {
-    onChange?.(selectedValues)
-  }
+	const handleMultipleChange = (selectedValues: number[]) => {
+		onChange?.(selectedValues)
+	}
 
-  const handleToggleMultiple = (categoryId: number) => {
-    if (!Array.isArray(value)) return
+	const handleToggleMultiple = (categoryId: number) => {
+		if (!Array.isArray(value)) return
 
-    const newValue = value.includes(categoryId)
-      ? value.filter((id) => id !== categoryId)
-      : [...value, categoryId]
+		const newValue = value.includes(categoryId)
+			? value.filter((id) => id !== categoryId)
+			: [...value, categoryId]
 
-    handleMultipleChange(newValue)
-  }
+		handleMultipleChange(newValue)
+	}
 
-  return (
-    <div className="select-category-container relative">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="w-full"
-      >
-        {multiple ? (
-          <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent/50 transition-colors">
-            <div className="text-muted-foreground">
-              {selectedMultiple.length === 0
-                ? placeholder
-                : `${selectedMultiple.length} selected`}
-            </div>
-            <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="relative cursor-pointer">
-            <div className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-8">
-              {resolvedSelectedSingle?.name || placeholder}
-            </div>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          </div>
-        )}
-      </button>
+	return (
+		<div className="select-category-container relative">
+			<button
+				type="button"
+				onClick={() => setOpen((prev) => !prev)}
+				className="w-full"
+			>
+				{multiple ? (
+					<div className="flex min-h-9 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent/50 transition-colors">
+						<div className="text-muted-foreground">
+							{selectedMultiple.length === 0
+								? placeholder
+								: `${selectedMultiple.length} selected`}
+						</div>
+						<ChevronDown className="ml-auto h-4 w-4 text-muted-foreground" />
+					</div>
+				) : (
+					<div className="relative cursor-pointer">
+						<div className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-8">
+							{resolvedSelectedSingle?.name || placeholder}
+						</div>
+						<ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+					</div>
+				)}
+			</button>
 
-      {!multiple && (resolvedSelectedSingle || search) && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            setSearch('')
-            handleSingleChange(null)
-          }}
-          className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )}
+			{!multiple && (resolvedSelectedSingle || search) && (
+				<button
+					type="button"
+					onClick={(e) => {
+						e.stopPropagation()
+						setSearch("")
+						handleSingleChange(null)
+					}}
+					className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+				>
+					<X className="h-4 w-4" />
+				</button>
+			)}
 
-      <div
-        className={cn('absolute top-full left-0 right-0 z-50 mt-1', {
-          hidden: !open,
-        })}
-      >
-        <Command className="rounded-lg border shadow-lg bg-background">
-          <CommandInput
-            placeholder="Search categories..."
-            value={search}
-            onValueChange={setSearch}
-            autoFocus={open}
-          />
+			<div
+				className={cn("absolute top-full left-0 right-0 z-50 mt-1", {
+					hidden: !open,
+				})}
+			>
+				<Command className="rounded-lg border shadow-lg bg-background">
+					<CommandInput
+						placeholder="Search categories..."
+						value={search}
+						onValueChange={setSearch}
+						autoFocus={open}
+					/>
 
-          <CommandList>
-            <CommandEmpty>
-              {search && categories.length === 0
-                ? 'No category found.'
-                : !search
-                  ? 'Start typing to search...'
-                  : 'Searching...'}
-            </CommandEmpty>
+					<CommandList>
+						<CommandEmpty>
+							{search && categories.length === 0
+								? "No category found."
+								: !search
+									? "Start typing to search..."
+									: "Searching..."}
+						</CommandEmpty>
 
-            {categoriesWithSelected.length > 0 && (
-              <CommandGroup>
-                {categoriesWithSelected.map((category, index) => {
-                  const isLast = index === categoriesWithSelected.length - 1
-                  return (
-                    <CommandItem
-                      key={category.id}
-                      ref={
-                        isLast
-                          ? (node) => {
-                              if (node) {
-                                lastItemRef.current = node
-                              }
-                            }
-                          : undefined
-                      }
-                      value={category.name}
-                      onSelect={() => {
-                        if (multiple) {
-                          handleToggleMultiple(category.id)
-                        } else {
-                          handleSingleChange(category.id)
-                          setOpen(false)
-                        }
-                      }}
-                    >
-                      {category.name}
-                      {((multiple &&
-                        Array.isArray(value) &&
-                        value.includes(category.id)) ||
-                        (!multiple && value === category.id)) && (
-                        <div className="ml-auto flex h-4 w-4 items-center justify-center">
-                          <div className="h-2 w-2 rounded-full bg-current" />
-                        </div>
-                      )}
-                    </CommandItem>
-                  )
-                })}
+						{categoriesWithSelected.length > 0 && (
+							<CommandGroup>
+								{categoriesWithSelected.map((category, index) => {
+									const isLast = index === categoriesWithSelected.length - 1
+									return (
+										<CommandItem
+											key={category.id}
+											ref={
+												isLast
+													? (node) => {
+															if (node) {
+																lastItemRef.current = node
+															}
+														}
+													: undefined
+											}
+											value={category.name}
+											onSelect={() => {
+												if (multiple) {
+													handleToggleMultiple(category.id)
+												} else {
+													handleSingleChange(category.id)
+													setOpen(false)
+												}
+											}}
+										>
+											{category.name}
+											{((multiple &&
+												Array.isArray(value) &&
+												value.includes(category.id)) ||
+												(!multiple && value === category.id)) && (
+												<div className="ml-auto flex h-4 w-4 items-center justify-center">
+													<div className="h-2 w-2 rounded-full bg-current" />
+												</div>
+											)}
+										</CommandItem>
+									)
+								})}
 
-                {isFetchingNextPage && (
-                  <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="ml-2 text-sm text-muted-foreground">
-                      Loading more...
-                    </span>
-                  </div>
-                )}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </div>
-    </div>
-  )
+								{isFetchingNextPage && (
+									<div className="flex items-center justify-center p-4">
+										<Loader2 className="h-4 w-4 animate-spin" />
+										<span className="ml-2 text-sm text-muted-foreground">
+											Loading more...
+										</span>
+									</div>
+								)}
+							</CommandGroup>
+						)}
+					</CommandList>
+				</Command>
+			</div>
+		</div>
+	)
 }

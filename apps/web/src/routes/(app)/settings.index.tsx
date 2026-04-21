@@ -1,68 +1,68 @@
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { LayoutIcon, SettingsIcon, UsersIcon } from "lucide-react"
 import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from '@/components/ui/item'
-import { Separator } from '@/components/ui/separator'
-import { authClient } from '@/lib/auth-client'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { LayoutIcon, SettingsIcon, UsersIcon } from 'lucide-react'
+	Item,
+	ItemContent,
+	ItemDescription,
+	ItemMedia,
+	ItemTitle,
+} from "@/components/ui/item"
+import { Separator } from "@/components/ui/separator"
+import { authClient } from "@/lib/auth-client"
 
-export const Route = createFileRoute('/(app)/settings/')({
-  component: SettingComponent,
+export const Route = createFileRoute("/(app)/settings/")({
+	component: SettingComponent,
 })
 
 function SettingComponent() {
-  const { data } = authClient.useSession()
-  const isAdmin = data?.user!.role === 'admin'
+	const { data } = authClient.useSession()
+	const isAdmin = data?.user?.role === "admin"
 
-  return (
-    <div className="space-y-4">
-      <h1 className="font-bold text-xl text-foreground">Settings</h1>
+	return (
+		<div className="space-y-4">
+			<h1 className="font-bold text-xl text-foreground">Settings</h1>
 
-      <Separator />
+			<Separator />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Item variant="outline" asChild>
-          <Link to="/settings/preferences">
-            <ItemMedia variant="image">
-              <LayoutIcon className="size-6" />
-            </ItemMedia>
-            <ItemContent>
-              <ItemTitle>Preferences</ItemTitle>
-              <ItemDescription>
-                Customize navigation and appearance
-              </ItemDescription>
-            </ItemContent>
-          </Link>
-        </Item>
-        {isAdmin ? (
-          <Item variant="outline" asChild>
-            <Link to="/settings/users">
-              <ItemMedia variant="image">
-                <UsersIcon className="size-6" />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>User</ItemTitle>
-                <ItemDescription>Manage users and invites</ItemDescription>
-              </ItemContent>
-            </Link>
-          </Item>
-        ) : null}
-        <Item variant="outline" asChild>
-          <Link to="/settings/accounts">
-            <ItemMedia variant="image">
-              <SettingsIcon className="size-6" />
-            </ItemMedia>
-            <ItemContent>
-              <ItemTitle>Account</ItemTitle>
-              <ItemDescription>Manage account information</ItemDescription>
-            </ItemContent>
-          </Link>
-        </Item>
-      </div>
-    </div>
-  )
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+				<Item variant="outline" asChild>
+					<Link to="/settings/preferences">
+						<ItemMedia variant="image">
+							<LayoutIcon className="size-6" />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle>Preferences</ItemTitle>
+							<ItemDescription>
+								Customize navigation and appearance
+							</ItemDescription>
+						</ItemContent>
+					</Link>
+				</Item>
+				{isAdmin ? (
+					<Item variant="outline" asChild>
+						<Link to="/settings/users">
+							<ItemMedia variant="image">
+								<UsersIcon className="size-6" />
+							</ItemMedia>
+							<ItemContent>
+								<ItemTitle>User</ItemTitle>
+								<ItemDescription>Manage users and invites</ItemDescription>
+							</ItemContent>
+						</Link>
+					</Item>
+				) : null}
+				<Item variant="outline" asChild>
+					<Link to="/settings/accounts">
+						<ItemMedia variant="image">
+							<SettingsIcon className="size-6" />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle>Account</ItemTitle>
+							<ItemDescription>Manage account information</ItemDescription>
+						</ItemContent>
+					</Link>
+				</Item>
+			</div>
+		</div>
+	)
 }

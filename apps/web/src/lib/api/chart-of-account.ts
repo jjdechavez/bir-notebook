@@ -1,13 +1,22 @@
-import type { ChartOfAccountList, ChartOfAccountListQueryParam } from '@/types/transaction'
-import { requestApi } from '../request'
-import { cleanEmptyParams } from '../api'
+import type {
+	ChartOfAccountList,
+	ChartOfAccountListQueryParam,
+} from "@/types/transaction"
+import { requestApi } from "../request"
+import { cleanEmptyParams } from "../api"
 
-const CHART_OF_ACCOUNTS_ENDPOINT = '/chart-of-accounts'
+const CHART_OF_ACCOUNTS_ENDPOINT = "/chart-of-accounts"
 
 export const chartOfAccount = {
-  list: async (query: ChartOfAccountListQueryParam = {}) => {
-    const qs = cleanEmptyParams(query)
-    return requestApi<ChartOfAccountList>(CHART_OF_ACCOUNTS_ENDPOINT, { method: 'GET', query: qs })
-  },
-  accounts: async () => requestApi<ChartOfAccountList>(`${CHART_OF_ACCOUNTS_ENDPOINT}/accounts`, { method: 'GET' }),
+	list: async (query: ChartOfAccountListQueryParam = {}) => {
+		const qs = cleanEmptyParams(query)
+		return requestApi<ChartOfAccountList>(CHART_OF_ACCOUNTS_ENDPOINT, {
+			method: "GET",
+			query: qs,
+		})
+	},
+	accounts: async () =>
+		requestApi<ChartOfAccountList>(`${CHART_OF_ACCOUNTS_ENDPOINT}/accounts`, {
+			method: "GET",
+		}),
 }
