@@ -9,9 +9,12 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
-			"apps/web/src",
-			"!apps/web/src/routeTree.gen.ts",
-			"apps/server"
+			"!**/dist/**",
+			"!**/build/**",
+			"!**/.turbo/**",
+			"!**/coverage/**",
+			"!**/*.gen.ts",
+			"!**/routeTree.gen.ts"
 		]
 	},
 	"formatter": {
@@ -26,7 +29,11 @@
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double"
+			"quoteStyle": "double",
+			"jsxQuoteStyle": "double",
+			"semicolons": "asNeeded",
+			"trailingCommas": "all",
+			"arrowParentheses": "always"
 		}
 	},
 	"assist": {
