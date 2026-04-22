@@ -1,22 +1,22 @@
+import { formatAmountToCurrency } from "@bir-notebook/shared/helpers/currency"
+import {
+	calculateVatAmount,
+	type TransactionVatType,
+	transactionVatTypeOptions,
+} from "@bir-notebook/shared/models/transaction"
 import {
 	createFormHook,
 	createFormHookContexts,
 	formOptions,
 	useStore,
 } from "@tanstack/react-form"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { useEffect } from "react"
 import { z } from "zod"
-import { SelectTransactionCategory } from "./select-transaction-category"
-import { SelectChartOfAccount } from "./select-chart-of-account"
-import { formatAmountToCurrency } from "@bir-notebook/shared/helpers/currency"
-import {
-	calculateVatAmount,
-	transactionVatTypeOptions,
-	type TransactionVatType,
-} from "@bir-notebook/shared/models/transaction"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { useTransactionCategory } from "@/hooks/api/transaction"
+import { SelectChartOfAccount } from "./select-chart-of-account"
+import { SelectTransactionCategory } from "./select-transaction-category"
 
 export const transactionSchema = z
 	.object({
@@ -79,11 +79,11 @@ export const TransactionForm = withForm({
 			if (defaultAccounts && categoryId && categoryId > 0) {
 				form.setFieldValue(
 					"debitAccountId",
-					defaultAccounts.defaultDebitAccountId!,
+					defaultAccounts?.defaultDebitAccountId as number,
 				)
 				form.setFieldValue(
 					"creditAccountId",
-					defaultAccounts.defaultCreditAccountId!,
+					defaultAccounts?.defaultCreditAccountId as number,
 				)
 			}
 		}, [defaultAccounts, form, categoryId])
@@ -105,9 +105,8 @@ export const TransactionForm = withForm({
 					e.preventDefault()
 				}}
 			>
-				<form.Field
-					name="categoryId"
-					children={(field) => (
+				<form.Field name="categoryId">
+					{(field) => (
 						<Field data-invalid={field.state.meta.errors.length > 0}>
 							<FieldLabel htmlFor={field.name}>Transaction Category</FieldLabel>
 							<SelectTransactionCategory
@@ -121,12 +120,11 @@ export const TransactionForm = withForm({
 							)}
 						</Field>
 					)}
-				/>
+				</form.Field>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<form.Field
-						name="amount"
-						children={(field) => (
+					<form.Field name="amount">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Amount</FieldLabel>
 								<Input
@@ -143,11 +141,10 @@ export const TransactionForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="transactionDate"
-						children={(field) => (
+					<form.Field name="transactionDate">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Date</FieldLabel>
 								<Input
@@ -163,12 +160,11 @@ export const TransactionForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 				</div>
 
-				<form.Field
-					name="description"
-					children={(field) => (
+				<form.Field name="description">
+					{(field) => (
 						<Field data-invalid={field.state.meta.errors.length > 0}>
 							<FieldLabel htmlFor={field.name}>Description</FieldLabel>
 							<Input
@@ -184,12 +180,11 @@ export const TransactionForm = withForm({
 							)}
 						</Field>
 					)}
-				/>
+				</form.Field>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<form.Field
-						name="debitAccountId"
-						children={(field) => (
+					<form.Field name="debitAccountId">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Debit Account</FieldLabel>
 								<SelectChartOfAccount
@@ -204,11 +199,10 @@ export const TransactionForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="creditAccountId"
-						children={(field) => (
+					<form.Field name="creditAccountId">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Credit Account</FieldLabel>
 								<SelectChartOfAccount
@@ -221,13 +215,12 @@ export const TransactionForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<form.Field
-						name="referenceNumber"
-						children={(field) => (
+					<form.Field name="referenceNumber">
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor={field.name}>
 									Reference Number (Optional)
@@ -242,11 +235,10 @@ export const TransactionForm = withForm({
 								/>
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="vatType"
-						children={(field) => (
+					<form.Field name="vatType">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>VAT Type</FieldLabel>
 								<select
@@ -269,7 +261,7 @@ export const TransactionForm = withForm({
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 				</div>
 
 				{vatAmount > 0 && (

@@ -41,9 +41,8 @@ export const UserForm = withForm({
 					e.preventDefault()
 				}}
 			>
-				<form.Field
-					name="firstName"
-					children={(field) => (
+				<form.Field name="firstName">
+					{(field) => (
 						<Field data-invalid={field.state.meta.errors.length > 0}>
 							<FieldLabel htmlFor={field.name}>First Name</FieldLabel>
 							<Input
@@ -60,11 +59,10 @@ export const UserForm = withForm({
 							)}
 						</Field>
 					)}
-				/>
+				</form.Field>
 
-				<form.Field
-					name="lastName"
-					children={(field) => (
+				<form.Field name="lastName">
+					{(field) => (
 						<Field data-invalid={field.state.meta.errors.length > 0}>
 							<FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
 							<Input
@@ -81,11 +79,10 @@ export const UserForm = withForm({
 							)}
 						</Field>
 					)}
-				/>
+				</form.Field>
 
-				<form.Field
-					name="role"
-					children={(field) => (
+				<form.Field name="role">
+					{(field) => (
 						<Field data-invalid={field.state.meta.errors.length > 0}>
 							<FieldLabel htmlFor={field.name}>Role</FieldLabel>
 							<SimpleSelectRole
@@ -98,7 +95,7 @@ export const UserForm = withForm({
 							)}
 						</Field>
 					)}
-				/>
+				</form.Field>
 			</form>
 		)
 	},
