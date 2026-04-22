@@ -298,7 +298,7 @@ export const useTransferTransactionToGeneralLedger = (
 			api.transaction.transfer.toGeneralLedger(input),
 		...buildOptions(
 			queryClient,
-			[transactionGeneralLedgerKeys.details()],
+			[transactionGeneralLedgerKeys.details(), transactionKeys.all],
 			options,
 		),
 	})

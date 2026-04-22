@@ -417,8 +417,8 @@ function ConfirmationStep({
 					<AlertCircle className="h-4 w-4" />
 					<AlertDescription>
 						<ul className="list-disc list-inside">
-							{validation.errors.map((error, index) => (
-								<li key={index}>{error}</li>
+							{validation.errors.map((error) => (
+								<li key={error}>{error}</li>
 							))}
 						</ul>
 					</AlertDescription>
@@ -430,8 +430,8 @@ function ConfirmationStep({
 					<AlertCircle className="h-4 w-4" />
 					<AlertDescription>
 						<ul className="list-disc list-inside">
-							{validation.warnings.map((warning, index) => (
-								<li key={index}>{warning}</li>
+							{validation.warnings.map((warning) => (
+								<li key={warning}>{warning}</li>
 							))}
 						</ul>
 					</AlertDescription>
@@ -512,7 +512,6 @@ export function GeneralLedgerTransferDialog({
 	>(initialSelectedTransactions)
 	const [targetMonth, setTargetMonth] = useState("")
 	const [glDescription, setGlDescription] = useState("")
-	const queryClient = useQueryClient()
 
 	const { data: transactionsData, status: transactionsStatus } = useQuery(
 		transactionsOptions({
@@ -525,12 +524,6 @@ export function GeneralLedgerTransferDialog({
 
 	const transferMutation = useTransferTransactionToGeneralLedger({
 		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: transactionKeys.all,
-			})
-			queryClient.invalidateQueries({
-				queryKey: transactionGeneralLedgerKeys.details(),
-			})
 			onSuccess?.()
 			onClose()
 		},

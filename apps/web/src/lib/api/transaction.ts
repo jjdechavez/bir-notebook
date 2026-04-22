@@ -104,7 +104,7 @@ export const transaction = {
 		},
 		toGeneralLedger: async (input: TransferToGeneralLedgerInput) =>
 			requestApi<TransferTransactionToGeneralLedgerResponse>(
-				`${TRANSACTION_ENDPOINT}`,
+				`${TRANSACTION_ENDPOINT}/transfer-to-general-ledger`,
 				{ method: "POST", body: input },
 			),
 	},
