@@ -1,94 +1,99 @@
-# BIR-Notebook
+# BIR Notebook
 
-Goals:
-1. BIR Priority: Books of Accounts (Cash Receipts, Cash Disbursements, Journal, Ledger) are mandatory
-2. Human Error Prevention: Your main concern is spelling errors and wrong amounts in transaction recording
-3. Freelancer Sharing: Most freelancers need simple transaction recording, not complex inventory
+BIR Notebook is a bookkeeping web app built for freelancers and small service-based businesses in the Philippines.  
+Its main purpose is to simplify daily transaction recording while staying aligned with BIR Books of Accounts requirements.
 
-## Phase 1 (Core Feature):
-- ✅ Accounts table with BIR-compliant Chart of Accounts
-- ✅ TransactionCategories table with default account assignments
-- ✅ Transactions table with immutable records for audit trail
-- ✅ Responsive transaction form with real-time preview
-- ✅ Smart categorization and double-entry bookkeeping
+## Project Purpose
 
-## Phase 2 (Books Visualization):
-### Books of Accounts Display (`/books`)
-- **Tabbed Interface**: Each BIR book in separate tab
-  - Cash Receipts Journal - All income transactions
-  - Cash Disbursements Journal - All expense transactions  
-  - General Journal - Non-cash adjustments and corrections
-  - General Ledger - Account-by-account summary
+BIR Notebook is designed to achieve three core goals:
 
-### Features:
-- **Date Range Filtering**: From/To date selectors for period selection
-- **Search & Filter**: By description, reference number, or amount
-- **Real-time Totals**: Auto-calculated debits/credits per book
-- **Export Options**: 
-  - PDF (BIR submission format)
-  - Excel (CSV backup format)
-- **Mobile Responsive**: Optimized for all screen sizes
+1. **BIR Compliance First**  
+   Prioritize required Books of Accounts:
+   - Cash Receipts Journal
+   - Cash Disbursements Journal
+   - General Journal
+   - General Ledger
+2. **Human Error Prevention**  
+   Reduce common mistakes such as spelling issues, wrong amounts, and incorrect account mapping.
+3. **Freelancer-Friendly Workflow**  
+   Keep bookkeeping simple for freelancers who need fast transaction recording, not complex inventory systems.
 
-### BIR Compliance Display:
-```typescript
-// Book Type Assignment
+## What the Project Solves
+
+Many freelancers struggle with manual bookkeeping and compliance formatting.  
+BIR Notebook helps by giving users a structured, guided way to encode transactions and automatically organize them into the correct BIR books.
+
+## Current Features
+
+### Core Accounting (Phase 1)
+- ✅ **BIR-compliant Chart of Accounts** through the `Accounts` table
+- ✅ **Transaction categories** with default debit/credit account assignments
+- ✅ **Immutable transaction records** for audit trail integrity
+- ✅ **Responsive transaction form** with real-time entry preview
+- ✅ **Smart categorization + double-entry bookkeeping** support
+
+### Books Visualization (Phase 2)
+
+Available in `/books` with separate tabs per book:
+- **Cash Receipts Journal** — income transactions
+- **Cash Disbursements Journal** — expense transactions
+- **General Journal** — non-cash adjustments/corrections
+- **General Ledger** — account-by-account summary
+
+#### Books Features
+
+- **Date range filtering** (From/To)
+- **Search and filtering** by description, reference, or amount
+- **Real-time totals** for debit/credit balances per book
+- **Export options**
+  - PDF (BIR-ready format) (TODO)
+  - Excel/CSV (backup and analysis) (TODO)
+- **Mobile-responsive** layout for desktop and mobile use
+- **Print-ready formatting** for physical records
+
+### Auto Book Assignment
+
+```ts
 const bookTypes = [
-  'cash_receipt',     // Income transactions
-  'cash_disbursement', // Expense transactions
-  'general_journal',   // Adjustments/Corrections
-  'ledger'            // Account summaries
+  'cash_receipt_journal',       // Income transactions
+  'cash_disbursement_journal',  // Expense transactions
+  'general_journal',            // Adjustments/Corrections
+  'general_ledger'              // Account summaries
 ]
 
-// Example Transaction Flow
-Sales Income → Auto-assigned to Cash Receipts Journal
-Office Rent → Auto-assigned to Cash Disbursements Journal
-Depreciation → Auto-assigned to General Journal
-```
+Example flow:
+- Sales Income → Cash Receipts Journal
+- Office Rent → Cash Disbursements Journal
+- Depreciation → General Journal
+Future Enhancements (Phase 3)
+- Optional Inventory module (only if users need it)
+- Advanced reports:
+  - Income Statement
+  - Balance Sheet
 
-### Export Formats:
-- **PDF**: BIR-ready format with totals, headers, and compliance notes
-- **Excel**: CSV format for data backup and analysis
-- **Print-ready**: Proper margins and BIR book layout
+Technical Highlights
+- Responsive UI for desktop and mobile
+- Validation + preview to prevent encoding mistakes
+- Immutable audit trail with user tracking
+- Real-time updates using React Query cache patterns
 
-## Phase 3 (Future Enhancement):
-- Add Inventory tables if users request it
-- Can be separate module
-- Advanced reporting (Income Statement, Balance Sheet)
+DevOps & Deployment
+- Container registry: GitHub Container Registry (GHCR)
+- CI/CD: GitHub Actions
+- Versioning: tag-based releases (v*)
+- Deployment target: Hetzner via Docker Compose
+- Security: non-root containers, minimized image surface
+- Observability: service health checks
 
-## Technical Implementation:
-- **Responsive Design**: Desktop (side-by-side) vs Mobile (drawer/tabs)
-- **Error Prevention**: Form validation, preview before submission
-- **Audit Trail**: Immutable transactions with user tracking
-- **Real-time Updates**: React Query for cache management
+Deployment Flow
+1. Push to main → build and push images
+2. Create tag v* → trigger release workflow
+3. Deploy tagged images to production
+4. Track version through environment configuration
 
-## DevOps Architecture:
-- **Container Registry**: GitHub Container Registry (GHCR) for image management
-- **CI/CD Pipeline**: GitHub Actions with automated build and deployment
-- **Tag-based Releases**: Semantic versioning with `v*` tags
-- **Multi-environment Support**: 
-  - Production: Tagged releases (v1.0.0, v1.0.1, etc.)
-  - Staging: `latest` tag (TODO - planned feature)
-- **Zero-downtime Deployment**: Rolling updates via Docker Compose
-- **Optimized Docker Builds**: Multi-stage builds with production-only dependencies
-- **Container Security**: Non-root users, minimal attack surfaces
-- **Health Monitoring**: Built-in health checks for all services
-
-### Deployment Workflow:
-1. **Push to `main` branch** → Build and push Docker images to GHCR
-2. **Create tag** `v*` → Trigger release workflow
-3. **Automatic deployment** to Hetzner with tagged images
-4. **Version tracking** via `.env` variables and service labels
-
-### Docker Optimization:
-- **Multi-stage builds**: 4-stage optimization for size reduction
-- **pnpm workspace support**: Efficient monorepo dependency management
-- **Production-only dependencies**: ~70% image size reduction
-- **Layer caching**: Faster rebuilds via GitHub Actions cache
-- **Security best practices**: Non-root users, minimal base images
-
-### Infrastructure Components:
-- **PostgreSQL**: Persistent data storage with automated backups
-- **Redis**: Session caching and performance optimization
-- **Nginx**: Static asset serving with gzip compression
-- **AdonisJS**: RESTful API with authentication and validation
-- **React SPA**: Modern frontend with TanStack Router
+Tech Stack
+- Backend: H3
+- Frontend: React SPA + TanStack Router
+- Database: PostgreSQL
+- Web server: Nginx
+- Containerization: Docker / Docker Compose
