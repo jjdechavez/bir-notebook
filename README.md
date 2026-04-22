@@ -60,38 +60,26 @@ const bookTypes = [
   'general_journal',            // Adjustments/Corrections
   'general_ledger'              // Account summaries
 ]
+```
 
-Example flow:
+## Example flow:
 - Sales Income → Cash Receipts Journal
 - Office Rent → Cash Disbursements Journal
 - Depreciation → General Journal
-Future Enhancements (Phase 3)
+
+### Future Enhancements (Phase 3)
 - Optional Inventory module (only if users need it)
 - Advanced reports:
   - Income Statement
   - Balance Sheet
 
-Technical Highlights
-- Responsive UI for desktop and mobile
-- Validation + preview to prevent encoding mistakes
-- Immutable audit trail with user tracking
-- Real-time updates using React Query cache patterns
-
-DevOps & Deployment
-- Container registry: GitHub Container Registry (GHCR)
-- CI/CD: GitHub Actions
-- Versioning: tag-based releases (v*)
-- Deployment target: Hetzner via Docker Compose
-- Security: non-root containers, minimized image surface
-- Observability: service health checks
-
-Deployment Flow
+## Deployment Flow
 1. Push to main → build and push images
 2. Create tag v* → trigger release workflow
 3. Deploy tagged images to production
 4. Track version through environment configuration
 
-Tech Stack
+## Tech Stack
 - Backend: H3
 - Frontend: React SPA + TanStack Router
 - Database: PostgreSQL
