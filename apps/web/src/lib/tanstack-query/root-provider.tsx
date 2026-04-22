@@ -1,11 +1,11 @@
 import {
 	defaultShouldDehydrateQuery,
+	isServer,
 	QueryClient,
 	QueryClientProvider,
-	isServer,
 	type QueryKey,
-	type UseQueryOptions,
 	type UseMutationOptions,
+	type UseQueryOptions,
 } from "@tanstack/react-query"
 
 export function getContext() {

@@ -1,4 +1,13 @@
-import type { TransactionListQueryParam } from "@bir-notebook/shared/models/transaction"
+import type {
+	GeneralLedgerViewResult,
+	TransactionTransferHistoryList,
+} from "@bir-notebook/shared/models/general-ledger"
+import type {
+	GeneralLedgerViewQueryParam,
+	TransactionListQueryParam,
+	TransferToGeneralLedgerInput,
+	TransferTransactionToGeneralLedgerResponse,
+} from "@bir-notebook/shared/models/transaction"
 import {
 	queryOptions,
 	type UseMutationOptions,
@@ -17,11 +26,13 @@ import type {
 	BulkRecordTransactionInput,
 	BulkRecordTransactionResponse,
 	CreatedTransaction,
+	EligibleTransferTransactionResult,
 	TransactionCategory,
 	TransactionCategoryList,
 	TransactionCategoryListQueryParam,
 	TransactionList,
 	TransactionSummary,
+	TransferHistoryQueryParam,
 	UpdatedTransaction,
 } from "@/types/transaction"
 
@@ -216,5 +227,118 @@ export const useUndoRecordTransaction = (
 	return useMutation({
 		mutationFn: (id: number) => api.transaction.record.undo.withId(id),
 		...buildOptions(queryClient, [transactionKeys.all], options),
+	})
+}
+
+const TRANSACTION_TRANSFER_HISTORY_QUERY_KEY =
+	`transaction-transfer-history` as const
+
+export const transactionTransferHistoryKeys = queryKeysFactory(
+	TRANSACTION_TRANSFER_HISTORY_QUERY_KEY,
+)
+
+type TransactionTransferHistoryQueryKeys = typeof transactionTransferHistoryKeys
+
+export const transactionTransferHistoryOptions = (
+	query?: TransferHistoryQueryParam,
+) =>
+	queryOptions({
+		queryKey: transactionTransferHistoryKeys.list(query),
+		queryFn: () => api.transaction.transfer.history(query),
+	})
+
+export const useTransactionTransferHistory = (
+	query?: TransferHistoryQueryParam,
+	options?: UseQueryOptionsWrapper<
+		TransactionTransferHistoryList,
+		Error,
+		ReturnType<TransactionTransferHistoryQueryKeys["list"]>
+	>,
+) => {
+	return useQuery({
+		...transactionTransferHistoryOptions(query),
+		...options,
+	})
+}
+
+export const useValidateTransferTransaction = (
+	options?: UseMutationOptions<
+		EligibleTransferTransactionResult,
+		Error,
+		BulkRecordTransactionInput
+	>,
+) => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: BulkRecordTransactionInput) =>
+			api.transaction.transfer.validate(input),
+		...buildOptions(queryClient, [], options),
+	})
+}
+
+const TRANSACTION_GENERAL_LEDGER_QUERY_KEY =
+	`transaction-general-ledger` as const
+
+export const transactionGeneralLedgerKeys = queryKeysFactory(
+	TRANSACTION_GENERAL_LEDGER_QUERY_KEY,
+)
+
+type TransactionGeneralLedgerQueryKeys = typeof transactionGeneralLedgerKeys
+
+export const useTransferTransactionToGeneralLedger = (
+	options?: UseMutationOptions<
+		TransferTransactionToGeneralLedgerResponse,
+		Error,
+		TransferToGeneralLedgerInput
+	>,
+) => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: TransferToGeneralLedgerInput) =>
+			api.transaction.transfer.toGeneralLedger(input),
+		...buildOptions(
+			queryClient,
+			[transactionGeneralLedgerKeys.details()],
+			options,
+		),
+	})
+}
+
+export const generalLedgerViewOptions = (query: GeneralLedgerViewQueryParam) =>
+	queryOptions({
+		queryKey: transactionGeneralLedgerKeys.details(),
+		queryFn: () => api.transaction.generalLedger.view(query),
+	})
+
+export const useGeneralLedgerView = (
+	query: GeneralLedgerViewQueryParam,
+	options?: UseQueryOptionsWrapper<
+		GeneralLedgerViewResult,
+		Error,
+		ReturnType<TransactionGeneralLedgerQueryKeys["details"]>
+	>,
+) => {
+	return useQuery({
+		...generalLedgerViewOptions(query),
+		...options,
+	})
+}
+
+export const useUpdateGeneralLedger = (
+	options?: UseMutationOptions<
+		{ message: string },
+		Error,
+		{ id: number; description: string }
+	>,
+) => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ id, ...input }: { description: string; id: number }) =>
+			api.transaction.generalLedger.update(id, input),
+		...buildOptions(
+			queryClient,
+			[transactionGeneralLedgerKeys.all, transactionTransferHistoryKeys.all],
+			options,
+		),
 	})
 }

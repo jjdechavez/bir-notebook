@@ -1,12 +1,23 @@
+import type {
+	GeneralLedgerViewQueryParam,
+	GeneralLedgerViewResult,
+	TransactionTransferHistoryList,
+} from "@bir-notebook/shared/models/general-ledger"
+import type {
+	TransferToGeneralLedgerInput,
+	TransferTransactionToGeneralLedgerResponse,
+} from "@bir-notebook/shared/models/transaction"
 import type { TransactionFormData } from "@/components/transaction-form"
 import type {
 	BulkRecordTransactionInput,
+	BulkTransactionInput,
 	CreatedTransaction,
 	TransactionCategory,
 	TransactionCategoryList,
 	TransactionCategoryListQueryParam,
 	TransactionList,
 	TransactionSummary,
+	TransferHistoryQueryParam,
 	UpdatedTransaction,
 } from "@/types/transaction"
 import { cleanEmptyParams } from "../api"
@@ -73,5 +84,43 @@ export const transaction = {
 					body: input,
 				}),
 		},
+	},
+
+	transfer: {
+		validate: async (input: BulkTransactionInput) =>
+			requestApi(`${TRANSACTION_ENDPOINT}/transfer/validate`, {
+				method: "POST",
+				body: input,
+			}),
+		history: async (query: TransferHistoryQueryParam = {}) => {
+			const qs = cleanEmptyParams(query)
+			return requestApi<TransactionTransferHistoryList>(
+				`${TRANSACTION_ENDPOINT}/transfer-history`,
+				{
+					method: "GET",
+					query: qs,
+				},
+			)
+		},
+		toGeneralLedger: async (input: TransferToGeneralLedgerInput) =>
+			requestApi<TransferTransactionToGeneralLedgerResponse>(
+				`${TRANSACTION_ENDPOINT}`,
+				{ method: "POST", body: input },
+			),
+	},
+
+	generalLedger: {
+		view: async (query: GeneralLedgerViewQueryParam) => {
+			const qs = cleanEmptyParams(query)
+			return requestApi<GeneralLedgerViewResult>(
+				`${TRANSACTION_ENDPOINT}/general-ledger/view`,
+				{ method: "GET", query: qs },
+			)
+		},
+		update: async (id: number, input: { description: string }) =>
+			requestApi(`${TRANSACTION_ENDPOINT}/general-ledger/${id}`, {
+				method: "PUT",
+				body: input,
+			}),
 	},
 }

@@ -1,5 +1,5 @@
-import { useForm } from "@tanstack/react-form"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import type { LedgerTransaction } from "@bir-notebook/shared/models/general-ledger"
+import { useForm, useStore } from "@tanstack/react-form"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -13,8 +13,7 @@ import {
 import { FieldError } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { tuyau } from "@/main"
-import type { LedgerTransaction } from "@/types/general-ledger"
+import { useUpdateGeneralLedger } from "@/hooks/api/transaction"
 
 const glEditSchema = z.object({
 	description: z
@@ -38,27 +37,16 @@ export function EditGlTransaction({
 	onSuccess,
 	glTransaction,
 }: EditGlTransactionProps) {
-	const queryClient = useQueryClient()
-
-	const updateGlMutation = useMutation(
-		tuyau.api.transactions["general-ledger"].$put.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey:
-						tuyau.api.transactions["general-ledger"].view.$get.queryKey(),
-				})
-				queryClient.invalidateQueries({
-					queryKey: tuyau.api.transactions["transfer-history"].$get.queryKey(),
-				})
-				toast.success("GL transaction description updated successfully")
-				onSuccess?.()
-				onClose()
-			},
-			onError: () => {
-				toast.error("Failed to update GL transaction description")
-			},
-		}),
-	)
+	const updateGlMutation = useUpdateGeneralLedger({
+		onSuccess: () => {
+			toast.success("GL transaction description updated successfully")
+			onSuccess?.()
+			onClose()
+		},
+		onError: () => {
+			toast.error("Failed to update GL transaction description")
+		},
+	})
 
 	const form = useForm({
 		defaultValues: {
@@ -66,15 +54,16 @@ export function EditGlTransaction({
 		} as GlEditFormData,
 		onSubmit: async ({ value }) => {
 			updateGlMutation.mutate({
-				params: { id: glTransaction.id },
-				payload: { description: value.description },
+				id: glTransaction.id,
+				description: value.description,
 			})
 		},
 	})
 
-	const descriptionValue = form.state.values.description
-	const descriptionErrors =
-		form.state.fields.description?.state.meta.errors ?? []
+	const descriptionValue = useStore(
+		form.store,
+		(state) => state.values.description,
+	)
 
 	const handleClose = () => {
 		if (!form.state.isSubmitting) {
@@ -108,8 +97,8 @@ export function EditGlTransaction({
 								<p className="text-xs text-muted-foreground text-right">
 									{descriptionValue?.length || 0}/255 characters
 								</p>
-								{descriptionErrors.length > 0 && (
-									<FieldError errors={descriptionErrors} />
+								{!field.state.meta.isValid && (
+									<FieldError errors={field.state.meta.errors} />
 								)}
 							</div>
 						)}
@@ -128,27 +117,33 @@ export function EditGlTransaction({
 				</div>
 
 				<div className="flex justify-end space-x-2">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={handleClose}
-						disabled={form.state.isSubmitting}
-					>
-						Cancel
-					</Button>
-					<Button
-						onClick={() => form.handleSubmit()}
-						disabled={form.state.isSubmitting}
-					>
-						{form.state.isSubmitting ? (
-							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Updating...
-							</>
-						) : (
-							"Update Description"
+					<form.Subscribe selector={(state) => [state.isSubmitting]}>
+						{([isSubmitting]) => (
+							<Button type="button" variant="outline" disabled={isSubmitting}>
+								Cancel
+							</Button>
 						)}
-					</Button>
+					</form.Subscribe>
+
+					<form.Subscribe
+						selector={(state) => [state.canSubmit, state.isSubmitting]}
+					>
+						{([canSubmit, isSubmitting]) => (
+							<Button
+								onClick={() => form.handleSubmit()}
+								disabled={!canSubmit || isSubmitting}
+							>
+								{isSubmitting ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Updating...
+									</>
+								) : (
+									"Update Description"
+								)}
+							</Button>
+						)}
+					</form.Subscribe>
 				</div>
 			</DialogContent>
 		</Dialog>

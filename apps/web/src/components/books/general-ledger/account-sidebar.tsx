@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useCurrentChartOfAccounts } from "@/hooks/api/chart-of-account"
-import type { TransactionAccount } from "@/types/transaction"
+import type { ChartOfAccount } from "@/types/transaction"
 
 interface AccountSidebarProps {
 	selectedAccountId?: number | null
@@ -15,7 +15,7 @@ interface AccountSidebarProps {
 
 interface AccountGroup {
 	title: string
-	accounts: TransactionAccount[]
+	accounts: ChartOfAccount[]
 	type: string
 }
 

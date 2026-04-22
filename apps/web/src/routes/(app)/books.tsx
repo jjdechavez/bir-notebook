@@ -4,6 +4,7 @@ import {
 } from "@bir-notebook/shared/models/transaction"
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import type { PaginationState } from "@tanstack/react-table"
 import { Calendar, Download, Filter, Search } from "lucide-react"
 import { useState } from "react"
 import { CashDisbursementsJournal } from "@/components/books/cash-disbursements-journal"
@@ -41,16 +42,18 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+	transactionKeys,
 	transactionsOptions,
 	useRecordTransaction,
 	useUndoRecordTransaction,
 } from "@/hooks/api/transaction"
 import { useFilters } from "@/hooks/use-filters"
-import { tuyau } from "@/main"
-import type { TransactionSearch } from "@/types/transaction"
+import type { TransactionListQueryParam } from "@/types/transaction"
 
 export const Route = createFileRoute("/(app)/books")({
-	validateSearch: () => ({}) as Partial<TransactionSearch & { count?: number }>,
+	validateSearch: () =>
+		({}) as Partial<PaginationState> &
+			TransactionListQueryParam & { count?: number },
 	loaderDeps: ({ search }) => ({
 		page: (search?.pageIndex || DEFAULT_PAGE_INDEX) + 1,
 		size: search?.pageSize || DEFAULT_PAGE_SIZE,
@@ -385,7 +388,7 @@ function BooksPage() {
 					onClose={() => setShowTransferDialog(false)}
 					onSuccess={() => {
 						queryClient.invalidateQueries({
-							queryKey: tuyau.api.transactions.$get.queryKey(),
+							queryKey: transactionKeys.all,
 						})
 					}}
 				/>

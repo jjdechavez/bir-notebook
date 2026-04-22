@@ -1,78 +1,20 @@
-import { z } from "zod"
+import z from "zod"
 
-export const transactionCategoryBookTypes = {
-	cashReceiptJournal: "cash_receipt_journal",
-	cashDisbursementJournal: "cash_disbursement_journal",
-	generalJournal: "general_journal",
-	generalLedger: "general_ledger",
-} as const
-
-export type TransactionCategoryBookType =
-	(typeof transactionCategoryBookTypes)[keyof typeof transactionCategoryBookTypes]
-
-export const transactionCategoryBookTypeOptions = [
-	{
-		value: transactionCategoryBookTypes.cashReceiptJournal,
-		label: "Cash Receipts Journal",
-	},
-	{
-		value: transactionCategoryBookTypes.cashDisbursementJournal,
-		label: "Cash Disbursement Journal",
-	},
-	{
-		value: transactionCategoryBookTypes.generalJournal,
-		label: "General Journal",
-	},
-	{
-		value: transactionCategoryBookTypes.generalLedger,
-		label: "General Ledger",
-	},
-] as const
-
-export const transactionVatTypes = {
-	vatExempt: "vat_exempt",
-	vatZero: "vat_zero",
-	vatStandard: "vat_standard",
-} as const
-
-export type TransactionVatType =
-	(typeof transactionVatTypes)[keyof typeof transactionVatTypes]
-
-export const transactionVatTypeOptions = [
-	{ value: transactionVatTypes.vatExempt, label: "VAT Exempt" },
-	{ value: transactionVatTypes.vatZero, label: "VAT Zero" },
-	{ value: transactionVatTypes.vatStandard, label: "VAT Standard" },
-] as const
-
-export function calculateVatAmount(
-	amount: number,
-	vatType: TransactionVatType,
-) {
-	let vat = 0
-	if (vatType === "vat_standard") {
-		vat = amount * 0.12
-	}
-
-	return vat
-}
-
-export const transactionListQueryParamSchema = z.object({
-	page: z.coerce.number().int().positive().optional(),
-	limit: z.coerce.number().int().positive().optional(),
-	bookType: z
-		.enum(Object.values(transactionCategoryBookTypes) as [string, ...string[]])
-		.optional(),
-	categoryId: z.coerce.number().int().optional(),
-	dateFrom: z.string().optional(),
-	dateTo: z.string().optional(),
-	search: z.string().optional(),
-	record: z.string().optional(),
-	exclude: z.string().optional(),
+export const bulkTransferToGeneralLedgerSchema = z.object({
+	transfers: z.array(
+		z.object({
+			transactionIds: z.array(z.number().int()),
+			targetMonth: z.string().regex(/^\d{4}-\d{2}$/),
+			glDescription: z.string().min(1).max(255),
+		}),
+	),
 })
 
-export type TransactionListQueryParam = z.infer<
-	typeof transactionListQueryParamSchema
->
+export const transferHistorySchema = z.object({
+	transferGroupId: z.string().optional(),
+	page: z.coerce.number().int().positive().optional(),
+	limit: z.coerce.number().int().positive().optional(),
+})
 
 export const transferToGeneralLedgerSchema = z.object({
 	transactionIds: z.array(z.number().int()),
@@ -166,7 +108,7 @@ export type GeneralLedgerView = {
 	}
 }
 
-export type GeneralLedgeViewResult =
+export type GeneralLedgerViewResult =
 	| {
 			status: "success"
 			data: GeneralLedgerView
@@ -175,3 +117,29 @@ export type GeneralLedgeViewResult =
 			status: "error"
 			message: string
 	  }
+
+export type TransferHistoryItem = {
+	id: number
+	transferGroupId: string
+	transferredToGlAt: string
+	transactionDate: string
+	description: string
+	amount: number
+	debitAccount: {
+		id: number
+		code: string
+		name: string
+	}
+	creditAccount: {
+		id: number
+		code: string
+		name: string
+	}
+	category: {
+		name: string
+	}
+}
+
+export type TransactionTransferHistoryList = {
+	data: Array<TransferHistoryItem>
+}

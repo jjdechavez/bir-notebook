@@ -1,12 +1,12 @@
-import { useState } from "react"
 import { Menu, X } from "lucide-react"
-import { AccountSidebar } from "./account-sidebar"
-import { EnhancedGeneralLedgerAccountView } from "./enhanced-general-ledger-account-view"
-import type { TransactionSearch } from "@/types/transaction"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
+import type { TransactionListQueryParam } from "@/types/transaction"
+import { AccountSidebar } from "./account-sidebar"
+import { EnhancedGeneralLedgerAccountView } from "./enhanced-general-ledger-account-view"
 
 interface EnhancedGeneralLedgerWithSidebarProps {
 	dateFrom?: string
@@ -179,7 +179,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 						<div className="border-l-2 border-blue-200 pl-4">
 							<EnhancedGeneralLedgerAccountView
 								accountId={selectedAccountId}
-								filters={{ dateFrom, dateTo } as TransactionSearch}
+								filters={{ dateFrom, dateTo } as TransactionListQueryParam}
 							/>
 						</div>
 					</div>

@@ -1,26 +1,31 @@
 import {
-	getQuery,
-	getRouterParams,
-	getRequestURL,
-	readBody,
-	setResponseStatus,
-	defineEventHandler,
-	getValidatedQuery,
-	createError,
-	readValidatedBody,
-} from "h3"
-import { transactionListQueryParamSchema } from "@bir-notebook/shared/models/transaction"
-
-import {
-	bulkRecordTransactionSchema,
 	bulkTransferToGeneralLedgerSchema,
-	createTransactionSchema,
 	generalLedgerViewSchema,
 	transferHistorySchema,
+} from "@bir-notebook/shared/models/general-ledger"
+import {
+	transactionListQueryParamSchema,
 	transferToGeneralLedgerSchema,
-	updateTransactionSchema,
-} from "../validators/transaction.js"
+} from "@bir-notebook/shared/models/transaction"
+import {
+	createError,
+	defineEventHandler,
+	getQuery,
+	getRequestURL,
+	getRouterParams,
+	getValidatedQuery,
+	readBody,
+	readValidatedBody,
+	setResponseStatus,
+} from "h3"
 import { requireAuth } from "../middleware/auth.js"
+import { serializeTransaction } from "../serializers/transaction.js"
+import {
+	getGeneralLedgerView,
+	listTransferHistoryItems,
+	transferToGeneralLedger,
+	validateTransferEligibility,
+} from "../services/general-ledger.js"
 import {
 	bulkRecordTransactions,
 	bulkUndoRecordTransactions,
@@ -32,17 +37,14 @@ import {
 	undoRecordTransaction,
 	updateTransaction,
 } from "../services/transactions.js"
-import {
-	getGeneralLedgerView,
-	listTransferHistoryItems,
-	transferToGeneralLedger,
-	validateTransferEligibility,
-} from "../services/general-ledger.js"
 import { parseDateInput } from "../utils/date-parse.js"
-import { serializeTransaction } from "../serializers/transaction.js"
 import { buildPaginationMeta } from "../utils/pagination.js"
 import { toValidationError } from "../utils/validation.js"
-import { ZodError } from "zod"
+import {
+	bulkRecordTransactionSchema,
+	createTransactionSchema,
+	updateTransactionSchema,
+} from "../validators/transaction.js"
 
 function parseTransactionDate(value: string) {
 	const parsed = parseDateInput(value)
@@ -118,7 +120,7 @@ export const listTransactions = defineEventHandler({
 		const result = await paginateTransactions(event.context.db, {
 			page,
 			limit,
-			userId: event.context.currentUser!.id,
+			userId: event.context.currentUser?.id as string,
 			filters,
 		})
 
@@ -178,7 +180,7 @@ export const createTransactionHandler = defineEventHandler({
 				referenceNumber?: string
 				vatType?: string
 			} = {
-				userId: event.context.currentUser!.id,
+				userId: event.context.currentUser?.id as string,
 				categoryId: payload.categoryId,
 				amount: payload.amount,
 				description: payload.description,
@@ -234,7 +236,7 @@ export const showTransaction = defineEventHandler({
 		const transaction = await findTransactionById(
 			event.context.db,
 			Number(params["id"]),
-			event.context.currentUser!.id,
+			event.context.currentUser?.id as string,
 		)
 
 		if (!transaction) {
@@ -259,7 +261,7 @@ export const showTransaction = defineEventHandler({
 export const summaryTransactions = defineEventHandler({
 	onRequest: [requireAuth()],
 	handler: async (event) => {
-		return summary(event.context.db, event.context.currentUser!.id)
+		return summary(event.context.db, event.context.currentUser?.id as string)
 	},
 })
 
@@ -319,7 +321,7 @@ export const updateTransactionHandler = defineEventHandler({
 		const result = await updateTransaction(
 			event.context.db,
 			Number(params["id"]),
-			event.context.currentUser?.id!,
+			event.context.currentUser?.id as string,
 			updatePayload,
 		)
 
@@ -380,7 +382,7 @@ export const undoRecordTransactionHandler = defineEventHandler({
 		}
 
 		return {
-			data: serializeTransaction(result.data as any),
+			data: serializeTransaction(result.data),
 			message: result.message,
 		}
 	},
@@ -443,22 +445,34 @@ export const bulkUndoRecordTransactionHandler = defineEventHandler({
 export const transferToGeneralLedgerHandler = defineEventHandler({
 	onRequest: [requireAuth()],
 	handler: async (event) => {
-		const payload = transferToGeneralLedgerSchema.parse(await readBody(event))
+		const validate = await readValidatedBody(
+			event,
+			transferToGeneralLedgerSchema.safeParse,
+		)
+
+		if (!validate.success) {
+			throw toValidationError(validate.error)
+		}
+
+		const payload = validate.data
+
 		const result = await transferToGeneralLedger(
 			event.context.db,
 			payload.transactionIds,
 			payload.targetMonth,
 			payload.glDescription,
-			event.context.currentUser!.id,
+			event.context.currentUser?.id as string,
 		)
 
 		if (result.status === "error") {
-			setResponseStatus(event, 500)
-			return {
-				status: result.status,
-				errors: result.errors,
+			throw createError({
+				statusCode: 500,
 				message: "Transfer failed",
-			}
+				data: {
+					status: result.status,
+					errors: result.errors,
+				},
+			})
 		}
 
 		return {
@@ -485,7 +499,7 @@ export const bulkTransferToGeneralLedgerHandler = defineEventHandler({
 					transfer.transactionIds,
 					transfer.targetMonth,
 					transfer.glDescription,
-					event.context.currentUser!.id,
+					event.context.currentUser?.id as string,
 				),
 			),
 		)
@@ -513,13 +527,21 @@ export const bulkTransferToGeneralLedgerHandler = defineEventHandler({
 export const validateTransferEligibilityHandler = defineEventHandler({
 	onRequest: [requireAuth()],
 	handler: async (event) => {
-		const { transactionIds } = bulkRecordTransactionSchema.parse(
-			await readBody(event),
+		const validate = await readValidatedBody(
+			event,
+			bulkRecordTransactionSchema.safeParse,
 		)
+
+		if (!validate.success) {
+			throw toValidationError(validate.error)
+		}
+
+		const { transactionIds } = validate.data
+
 		const result = await validateTransferEligibility(
 			event.context.db,
 			transactionIds,
-			event.context.currentUser!.id,
+			event.context.currentUser?.id as string,
 		)
 
 		return {
@@ -538,7 +560,7 @@ export const transferHistoryHandler = defineEventHandler({
 		const payload = transferHistorySchema.parse(getQuery(event))
 		const history = await listTransferHistoryItems(
 			event.context.db,
-			event.context.currentUser!.id,
+			event.context.currentUser?.id as string,
 			payload.transferGroupId,
 		)
 
@@ -580,8 +602,10 @@ export const generalLedgerViewHandler = defineEventHandler({
 		const dateTo = parseDateInput(payload.dateTo)
 
 		if (!dateFrom || !dateTo) {
-			setResponseStatus(event, 400)
-			return { message: "Invalid date range" }
+			throw createError({
+				statusCode: 400,
+				message: "Invalid date range",
+			})
 		}
 
 		try {
@@ -590,7 +614,7 @@ export const generalLedgerViewHandler = defineEventHandler({
 				payload.accountId,
 				dateFrom,
 				dateTo,
-				event.context.currentUser!.id,
+				event.context.currentUser?.id as string,
 			)
 
 			return { data: ledgerView }
@@ -626,14 +650,16 @@ export const updateGlDescriptionHandler = defineEventHandler({
 				.selectFrom("transactions")
 				.selectAll()
 				.where("id", "=", Number(params["id"]))
-				.where("user_id", "=", event.context.currentUser!.id)
+				.where("user_id", "=", event.context.currentUser?.id as string)
 				.where("book_type", "=", "general_ledger")
 				.where("gl_id", "is", null)
 				.executeTakeFirst()
 
 			if (!glTransaction) {
-				setResponseStatus(event, 404)
-				return { message: "GL transaction not found" }
+				throw createError({
+					statusCode: 404,
+					message: "GL transaction not found",
+				})
 			}
 
 			await event.context.db
@@ -644,14 +670,12 @@ export const updateGlDescriptionHandler = defineEventHandler({
 
 			return {
 				message: "GL transaction description updated successfully",
-				data: {
-					id: glTransaction.id,
-					description: description.trim(),
-				},
 			}
 		} catch {
-			setResponseStatus(event, 400)
-			return { message: "Failed to update GL transaction description" }
+			throw createError({
+				statusCode: 400,
+				message: "Failed to update GL transaction description",
+			})
 		}
 	},
 })

@@ -12,14 +12,17 @@ import {
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/lib/constants"
-import type { Transaction, TransactionSearch } from "@/types/transaction"
+import type {
+	Transaction,
+	TransactionListQueryParam,
+} from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
 import { createGeneralJournalColumns } from "./columns/general-journal-columns"
 import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
 interface GeneralJournalProps {
-	filters: TransactionSearch
+	filters: TransactionListQueryParam
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 

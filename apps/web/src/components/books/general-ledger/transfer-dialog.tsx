@@ -1,27 +1,20 @@
-import { useState } from "react"
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
-import { AlertCircle, ArrowLeft, ArrowRight, Check } from "lucide-react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatOption } from "@bir-notebook/shared/models/common"
 import { transactionCategoryBookTypeOptions } from "@bir-notebook/shared/models/transaction"
-import type { Transaction } from "@/types/transaction"
-import type { TransferValidationResult } from "@/types/general-ledger"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { AlertCircle, ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { tuyau } from "@/main"
-import { formatDate, generateMonthOptions } from "@/lib/general-ledger-helpers"
-import { Spinner } from "@/components/ui/spinner"
 import {
 	Field,
 	FieldContent,
@@ -30,6 +23,21 @@ import {
 	FieldLabel,
 	FieldTitle,
 } from "@/components/ui/field"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
+import {
+	transactionGeneralLedgerKeys,
+	transactionKeys,
+	transactionsOptions,
+	useTransferTransactionToGeneralLedger,
+	useValidateTransferTransaction,
+} from "@/hooks/api/transaction"
+import { formatDate, generateMonthOptions } from "@/lib/general-ledger-helpers"
+import type {
+	EligibleTransferTransactionResult,
+	Transaction,
+} from "@/types/transaction"
 
 function groupTransactionsByAccounts(transactions: Array<Transaction>) {
 	return transactions.reduce(
@@ -93,7 +101,7 @@ type ConfirmationProps = {
 	onConfirm: () => void
 	onBack: () => void
 	isLoading?: boolean
-	validation?: TransferValidationResult
+	validation?: EligibleTransferTransactionResult
 }
 
 function TransactionSelectionStep({
@@ -235,11 +243,9 @@ function MonthAssignmentStep({
 	const monthOptions = generateMonthOptions()
 
 	const { data: transactionsData } = useQuery(
-		tuyau.api.transactions.$get.queryOptions({
-			payload: {
-				record: "recorded",
-				limit: 1000,
-			},
+		transactionsOptions({
+			record: "recorded",
+			limit: 1000,
 		}),
 	)
 
@@ -509,38 +515,32 @@ export function GeneralLedgerTransferDialog({
 	const queryClient = useQueryClient()
 
 	const { data: transactionsData, status: transactionsStatus } = useQuery(
-		tuyau.api.transactions.$get.queryOptions({
-			payload: {
-				record: "recorded", // Only recorded transactions
-				limit: 1000,
-			},
+		transactionsOptions({
+			record: "recorded", // Only recorded transactions
+			limit: 1000,
 		}),
 	)
 
-	const transferValidationMutation = useMutation(
-		tuyau.api.transactions.transfer.validate.$post.mutationOptions({}),
-	)
+	const transferValidationMutation = useValidateTransferTransaction()
 
-	const transferMutation = useMutation(
-		tuyau.api.transactions["transfer-to-general-ledger"].$post.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: tuyau.api.transactions.$get.queryKey(),
-				})
-				queryClient.invalidateQueries({
-					queryKey: tuyau.api.transactions["general-ledger"].view.pathKey(),
-				})
-				onSuccess?.()
-				onClose()
-			},
-		}),
-	)
+	const transferMutation = useTransferTransactionToGeneralLedger({
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: transactionKeys.all,
+			})
+			queryClient.invalidateQueries({
+				queryKey: transactionGeneralLedgerKeys.details(),
+			})
+			onSuccess?.()
+			onClose()
+		},
+	})
 
 	const handleNext = () => {
 		if (step === "select") setStep("assign")
 		else if (step === "assign") {
 			transferValidationMutation.mutate({
-				payload: { transactionIds: selectedTransactions },
+				transactionIds: selectedTransactions,
 			})
 			setStep("confirm")
 		}
@@ -553,11 +553,9 @@ export function GeneralLedgerTransferDialog({
 
 	const handleConfirmTransfer = () => {
 		transferMutation.mutate({
-			payload: {
-				transactionIds: selectedTransactions,
-				targetMonth,
-				glDescription,
-			},
+			transactionIds: selectedTransactions,
+			targetMonth,
+			glDescription,
 		})
 	}
 

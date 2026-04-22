@@ -27,6 +27,10 @@ export type ListResponse<T> = {
 	meta: ListMeta
 }
 
+export type ApiResponse<T> = {
+	data: T
+}
+
 export const DEFAULT_LIST_META: ListMeta = {
 	total: 0,
 	perPage: 0,

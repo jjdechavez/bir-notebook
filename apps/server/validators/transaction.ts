@@ -1,8 +1,5 @@
 import { z } from "zod"
-import {
-	transactionCategoryBookTypes,
-	transactionVatTypes,
-} from "../constants/transaction.js"
+import { transactionVatTypes } from "../constants/transaction.js"
 
 export const createTransactionSchema = z.object({
 	categoryId: z.number().int(),
@@ -44,32 +41,4 @@ export const transactionCategoryQuerySchema = z.object({
 	page: z.coerce.number().int().positive().optional(),
 	limit: z.coerce.number().int().positive().optional(),
 	s: z.string().optional(),
-})
-
-export const transferToGeneralLedgerSchema = z.object({
-	transactionIds: z.array(z.number().int()),
-	targetMonth: z.string().regex(/^\d{4}-\d{2}$/),
-	glDescription: z.string().min(1).max(255),
-})
-
-export const bulkTransferToGeneralLedgerSchema = z.object({
-	transfers: z.array(
-		z.object({
-			transactionIds: z.array(z.number().int()),
-			targetMonth: z.string().regex(/^\d{4}-\d{2}$/),
-			glDescription: z.string().min(1).max(255),
-		}),
-	),
-})
-
-export const generalLedgerViewSchema = z.object({
-	accountId: z.coerce.number().int(),
-	dateFrom: z.string(),
-	dateTo: z.string(),
-})
-
-export const transferHistorySchema = z.object({
-	transferGroupId: z.string().optional(),
-	page: z.coerce.number().int().positive().optional(),
-	limit: z.coerce.number().int().positive().optional(),
 })

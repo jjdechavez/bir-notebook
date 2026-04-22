@@ -17,14 +17,17 @@ import {
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/lib/constants"
-import type { Transaction, TransactionSearch } from "@/types/transaction"
+import type {
+	Transaction,
+	TransactionListQueryParam,
+} from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
 import { createCashDisbursementsColumns } from "./columns/cash-disbursements-columns"
 import { CashDisbursementsFooter } from "./footers/cash-disbursements-footer"
 
 interface CashDisbursementsJournalProps {
-	filters: TransactionSearch
+	filters: TransactionListQueryParam
 	columnCount?: number
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }

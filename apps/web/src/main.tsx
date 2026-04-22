@@ -1,7 +1,6 @@
+import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
-import { RouterProvider, createRouter } from "@tanstack/react-router"
-import { createTuyauReactQueryClient } from "@tuyau/react-query"
 
 import * as TanStackQueryProvider from "./lib/tanstack-query/root-provider.tsx"
 
@@ -9,25 +8,18 @@ import * as TanStackQueryProvider from "./lib/tanstack-query/root-provider.tsx"
 import { routeTree } from "./routeTree.gen"
 
 import "./styles.css"
+import { authClient, type SessionClient } from "./lib/auth-client.ts"
 import reportWebVitals from "./reportWebVitals.ts"
-import { tuyauClient } from "./lib/tuyau.ts"
-import { authClient } from "./lib/auth-client.ts"
 
 // Create a new router instance
 
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext()
-
-export const tuyau = createTuyauReactQueryClient({
-	client: tuyauClient,
-	queryClient: TanStackQueryProviderContext.queryClient,
-})
 
 const router = createRouter({
 	routeTree,
 	context: {
 		...TanStackQueryProviderContext,
 		auth: undefined!, // This will be set by the AuthProvider wrapper
-		tuyau,
 	},
 	defaultPreload: "intent",
 	scrollRestoration: true,
@@ -51,7 +43,7 @@ function RouterWithAuth() {
 			context={{
 				...TanStackQueryProviderContext,
 				auth: {
-					user: auth.data?.user,
+					user: auth.data?.user as SessionClient["user"],
 					isAuthenticated: !!auth.data?.session,
 					isLoading: auth.isPending,
 				},

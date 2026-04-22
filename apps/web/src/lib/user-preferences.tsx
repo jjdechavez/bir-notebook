@@ -1,10 +1,13 @@
-import { createContext, useContext, useEffect } from "react"
-import type { ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { tuyau } from "@/main"
-import { useTheme } from "./theme"
+import type { ReactNode } from "react"
+import { createContext, useContext, useEffect } from "react"
 import { toast } from "sonner"
-import { useUpdateUserPreference, useUserPreference } from "@/hooks/api/user"
+import {
+	userPreferenceKeys,
+	useUpdateUserPreference,
+	useUserPreference,
+} from "@/hooks/api/user"
+import { useTheme } from "./theme"
 
 interface UserPreferencesContextType {
 	navigationLayout: "sidebar" | "navbar"
@@ -28,7 +31,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
 	const updatePreferencesMutation = useUpdateUserPreference({
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: tuyau.api.preferences.$get.queryKey(),
+				queryKey: userPreferenceKeys.all,
 			})
 		},
 		onError: (error) => {

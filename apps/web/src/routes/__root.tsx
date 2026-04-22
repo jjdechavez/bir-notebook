@@ -1,23 +1,19 @@
-import { Outlet, createRootRouteWithContext } from "@tanstack/react-router"
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
-
-import TanStackQueryDevtools from "../lib/tanstack-query/devtools"
-import { useAuth } from "../lib/auth"
-import { ThemeProvider } from "../lib/theme"
-
 import type { QueryClient } from "@tanstack/react-query"
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { Toaster } from "@/components/ui/sonner"
-import type { tuyau } from "@/main"
+import type { SessionClient } from "../lib/auth-client"
+import TanStackQueryDevtools from "../lib/tanstack-query/devtools"
+import { ThemeProvider } from "../lib/theme"
 
 interface MyRouterContext {
 	queryClient: QueryClient
 	auth: {
-		user: ReturnType<typeof useAuth>["user"] | null
+		user: SessionClient["user"]
 		isAuthenticated: boolean
 		isLoading: boolean
 	}
-	tuyau: typeof tuyau
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({

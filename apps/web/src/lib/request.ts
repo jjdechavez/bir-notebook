@@ -1,5 +1,5 @@
-import { ofetch, type FetchOptions } from "ofetch"
-import { getAuthToken } from "./auth"
+import { type FetchOptions, ofetch } from "ofetch"
+import { getAuthToken } from "./auth-token"
 import { camelKeys } from "./utils"
 
 const ofetchBaseConfig: FetchOptions = {
@@ -29,7 +29,7 @@ export const request = ofetch.create({
 
 export const requestApi = ofetch.create({
 	...ofetchBaseConfig,
-	baseURL: (import.meta.env.VITE_API_URL || "http://localhost:3333") + "/api",
+	baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/api`,
 	credentials: "include",
 	async onRequest({ request, options }) {
 		console.log("[fetch request]", request, options)

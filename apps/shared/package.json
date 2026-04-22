@@ -50,6 +50,11 @@
 			"types": "./dist/models/user.d.ts",
 			"import": "./dist/models/user.js",
 			"require": "./dist/models/user.cjs"
+		},
+		"./models/general-ledger": {
+			"types": "./dist/models/general-ledger.d.ts",
+			"import": "./dist/models/general-ledger.js",
+			"require": "./dist/models/general-ledger.cjs"
 		}
 	},
 	"devDependencies": {

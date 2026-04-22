@@ -6,6 +6,7 @@
 	"scripts": {
 		"web": "pnpm -F @bir-notebook/web",
 		"server": "pnpm -F @bir-notebook/server",
+		"shared": "pnpm -F @bir-notebook/shared",
 		"typecheck:web": "pnpm -F @bir-notebook/web exec tsc -b",
 		"typecheck:server": "pnpm -F @bir-notebook/server exec tsc -p tsconfig.json --noEmit",
 		"typecheck:shared": "pnpm -F @bir-notebook/shared exec tsc -p tsconfig.json --noEmit",

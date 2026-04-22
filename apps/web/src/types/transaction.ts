@@ -1,18 +1,8 @@
-import type { ListQueryParam, ListResponse } from "@/lib/api"
-import type { tuyau } from "@/main"
 import type {
 	TransactionCategoryBookType,
 	TransactionVatType,
 } from "@bir-notebook/shared/models/transaction"
-import type { InferRequestType, InferResponseType } from "@tuyau/react-query"
-
-export type TransactionAccount = InferResponseType<
-	(typeof tuyau.api)["transaction-accounts"]["$get"]
->["data"][number]
-
-export type TransactionSearch = InferRequestType<
-	(typeof tuyau.api)["transactions"]["$get"]
->
+import type { ListQueryParam, ListResponse } from "@/lib/api"
 
 export type ChartOfAccount = {
 	id: number
@@ -66,6 +56,9 @@ export type Transaction = {
 	createdAt: string
 	recorded: boolean
 
+	transferredToGlAt: string | null
+	transactionsactionDate: string
+
 	category: TransactionCategory | null
 	creditAccount: ChartOfAccount | null
 	debitAccount: ChartOfAccount | null
@@ -90,6 +83,10 @@ export type TransactionSummary = {
 	totalChartOfAccounts: number
 }
 
+export type BulkTransactionInput = {
+	transactionIds: Array<number>
+}
+
 export type BulkRecordTransactionInput = {
 	transactionIds: Array<number>
 }
@@ -101,4 +98,24 @@ export type BulkRecordTransactionResponse = {
 		updated: number
 	}
 	message: string
+}
+
+export type TransactionListQueryParam = ListQueryParam & {
+	search?: string
+	dateFrom?: string
+	dateTo?: string
+	bookType?: string
+	record?: string
+}
+
+export type TransferHistoryQueryParam = ListQueryParam & {
+	transferGroupId?: string
+}
+
+export type EligibleTransferTransactionResult = {
+	isValid: boolean
+	eligibleTransactions: number[]
+	ineligibleTransactions: Array<{ id: number; reason: string }>
+	errors: string[]
+	warnings: string[]
 }

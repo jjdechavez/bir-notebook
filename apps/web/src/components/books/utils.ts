@@ -1,4 +1,4 @@
-import type { Transaction, TransactionAccount } from "@/types/transaction"
+import type { ChartOfAccount, Transaction } from "@/types/transaction"
 
 export const getChartOfAccounts = (transactions: Transaction[]) => {
 	const accounts = new Set()
@@ -11,7 +11,7 @@ export const getChartOfAccounts = (transactions: Transaction[]) => {
 		}
 	})
 	return Array.from(accounts).map(
-		(account) => JSON.parse(account as string) as TransactionAccount,
+		(account) => JSON.parse(account as string) as ChartOfAccount,
 	)
 }
 

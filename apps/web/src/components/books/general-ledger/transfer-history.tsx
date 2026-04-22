@@ -1,22 +1,19 @@
-import { useQuery } from "@tanstack/react-query"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import { ArrowRight, Clock, FileText } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
+import { useTransactionTransferHistory } from "@/hooks/api/transaction"
 import { formatDate, formatDateTime } from "@/lib/general-ledger-helpers"
 import type { TransferHistoryItem } from "@/types/general-ledger"
-import { Clock, FileText, ArrowRight } from "lucide-react"
-import { Spinner } from "@/components/ui/spinner"
-import { tuyau } from "@/main"
 
 type TransferHistoryProps = {
 	transferGroupId?: string
 }
 
 export function TransferHistory({ transferGroupId }: TransferHistoryProps) {
-	const { data: history, status } = useQuery(
-		tuyau.api.transactions["transfer-history"].$get.queryOptions({
-			params: transferGroupId ? { transferGroupId } : undefined,
-		}),
+	const { data: history, status } = useTransactionTransferHistory(
+		transferGroupId ? { transferGroupId } : undefined,
 	)
 
 	if (status === "pending") {

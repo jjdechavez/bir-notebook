@@ -1,6 +1,10 @@
+import type {
+	ParentGlTransaction,
+	TransferResult,
+} from "@bir-notebook/shared/models/transaction"
 import type { Kysely, Selectable } from "kysely"
-import type { ChartOfAccounts, DB, Transactions } from "../db/types.js"
 import { transactionCategoryBookTypes } from "../constants/transaction.js"
+import type { ChartOfAccounts, DB, Transactions } from "../db/types.js"
 import { getTransactionsWithRelationsByGlId } from "./transactions.js"
 
 export interface LedgerTransaction {
@@ -57,22 +61,6 @@ export interface TransferValidationResult {
 		id: number
 		reason: string
 	}>
-}
-
-export interface ParentGlTransaction {
-	id: number
-	description: string
-	amount: number
-	accountPair: string
-	debitAccountId: number
-	creditAccountId: number
-	targetMonth: string
-}
-
-export interface TransferResult {
-	parentGlTransactions: ParentGlTransaction[]
-	totalTransactions: number
-	totalGroups: number
 }
 
 function formatYearMonth(date: Date) {
@@ -275,7 +263,10 @@ export async function getGeneralLedgerView(
 		.executeTakeFirst()
 
 	if (!account) {
-		throw new Error(`Account with ID ${accountId} not found`)
+		return {
+			status: "not_found" as const,
+			message: `Account with ID ${accountId} not found`,
+		}
 	}
 
 	const months = getMonthsInRange(dateFrom, dateTo)
@@ -305,13 +296,16 @@ export async function getGeneralLedgerView(
 	}
 
 	return {
-		account,
-		dateRange: {
-			from: dateFrom.toISOString(),
-			to: dateTo.toISOString(),
+		status: "success" as const,
+		data: {
+			account,
+			dateRange: {
+				from: dateFrom.toISOString(),
+				to: dateTo.toISOString(),
+			},
+			months: monthData,
+			grandTotal: calculateGrandTotal(monthData, runningBalance),
 		},
-		months: monthData,
-		grandTotal: calculateGrandTotal(monthData, runningBalance),
 	}
 }
 
@@ -383,7 +377,7 @@ export async function transferToGeneralLedger(
 
 	if (!validation.isValid || validation.eligibleTransactions.length === 0) {
 		return {
-			status: "error",
+			status: "error" as const,
 			errors:
 				validation.errors.length > 0
 					? validation.errors
@@ -416,7 +410,7 @@ export async function transferToGeneralLedger(
 			const parts = key.split("-")
 			if (parts.length !== 2) {
 				return {
-					status: "error",
+					status: "error" as const,
 					errors: ["Invalid account pair for transfer"],
 				}
 			}
@@ -429,7 +423,7 @@ export async function transferToGeneralLedger(
 				!Number.isFinite(creditAccountId)
 			) {
 				return {
-					status: "error",
+					status: "error" as const,
 					errors: ["Invalid account pair for transfer"],
 				}
 			}
@@ -454,9 +448,9 @@ export async function transferToGeneralLedger(
 				.executeTakeFirst()
 
 			parentGlTransactions.push({
-				id: parent!.id,
-				description: parent!.description ?? "",
-				amount: parent!.amount,
+				id: parent?.id as number,
+				description: parent?.description ?? "",
+				amount: parent?.amount || 0,
 				accountPair: key,
 				debitAccountId,
 				creditAccountId,
@@ -466,7 +460,7 @@ export async function transferToGeneralLedger(
 			await db
 				.updateTable("transactions")
 				.set({
-					gl_id: parent!.id,
+					gl_id: parent?.id,
 					transferred_to_gl_at: new Date(),
 					gl_posting_month: targetMonth,
 				})
@@ -484,10 +478,10 @@ export async function transferToGeneralLedger(
 			totalGroups: groupMap.size,
 		}
 
-		return { status: "success", result }
+		return { status: "success" as const, result }
 	} catch (error) {
 		return {
-			status: "error",
+			status: "error" as const,
 			errors: [
 				error instanceof Error ? error.message : "Unknown error occurred",
 			],

@@ -102,10 +102,7 @@ export function createApiRouter() {
 	)
 	apiRouter.get("/transactions/transfer-history", transferHistoryHandler)
 	apiRouter.get("/transactions/general-ledger/view", generalLedgerViewHandler)
-	apiRouter.put(
-		"/transactions/gl/:id/update-description",
-		updateGlDescriptionHandler,
-	)
+	apiRouter.put("/transactions/general-ledger/:id", updateGlDescriptionHandler)
 	apiRouter.get("/transactions/:id", showTransaction)
 	apiRouter.put("/transactions/:id", updateTransactionHandler)
 	apiRouter.post("/transactions/:id/record", recordTransactionHandler)
