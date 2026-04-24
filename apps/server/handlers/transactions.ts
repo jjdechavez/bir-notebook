@@ -608,22 +608,29 @@ export const generalLedgerViewHandler = defineEventHandler({
 			})
 		}
 
-		try {
-			const ledgerView = await getGeneralLedgerView(
-				event.context.db,
-				payload.accountId,
-				dateFrom,
-				dateTo,
-				event.context.currentUser?.id as string,
-			)
+		const ledgerView = await getGeneralLedgerView(
+			event.context.db,
+			payload.accountId,
+			dateFrom,
+			dateTo,
+			event.context.currentUser?.id as string,
+		)
 
-			return { data: ledgerView }
-		} catch (error) {
-			setResponseStatus(event, 404)
-			return {
-				message: error instanceof Error ? error.message : "Account not found",
-			}
+		if (ledgerView.status === "not_found") {
+			throw createError({
+				statusCode: 404,
+				message: ledgerView.message,
+			})
 		}
+
+		if (ledgerView.status === "error") {
+			throw createError({
+				statusCode: 500,
+				message: ledgerView.message,
+			})
+		}
+
+		return { status: ledgerView.status, data: ledgerView.data }
 	},
 })
 

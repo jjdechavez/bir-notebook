@@ -117,6 +117,10 @@ export type GeneralLedgerViewResult =
 			status: "error"
 			message: string
 	  }
+	| {
+			status: "not_found"
+			message: string
+	  }
 
 export type TransferHistoryItem = {
 	id: number

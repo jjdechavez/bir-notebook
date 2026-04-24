@@ -1,7 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Card, CardContent } from "@/components/ui/card"
-import { transactionGeneralLedgerKeys } from "@/hooks/api/transaction"
-import { api } from "@/lib/api"
+import { generalLedgerViewOptions } from "@/hooks/api/transaction"
 import type { TransactionListQueryParam } from "@/types/transaction"
 import { EnhancedGeneralLedgerView } from "./enhanced-general-ledger-view"
 
@@ -20,13 +19,7 @@ export function EnhancedGeneralLedgerAccountView({
 	const dateTo = filters.dateTo || new Date().toISOString().split("T")[0]
 
 	const { data: ledgerData } = useSuspenseQuery({
-		queryKey: transactionGeneralLedgerKeys.details(),
-		queryFn: () =>
-			api.transaction.generalLedger.view({
-				accountId,
-				dateFrom,
-				dateTo,
-			}),
+		...generalLedgerViewOptions({ accountId, dateFrom, dateTo }),
 	})
 
 	return (

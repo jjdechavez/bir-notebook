@@ -306,7 +306,10 @@ export const useTransferTransactionToGeneralLedger = (
 
 export const generalLedgerViewOptions = (query: GeneralLedgerViewQueryParam) =>
 	queryOptions({
-		queryKey: transactionGeneralLedgerKeys.details(),
+		queryKey: transactionGeneralLedgerKeys.detailWithFilter(
+			query.accountId.toString(),
+			query,
+		),
 		queryFn: () => api.transaction.generalLedger.view(query),
 	})
 
@@ -315,7 +318,7 @@ export const useGeneralLedgerView = (
 	options?: UseQueryOptionsWrapper<
 		GeneralLedgerViewResult,
 		Error,
-		ReturnType<TransactionGeneralLedgerQueryKeys["details"]>
+		ReturnType<TransactionGeneralLedgerQueryKeys["detailWithFilter"]>
 	>,
 ) => {
 	return useQuery({

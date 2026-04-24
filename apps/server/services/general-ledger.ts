@@ -1,3 +1,4 @@
+import type { GeneralLedgerViewResult } from "@bir-notebook/shared/models/general-ledger"
 import type {
 	ParentGlTransaction,
 	TransferResult,
@@ -255,7 +256,7 @@ export async function getGeneralLedgerView(
 	dateFrom: Date,
 	dateTo: Date,
 	userId: string,
-): Promise<GeneralLedgerView> {
+): Promise<GeneralLedgerViewResult> {
 	const account = await db
 		.selectFrom("chart_of_accounts")
 		.selectAll()
