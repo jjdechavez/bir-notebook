@@ -111,7 +111,10 @@ function TransactionSummary() {
 const columns: ColumnDef<Transaction>[] = [
 	{
 		header: "Date",
-		cell: ({ row }) => new Date(row.original.transactionDate).toLocaleString(),
+		cell: ({ row }) =>
+			new Date(row.original.transactionDate).toLocaleString("default", {
+				dateStyle: "medium",
+			}),
 	},
 	{
 		header: "Description",
