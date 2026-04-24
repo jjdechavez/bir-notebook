@@ -160,75 +160,110 @@ export function EnhancedGeneralLedgerView({
 										</span>
 									</div>
 
-									{/* Transactions Table */}
-									<div className="overflow-x-auto">
-										<table className="w-full border-collapse">
-											<thead>
-												<tr className="border-b bg-muted">
-													<th className="text-left p-3">Date</th>
-													<th className="text-left p-3">Description</th>
-													<th className="text-left p-3">Reference</th>
-													<th className="text-left p-3">Counterpart Account</th>
-													<th className="text-right p-3">Debit</th>
-													<th className="text-right p-3">Credit</th>
-													{monthData.transactions.some(
-														(t) => t.isTransferred,
-													) && <th className="text-center p-3">Status</th>}
-												</tr>
-											</thead>
-											<tbody>
-												{monthData.transactions.map((transaction) => (
-													<tr
-														key={transaction.id}
-														className={`border-b ${transaction.isTransferred ? "bg-success/50 dark:bg-success/20" : ""}`}
-													>
-														<td className="p-3">
-															{formatDate(transaction.date)}
-														</td>
-														<td className="p-3">{transaction.description}</td>
-														<td className="p-3 text-sm">
-															{transaction.referenceNumber || "-"}
-														</td>
-														<td className="p-3">
-															<div>
-																<span className="font-mono text-sm">
-																	{transaction.counterpartAccount.code}
-																</span>
-																<div className="text-sm text-muted-foreground">
-																	{transaction.counterpartAccount.name}
-																</div>
-															</div>
-														</td>
-														<td className="p-3 text-right font-medium text-success-foreground">
-															{transaction.debitAmount
-																? formatCentsToCurrency(transaction.debitAmount)
-																: "-"}
-														</td>
-														<td className="p-3 text-right font-medium text-destructive-foreground">
-															{transaction.creditAmount
-																? formatCentsToCurrency(
-																		transaction.creditAmount,
-																	)
-																: "-"}
-														</td>
-														{monthData.transactions.some(
-															(t) => t.isTransferred,
-														) && (
-															<td className="p-3 text-center">
-																{transaction.isTransferred && (
-																	<Badge
-																		variant="secondary"
-																		className="text-xs"
-																	>
-																		Transferred
-																	</Badge>
-																)}
-															</td>
-														)}
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="overflow-x-auto border rounded">
+											<table className="w-full border-collapse">
+												<thead>
+													<tr className="border-b bg-muted">
+														<th className="text-left p-3">Date</th>
+														<th className="text-left p-3">Description</th>
+														<th className="text-left p-3">Reference</th>
+														<th className="text-left p-3">Counterpart Account</th>
+														<th className="text-right p-3">Debit</th>
 													</tr>
-												))}
-											</tbody>
-										</table>
+												</thead>
+												<tbody>
+													{monthData.transactions
+														.filter((transaction) => !!transaction.debitAmount)
+														.map((transaction) => (
+															<tr key={`debit-${transaction.id}`} className="border-b">
+																<td className="p-3">{formatDate(transaction.date)}</td>
+																<td className="p-3">{transaction.description}</td>
+																<td className="p-3 text-sm">
+																	{transaction.referenceNumber || "-"}
+																</td>
+																<td className="p-3">
+																	<div>
+																		<span className="font-mono text-sm">
+																			{transaction.counterpartAccount.code}
+																		</span>
+																		<div className="text-sm text-muted-foreground">
+																			{transaction.counterpartAccount.name}
+																		</div>
+																	</div>
+																</td>
+																<td className="p-3 text-right font-medium text-success-foreground">
+																	{formatCentsToCurrency(transaction.debitAmount || 0)}
+																</td>
+															</tr>
+														))}
+													{!monthData.transactions.some(
+														(transaction) => !!transaction.debitAmount,
+													) && (
+														<tr>
+															<td
+																colSpan={5}
+																className="p-3 text-center text-muted-foreground"
+															>
+																No debit entries
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										</div>
+
+										<div className="overflow-x-auto border rounded">
+											<table className="w-full border-collapse">
+												<thead>
+													<tr className="border-b bg-muted">
+														<th className="text-left p-3">Date</th>
+														<th className="text-left p-3">Description</th>
+														<th className="text-left p-3">Reference</th>
+														<th className="text-left p-3">Counterpart Account</th>
+														<th className="text-right p-3">Credit</th>
+													</tr>
+												</thead>
+												<tbody>
+													{monthData.transactions
+														.filter((transaction) => !!transaction.creditAmount)
+														.map((transaction) => (
+															<tr key={`credit-${transaction.id}`} className="border-b">
+																<td className="p-3">{formatDate(transaction.date)}</td>
+																<td className="p-3">{transaction.description}</td>
+																<td className="p-3 text-sm">
+																	{transaction.referenceNumber || "-"}
+																</td>
+																<td className="p-3">
+																	<div>
+																		<span className="font-mono text-sm">
+																			{transaction.counterpartAccount.code}
+																		</span>
+																		<div className="text-sm text-muted-foreground">
+																			{transaction.counterpartAccount.name}
+																		</div>
+																	</div>
+																</td>
+																<td className="p-3 text-right font-medium text-destructive-foreground">
+																	{formatCentsToCurrency(transaction.creditAmount || 0)}
+																</td>
+															</tr>
+														))}
+													{!monthData.transactions.some(
+														(transaction) => !!transaction.creditAmount,
+													) && (
+														<tr>
+															<td
+																colSpan={5}
+																className="p-3 text-center text-muted-foreground"
+															>
+																No credit entries
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										</div>
 									</div>
 
 									<Separator />
