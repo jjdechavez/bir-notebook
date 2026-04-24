@@ -1,14 +1,14 @@
 import type { Selectable } from "kysely"
+import {
+	calculateVatAmount,
+	type TransactionVatType,
+	transactionVatTypes,
+} from "../constants/transaction.js"
 import type {
 	ChartOfAccounts,
 	TransactionCategories,
 	Transactions,
 } from "../db/types.js"
-import {
-	calculateVatAmount,
-	TransactionVatType,
-	transactionVatTypes,
-} from "../constants/transaction.js"
 import { toIsoString } from "../utils/date.js"
 import { serializeAccount } from "./account.js"
 import { serializeTransactionCategory } from "./transaction-category.js"

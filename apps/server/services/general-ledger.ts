@@ -565,7 +565,7 @@ export async function getChildTransactions(
 	const grouped = new Map<number, typeof rows>()
 
 	for (const row of rows) {
-		const parentId = row.transaction.gl_id
+		const parentId = row.gl_id
 		if (!parentId) continue
 		const list = grouped.get(parentId) ?? []
 		list.push(row)

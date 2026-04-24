@@ -10,14 +10,18 @@ import {
 import {
 	createError,
 	defineEventHandler,
+	type EventHandlerRequest,
 	getQuery,
 	getRequestURL,
 	getRouterParams,
 	getValidatedQuery,
+	type H3Event,
 	readBody,
 	readValidatedBody,
 	setResponseStatus,
 } from "h3"
+import type { Selectable } from "kysely"
+import type { Transactions } from "../db/types.js"
 import { requireAuth } from "../middleware/auth.js"
 import { serializeTransaction } from "../serializers/transaction.js"
 import {
@@ -52,7 +56,10 @@ function parseTransactionDate(value: string) {
 	return parsed
 }
 
-async function ensureAccountsExist(event: any, accountIds: number[]) {
+async function ensureAccountsExist(
+	event: H3Event<EventHandlerRequest>,
+	accountIds: number[],
+) {
 	const accounts: Array<{ id: number }> = await event.context.db
 		.selectFrom("chart_of_accounts")
 		.select(["id"])
@@ -214,7 +221,7 @@ export const createTransactionHandler = defineEventHandler({
 			}
 
 			return {
-				data: serializeTransaction(result.data),
+				data: serializeTransaction(result.data as Selectable<Transactions>),
 				message: "Transaction created successfully",
 			}
 		} catch (error) {
@@ -340,7 +347,7 @@ export const updateTransactionHandler = defineEventHandler({
 		}
 
 		return {
-			data: serializeTransaction(result.data),
+			data: serializeTransaction(result.data as Selectable<Transactions>),
 			message: "Transaction updated successfully",
 		}
 	},
@@ -361,7 +368,7 @@ export const recordTransactionHandler = defineEventHandler({
 		}
 
 		return {
-			data: serializeTransaction(result.data),
+			data: serializeTransaction(result.data as Selectable<Transactions>),
 			message: result.message,
 		}
 	},
@@ -382,7 +389,7 @@ export const undoRecordTransactionHandler = defineEventHandler({
 		}
 
 		return {
-			data: serializeTransaction(result.data),
+			data: serializeTransaction(result.data as Selectable<Transactions>),
 			message: result.message,
 		}
 	},
@@ -516,9 +523,7 @@ export const bulkTransferToGeneralLedgerHandler = defineEventHandler({
 				totalGroups: payload.transfers.length,
 				successful: successful.length,
 				failed: failed.length,
-				results: successful.map(
-					(r) => (r as PromiseFulfilledResult<any>).value.result,
-				),
+				results: successful.map((r) => r.value.result),
 			},
 		}
 	},

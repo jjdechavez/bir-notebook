@@ -1,5 +1,5 @@
 import type { Kysely, Selectable } from "kysely"
-import type { User, DB } from "../db/types.js"
+import type { DB, User } from "../db/types.js"
 
 export type UserWithProfile = {
 	user: Selectable<User>
@@ -32,19 +32,19 @@ export async function getUserWithProfile(
 	if (!row) return null
 
 	const user: Selectable<User> = {
-		id: row["u_id"],
-		name: row["u_name"],
-		firstName: row["u_firstName"],
-		lastName: row["u_lastName"],
-		email: row["u_email"],
-		emailVerified: row["u_email_verified"],
-		image: row["u_image"],
-		createdAt: row["u_created_at"],
-		updatedAt: row["u_updated_at"],
-		role: row["u_role"],
-		banned: row["u_banned"],
-		banReason: row["u_ban_reason"],
-		banExpires: row["u_ban_expires"],
+		id: row.u_id,
+		name: row.u_name,
+		firstName: row.u_firstName,
+		lastName: row.u_lastName,
+		email: row.u_email,
+		emailVerified: row.u_email_verified,
+		image: row.u_image,
+		createdAt: row.u_created_at,
+		updatedAt: row.u_updated_at,
+		role: row.u_role,
+		banned: row.u_banned,
+		banReason: row.u_ban_reason,
+		banExpires: row.u_ban_expires,
 	}
 
 	return user

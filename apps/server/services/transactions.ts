@@ -1,4 +1,5 @@
 import type { Kysely, Selectable } from "kysely"
+import { transactionVatTypes } from "../constants/transaction.js"
 import type {
 	ChartOfAccounts,
 	DB,
@@ -6,7 +7,6 @@ import type {
 	Transactions,
 } from "../db/types.js"
 import { toCents } from "../utils/currency.js"
-import { transactionVatTypes } from "../constants/transaction.js"
 
 type TransactionWithRelations = Selectable<Transactions> & {
 	category: Selectable<TransactionCategories> | null
@@ -192,7 +192,7 @@ export async function createTransaction(
 		.returningAll()
 		.executeTakeFirst()
 
-	return { status: "success", data: inserted! } as const
+	return { status: "success", data: inserted } as const
 }
 
 export async function paginateTransactions(
@@ -384,7 +384,7 @@ export async function updateTransaction(
 		.returningAll()
 		.executeTakeFirst()
 
-	return { status: "updated", data: updated! } as const
+	return { status: "updated", data: updated } as const
 }
 
 export async function recordTransaction(db: Kysely<DB>, id: number) {
@@ -411,7 +411,7 @@ export async function recordTransaction(db: Kysely<DB>, id: number) {
 	return {
 		status: "success",
 		message: "Transaction has been recorded",
-		data: updated!,
+		data: updated,
 	} as const
 }
 
@@ -439,7 +439,7 @@ export async function undoRecordTransaction(db: Kysely<DB>, id: number) {
 	return {
 		status: "success",
 		message: "Transaction has been moved to draft",
-		data: updated!,
+		data: updated,
 	} as const
 }
 

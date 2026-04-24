@@ -1,4 +1,5 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import type { GeneralLedgerView } from "@bir-notebook/shared/models/general-ledger"
 import { ChevronDown, ChevronRight, Download } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -11,7 +12,6 @@ import {
 } from "@/components/ui/collapsible"
 import { Separator } from "@/components/ui/separator"
 import { formatDate, formatMonth } from "@/lib/general-ledger-helpers"
-import type { GeneralLedgerView } from "@/types/general-ledger"
 
 type GeneralLedgerViewProps = {
 	ledgerView: GeneralLedgerView

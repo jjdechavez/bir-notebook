@@ -12,12 +12,6 @@ import {
 	updateInviteHandler,
 } from "../handlers/invites.js"
 import readyHandler from "../handlers/ready.js"
-import { listRolesHandler } from "../handlers/roles.js"
-import {
-	createSession,
-	destroySession,
-	getSession,
-} from "../handlers/session.js"
 import { systemHasBeenSetup } from "../handlers/setup.js"
 import {
 	currentChartOfAccounts,
@@ -60,17 +54,12 @@ export function createApiRouter() {
 
 	apiRouter.get("/health", healthHandler)
 	apiRouter.get("/ready", readyHandler)
-	apiRouter.post("/session", createSession)
-	apiRouter.get("/session", getSession)
-	apiRouter.delete("/session", destroySession)
 	apiRouter.get("/invites/:id", showInviteHandler)
 	apiRouter.post("/invites/:id/complete", completeInviteHandler)
 	apiRouter.use("/auth/**", authHandler)
 
 	apiRouter.get("/users", listUsersHandler)
 	apiRouter.put("/users/:id", updateUserHandler)
-
-	apiRouter.get("/roles", listRolesHandler)
 
 	apiRouter.post("/invites", createInviteHandler)
 	apiRouter.get("/invites", listInvitesHandler)
