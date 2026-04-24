@@ -16,9 +16,10 @@ COPY apps/shared ./apps/shared
 COPY apps/server ./apps/server
 RUN pnpm --filter @bir-notebook/shared build
 RUN pnpm --filter @bir-notebook/server build
+RUN mkdir -p apps/server/dist/db/migrations && cp apps/server/db/migrations/*.mjs apps/server/dist/db/migrations/
 
 FROM build AS extract
-RUN pnpm deploy --filter @bir-notebook/server --prod /prod/server
+RUN pnpm deploy --filter @bir-notebook/server --prod --no-optional /prod/server
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -29,4 +30,4 @@ COPY --from=extract --chown=node:node /prod/server ./
 USER node
 EXPOSE 3333
 
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "node dist/scripts/migrate.js latest && node dist/server.js"]

@@ -9,7 +9,7 @@ async function run(): Promise<void> {
 	const direction = process.argv[2] ?? "latest"
 
 	if (direction !== "latest" && direction !== "down") {
-		console.error("Usage: pnpm -C apps/api migrate [latest|down]")
+		console.error("Usage: pnpm -C apps/server migrate [latest|down]")
 		process.exit(1)
 	}
 

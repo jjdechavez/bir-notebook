@@ -16,8 +16,7 @@
   },
   "files": [
     "dist",
-    "package.json",
-    "db/migrations"
+    "package.json"
   ],
   "dependencies": {
     "@bir-notebook/shared": "workspace:*",
