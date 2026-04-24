@@ -26,6 +26,21 @@ export type TransferToGeneralLedgerInput = z.infer<
 	typeof transferToGeneralLedgerSchema
 >
 
+export type BulkTransferToGeneralLedgerInput = {
+	transfers: Array<TransferToGeneralLedgerInput>
+}
+
+export type BulkTransferToGeneralLedgerResponse = {
+	status: "success" | "partial"
+	message: string
+	summary: {
+		totalGroups: number
+		successful: number
+		failed: number
+		results: Array<unknown>
+	}
+}
+
 export type ParentGlTransaction = {
 	id: number
 	description: string

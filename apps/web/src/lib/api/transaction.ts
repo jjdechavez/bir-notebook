@@ -1,4 +1,6 @@
 import type {
+	BulkTransferToGeneralLedgerInput,
+	BulkTransferToGeneralLedgerResponse,
 	GeneralLedgerViewQueryParam,
 	GeneralLedgerViewResult,
 	TransactionTransferHistoryList,
@@ -105,6 +107,11 @@ export const transaction = {
 		toGeneralLedger: async (input: TransferToGeneralLedgerInput) =>
 			requestApi<TransferTransactionToGeneralLedgerResponse>(
 				`${TRANSACTION_ENDPOINT}/transfer-to-general-ledger`,
+				{ method: "POST", body: input },
+			),
+		toGeneralLedgerBulk: async (input: BulkTransferToGeneralLedgerInput) =>
+			requestApi<BulkTransferToGeneralLedgerResponse>(
+				`${TRANSACTION_ENDPOINT}/transfer-to-general-ledger/bulk`,
 				{ method: "POST", body: input },
 			),
 	},

@@ -1,7 +1,7 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
 import { formatOption } from "@bir-notebook/shared/models/common"
 import { transactionCategoryBookTypeOptions } from "@bir-notebook/shared/models/transaction"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { AlertCircle, ArrowLeft, ArrowRight, Check } from "lucide-react"
 import { useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -27,8 +27,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import {
-	transactionGeneralLedgerKeys,
-	transactionKeys,
+	useBulkTransferTransactionToGeneralLedger,
 	transactionsOptions,
 	useTransferTransactionToGeneralLedger,
 	useValidateTransferTransaction,
@@ -38,6 +37,14 @@ import type {
 	EligibleTransferTransactionResult,
 	Transaction,
 } from "@/types/transaction"
+
+type AccountTransactionGroup = {
+	debitAccountId: number
+	debitAccount: Transaction["debitAccount"]
+	creditAccountId: number
+	creditAccount: Transaction["creditAccount"]
+	transactions: Array<Transaction>
+}
 
 function groupTransactionsByAccounts(transactions: Array<Transaction>) {
 	return transactions.reduce(
@@ -57,16 +64,7 @@ function groupTransactionsByAccounts(transactions: Array<Transaction>) {
 			groups[key].transactions.push(transaction)
 			return groups
 		},
-		{} as Record<
-			string,
-			{
-				debitAccountId: number
-				debitAccount: Transaction["debitAccount"]
-				creditAccountId: number
-				creditAccount: Transaction["creditAccount"]
-				transactions: Array<Transaction>
-			}
-		>,
+		{} as Record<string, AccountTransactionGroup>,
 	)
 }
 
@@ -87,17 +85,26 @@ type TransactionSelectionProps = {
 
 type MonthAssignmentProps = {
 	selectedTransactions: Array<number>
+	accountGroups: Record<string, AccountTransactionGroup>
+	isValid: boolean
 	onNext: () => void
 	onBack: () => void
 	targetMonth: string
 	onTargetMonthChange: (month: string) => void
+	descriptionMode: "single" | "perGroup"
+	onDescriptionModeChange: (mode: "single" | "perGroup") => void
 	glDescription: string
 	onGlDescriptionChange: (description: string) => void
+	groupDescriptions: Record<string, string>
+	onGroupDescriptionChange: (groupKey: string, description: string) => void
 }
 
 type ConfirmationProps = {
 	targetMonth: string
+	descriptionMode: "single" | "perGroup"
 	glDescription: string
+	accountGroups: Record<string, AccountTransactionGroup>
+	groupDescriptions: Record<string, string>
 	onConfirm: () => void
 	onBack: () => void
 	isLoading?: boolean
@@ -233,28 +240,23 @@ function TransactionSelectionStep({
 
 function MonthAssignmentStep({
 	selectedTransactions,
+	accountGroups,
+	isValid,
 	onNext,
 	onBack,
 	targetMonth,
 	onTargetMonthChange,
+	descriptionMode,
+	onDescriptionModeChange,
 	glDescription,
 	onGlDescriptionChange,
+	groupDescriptions,
+	onGroupDescriptionChange,
 }: MonthAssignmentProps) {
 	const monthOptions = generateMonthOptions()
-
-	const { data: transactionsData } = useQuery(
-		transactionsOptions({
-			record: "recorded",
-			limit: 1000,
-		}),
-	)
-
-	const selectedTransactionsData =
-		transactionsData?.data?.filter((t) =>
-			selectedTransactions.includes(t.id),
-		) || []
-
-	const accountGroups = groupTransactionsByAccounts(selectedTransactionsData)
+	const accountGroupEntries = Object.entries(accountGroups)
+	const hasMultipleGroups = accountGroupEntries.length > 1
+	const effectiveDescriptionMode = hasMultipleGroups ? descriptionMode : "single"
 
 	return (
 		<div className="space-y-4">
@@ -286,27 +288,55 @@ function MonthAssignmentStep({
 						</select>
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="gl-description">GL Description</Label>
-						<textarea
-							id="gl-description"
-							value={glDescription}
-							onChange={(e) => onGlDescriptionChange(e.target.value)}
-							placeholder="e.g., Jan Totals sales, Q1 expenses, Year-end closing"
-							className="w-full p-2 border rounded-md resize-none"
-							rows={3}
-							maxLength={255}
-						/>
-						<div className="flex justify-between">
+					{hasMultipleGroups && (
+						<div className="space-y-2">
+							<Label>Description Mode</Label>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+								<Button
+									type="button"
+									variant={descriptionMode === "single" ? "default" : "outline"}
+									onClick={() => onDescriptionModeChange("single")}
+								>
+									Same for all groups
+								</Button>
+								<Button
+									type="button"
+									variant={descriptionMode === "perGroup" ? "default" : "outline"}
+									onClick={() => onDescriptionModeChange("perGroup")}
+								>
+									Different per group
+								</Button>
+							</div>
 							<p className="text-sm text-muted-foreground">
-								This description will be shown for all transferred transactions
-								in the General Ledger
-							</p>
-							<p className="text-xs text-muted-foreground">
-								{glDescription.length}/255 characters
+								Choose if all account groups share one description or each
+								group needs its own.
 							</p>
 						</div>
-					</div>
+					)}
+
+					{effectiveDescriptionMode === "single" && (
+						<div className="space-y-2">
+							<Label htmlFor="gl-description">GL Description</Label>
+							<textarea
+								id="gl-description"
+								value={glDescription}
+								onChange={(e) => onGlDescriptionChange(e.target.value)}
+								placeholder="e.g., Jan Totals sales, Q1 expenses, Year-end closing"
+								className="w-full p-2 border rounded-md resize-none"
+								rows={3}
+								maxLength={255}
+							/>
+							<div className="flex justify-between">
+								<p className="text-sm text-muted-foreground">
+									This description will be shown for all transferred groups in
+									the General Ledger
+								</p>
+								<p className="text-xs text-muted-foreground">
+									{glDescription.length}/255 characters
+								</p>
+							</div>
+						</div>
+					)}
 				</div>
 
 				<div className="space-y-4 flex-1">
@@ -319,8 +349,8 @@ function MonthAssignmentStep({
 								This transfer will create {Object.keys(accountGroups).length} GL
 								group(s) based on account pairs:
 							</p>
-							{Object.values(accountGroups).map((group, index) => (
-								<div key={index} className="p-3 bg-muted rounded-md">
+							{accountGroupEntries.map(([groupKey, group]) => (
+								<div key={groupKey} className="p-3 bg-muted rounded-md space-y-3">
 									<div className="flex justify-between items-center">
 										<div>
 											<div className="text-sm font-medium">
@@ -347,6 +377,28 @@ function MonthAssignmentStep({
 											</div>
 										</div>
 									</div>
+
+									{effectiveDescriptionMode === "perGroup" && (
+										<div className="space-y-1">
+											<Label htmlFor={`group-description-${groupKey}`}>
+												Group Description
+											</Label>
+											<textarea
+												id={`group-description-${groupKey}`}
+												value={groupDescriptions[groupKey] ?? ""}
+												onChange={(e) =>
+													onGroupDescriptionChange(groupKey, e.target.value)
+												}
+												placeholder="e.g., January utilities expenses"
+												className="w-full p-2 border rounded-md resize-none bg-background"
+												rows={2}
+												maxLength={255}
+											/>
+											<div className="text-right text-xs text-muted-foreground">
+												{(groupDescriptions[groupKey] ?? "").length}/255
+											</div>
+										</div>
+									)}
 								</div>
 							))}
 						</CardContent>
@@ -379,10 +431,7 @@ function MonthAssignmentStep({
 					<ArrowLeft className="h-4 w-4 mr-2" />
 					Back
 				</Button>
-				<Button
-					onClick={onNext}
-					disabled={!targetMonth || !glDescription.trim()}
-				>
+				<Button onClick={onNext} disabled={!isValid}>
 					Next
 					<ArrowRight className="h-4 w-4 ml-2" />
 				</Button>
@@ -393,7 +442,10 @@ function MonthAssignmentStep({
 
 function ConfirmationStep({
 	targetMonth,
+	descriptionMode,
 	glDescription,
+	accountGroups,
+	groupDescriptions,
 	onConfirm,
 	onBack,
 	isLoading = false,
@@ -402,6 +454,9 @@ function ConfirmationStep({
 	if (!validation) {
 		return <div>Loading validation...</div>
 	}
+
+	const hasMultipleGroups = Object.keys(accountGroups).length > 1
+	const effectiveDescriptionMode = hasMultipleGroups ? descriptionMode : "single"
 
 	return (
 		<div className="space-y-4">
@@ -465,9 +520,25 @@ function ConfirmationStep({
 
 					<div className="space-y-2">
 						<p className="text-sm font-medium">GL Description:</p>
-						<div className="p-2 bg-muted rounded-md text-sm">
-							{glDescription}
-						</div>
+						{effectiveDescriptionMode === "single" ? (
+							<div className="p-2 bg-muted rounded-md text-sm">
+								{glDescription}
+							</div>
+						) : (
+							<div className="space-y-2">
+								{Object.entries(accountGroups).map(([groupKey, group]) => (
+									<div
+										key={groupKey}
+										className="p-2 bg-muted rounded-md text-sm"
+									>
+										<div className="text-xs text-muted-foreground mb-1">
+											{group.debitAccount?.code} -&gt; {group.creditAccount?.code}
+										</div>
+										{groupDescriptions[groupKey]}
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 
 					<Separator />
@@ -477,8 +548,10 @@ function ConfirmationStep({
 						<p className="text-sm text-muted-foreground">
 							{validation.eligibleTransactions.length} transaction
 							{validation.eligibleTransactions.length !== 1 ? "s" : ""} will be
-							transferred to General Ledger for {targetMonth} with the
-							description above.
+							transferred to General Ledger for {targetMonth} with
+							{effectiveDescriptionMode === "single"
+								? " one shared description."
+								: " group-specific descriptions."}
 						</p>
 					</div>
 				</CardContent>
@@ -511,7 +584,13 @@ export function GeneralLedgerTransferDialog({
 		Array<number>
 	>(initialSelectedTransactions)
 	const [targetMonth, setTargetMonth] = useState("")
+	const [descriptionMode, setDescriptionMode] = useState<"single" | "perGroup">(
+		"single",
+	)
 	const [glDescription, setGlDescription] = useState("")
+	const [groupDescriptions, setGroupDescriptions] = useState<
+		Record<string, string>
+	>({})
 
 	const { data: transactionsData, status: transactionsStatus } = useQuery(
 		transactionsOptions({
@@ -529,9 +608,33 @@ export function GeneralLedgerTransferDialog({
 		},
 	})
 
+	const bulkTransferMutation = useBulkTransferTransactionToGeneralLedger({
+		onSuccess: () => {
+			onSuccess?.()
+			onClose()
+		},
+	})
+
+	const selectedTransactionsData =
+		transactionsData?.data?.filter((t) => selectedTransactions.includes(t.id)) || []
+
+	const accountGroups = groupTransactionsByAccounts(selectedTransactionsData)
+	const hasMultipleGroups = Object.keys(accountGroups).length > 1
+	const usePerGroupDescription = descriptionMode === "perGroup" && hasMultipleGroups
+
+	const isAssignStepValid =
+		targetMonth.trim().length > 0 &&
+		(!usePerGroupDescription
+			? glDescription.trim().length > 0
+			: Object.keys(accountGroups).length > 0 &&
+				Object.keys(accountGroups).every(
+					(key) => (groupDescriptions[key] ?? "").trim().length > 0,
+				))
+
 	const handleNext = () => {
 		if (step === "select") setStep("assign")
 		else if (step === "assign") {
+			if (!isAssignStepValid) return
 			transferValidationMutation.mutate({
 				transactionIds: selectedTransactions,
 			})
@@ -545,10 +648,21 @@ export function GeneralLedgerTransferDialog({
 	}
 
 	const handleConfirmTransfer = () => {
-		transferMutation.mutate({
-			transactionIds: selectedTransactions,
-			targetMonth,
-			glDescription,
+		if (!usePerGroupDescription) {
+			transferMutation.mutate({
+				transactionIds: selectedTransactions,
+				targetMonth,
+				glDescription,
+			})
+			return
+		}
+
+		bulkTransferMutation.mutate({
+			transfers: Object.entries(accountGroups).map(([groupKey, group]) => ({
+				transactionIds: group.transactions.map((t) => t.id),
+				targetMonth,
+				glDescription: (groupDescriptions[groupKey] ?? "").trim(),
+			})),
 		})
 	}
 
@@ -556,8 +670,11 @@ export function GeneralLedgerTransferDialog({
 		setStep("select")
 		setSelectedTransactions(initialSelectedTransactions)
 		setTargetMonth("")
+		setDescriptionMode("single")
 		setGlDescription("")
+		setGroupDescriptions({})
 		transferMutation.reset()
+		bulkTransferMutation.reset()
 	}
 
 	const handleClose = () => {
@@ -597,22 +714,51 @@ export function GeneralLedgerTransferDialog({
 				{step === "assign" && (
 					<MonthAssignmentStep
 						selectedTransactions={selectedTransactions}
+						accountGroups={accountGroups}
+						isValid={isAssignStepValid}
 						onNext={handleNext}
 						onBack={handleBack}
 						targetMonth={targetMonth}
 						onTargetMonthChange={setTargetMonth}
+						descriptionMode={descriptionMode}
+						onDescriptionModeChange={(mode) => {
+							setDescriptionMode(mode)
+							if (mode === "perGroup" && glDescription.trim().length > 0) {
+								setGroupDescriptions((prev) => {
+									const next = { ...prev }
+									for (const groupKey of Object.keys(accountGroups)) {
+										if (!next[groupKey]?.trim()) {
+											next[groupKey] = glDescription.trim()
+										}
+									}
+									return next
+								})
+							}
+						}}
 						glDescription={glDescription}
 						onGlDescriptionChange={setGlDescription}
+						groupDescriptions={groupDescriptions}
+						onGroupDescriptionChange={(groupKey, description) =>
+							setGroupDescriptions((prev) => ({
+								...prev,
+								[groupKey]: description,
+							}))
+						}
 					/>
 				)}
 
 				{step === "confirm" && (
 					<ConfirmationStep
 						targetMonth={targetMonth}
+						descriptionMode={descriptionMode}
 						glDescription={glDescription}
+						accountGroups={accountGroups}
+						groupDescriptions={groupDescriptions}
 						onConfirm={handleConfirmTransfer}
 						onBack={handleBack}
-						isLoading={transferMutation.isPending}
+						isLoading={
+							transferMutation.isPending || bulkTransferMutation.isPending
+						}
 						validation={transferValidationMutation.data}
 					/>
 				)}

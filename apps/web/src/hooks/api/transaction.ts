@@ -1,4 +1,6 @@
 import type {
+	BulkTransferToGeneralLedgerInput,
+	BulkTransferToGeneralLedgerResponse,
 	GeneralLedgerViewResult,
 	TransactionTransferHistoryList,
 } from "@bir-notebook/shared/models/general-ledger"
@@ -296,6 +298,25 @@ export const useTransferTransactionToGeneralLedger = (
 	return useMutation({
 		mutationFn: (input: TransferToGeneralLedgerInput) =>
 			api.transaction.transfer.toGeneralLedger(input),
+		...buildOptions(
+			queryClient,
+			[transactionGeneralLedgerKeys.details(), transactionKeys.all],
+			options,
+		),
+	})
+}
+
+export const useBulkTransferTransactionToGeneralLedger = (
+	options?: UseMutationOptions<
+		BulkTransferToGeneralLedgerResponse,
+		Error,
+		BulkTransferToGeneralLedgerInput
+	>,
+) => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: BulkTransferToGeneralLedgerInput) =>
+			api.transaction.transfer.toGeneralLedgerBulk(input),
 		...buildOptions(
 			queryClient,
 			[transactionGeneralLedgerKeys.details(), transactionKeys.all],
