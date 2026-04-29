@@ -2,7 +2,7 @@ import { inferAdditionalFields, jwtClient } from "better-auth/client/plugins"
 import { createAuthClient } from "better-auth/react"
 import { getAuthToken, setAuthToken } from "./auth-token"
 
-const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:3333"
+const baseURL = import.meta.env.VITE_API_URL
 
 export const authClient = createAuthClient({
 	baseURL,
