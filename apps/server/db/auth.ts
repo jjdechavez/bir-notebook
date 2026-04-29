@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth"
 import { admin, bearer, jwt } from "better-auth/plugins"
-import type { AppConfig } from "../config.js"
 import type { Pool } from "pg"
+import type { AppConfig } from "../config.js"
 
 export function getAuth(config: AppConfig, pool: Pool) {
 	const auth = betterAuth({

@@ -9,17 +9,17 @@ import {
 	sendRedirect,
 	setResponseStatus,
 } from "h3"
+import { type Selectable, sql } from "kysely"
+import type { Invites } from "../db/types.js"
 import { requireAdmin } from "../middleware/auth.js"
+import { buildPaginationMeta } from "../utils/pagination.js"
+import { signUrl, verifySignedUrl } from "../utils/signed-url.js"
+import { toValidationError } from "../utils/validation.js"
 import {
 	completeInviteSchema,
 	createInviteSchema,
 	updateInviteSchema,
 } from "../validators/invite.js"
-import { type Selectable, sql } from "kysely"
-import type { Invites } from "../db/types.js"
-import { signUrl, verifySignedUrl } from "../utils/signed-url.js"
-import { buildPaginationMeta } from "../utils/pagination.js"
-import { toValidationError } from "../utils/validation.js"
 
 export const createInviteHandler = defineEventHandler({
 	onRequest: [requireAdmin()],
@@ -59,7 +59,7 @@ export const createInviteHandler = defineEventHandler({
 			.values({
 				email: payload.data.email,
 				role: payload.data.role,
-				invited_by_id: event.context.currentUser!.id,
+				invited_by_id: event.context.currentUser?.id as string,
 				status: "pending",
 				created_at: new Date(),
 				updated_at: new Date(),
@@ -265,7 +265,7 @@ export const completeInviteHandler = eventHandler(async (event) => {
 			},
 			headers: event.headers,
 		})
-	} catch (e) {
+	} catch {
 		throw createError({
 			statusCode: 400,
 			message: "Unable to create user",

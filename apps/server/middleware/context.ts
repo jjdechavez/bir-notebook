@@ -1,8 +1,8 @@
+import { randomUUID } from "node:crypto"
 import { eventHandler, setResponseHeader } from "h3"
-import { randomUUID } from "crypto"
 import type { AppConfig } from "../config.js"
-import { getDb, getPool } from "../db/index.js"
 import { getAuth } from "../db/auth.js"
+import { getDb, getPool } from "../db/index.js"
 import { createLogger } from "../utils/logger.js"
 
 export function contextMiddleware(config: AppConfig) {

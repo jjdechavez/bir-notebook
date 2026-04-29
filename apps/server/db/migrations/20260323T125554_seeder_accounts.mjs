@@ -1,4 +1,5 @@
 import { Kysely } from "kysely"
+import { getAuth } from "../auth"
 
 /**
  * @param {Kysely<any>} db
@@ -12,21 +13,26 @@ export async function up(db) {
 		.executeTakeFirst()
 
 	if (!admin) {
-		const now = new Date()
-		await db
-			.insertInto("user")
-			.values({
+		const config = await loadAppConfig(
+			fileURLToPath(new URL(".", import.meta.url)),
+		)
+		const auth = getAuth(config)
+
+		const firstName = "Admin"
+		const lastName = "Acme"
+		const name = `${firstName} ${lastName}`
+		auth.api.createUser({
+			body: {
 				email: adminEmail,
-				password: "admin@Acme",
-				firstName: "Admin",
-				lastName: "Acme",
-				name: "Admin Acme",
+				name: name,
 				role: "admin",
 				emailVerified: true,
-				createdAt: now,
-				updatedAt: now,
-			})
-			.execute()
+				data: {
+					firstName,
+					lastName,
+				},
+			},
+		})
 	}
 }
 
@@ -34,6 +40,6 @@ export async function up(db) {
  * @param {Kysely<any>} db
  * @returns {Promise<void>}
  */
-export async function down(db) {
+export async function down() {
 	// Migration code
 }
