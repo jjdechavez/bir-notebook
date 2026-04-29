@@ -20,8 +20,6 @@ COPY apps/web ./apps/web
 
 # 4. Build the shared package and then the web app
 RUN pnpm --filter @bir-notebook/shared build
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm --filter @bir-notebook/web build
 
 # --- Stage 2: Serve Stage ---
@@ -32,6 +30,8 @@ COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 
 # REPLACE the main config instead of adding to conf.d
 COPY apps/web/nginx.conf /etc/nginx/nginx.conf
+COPY apps/web/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 3000
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/docker-entrypoint.sh"]

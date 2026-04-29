@@ -22,14 +22,20 @@ const ofetchBaseConfig: FetchOptions = {
 	},
 }
 
+const isProd = import.meta.env.PROD
+
 export const request = ofetch.create({
 	...ofetchBaseConfig,
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:3333",
+	baseURL: isProd
+		? ""
+		: import.meta.env.VITE_API_URL || "http://localhost:3333",
 })
 
 export const requestApi = ofetch.create({
 	...ofetchBaseConfig,
-	baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/api`,
+	baseURL: isProd
+		? "/api"
+		: `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/api`,
 	credentials: "include",
 	async onRequest({ request, options }) {
 		console.log("[fetch request]", request, options)
