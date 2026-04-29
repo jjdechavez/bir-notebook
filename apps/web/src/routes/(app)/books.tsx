@@ -343,15 +343,19 @@ function BooksPage() {
 						totalTransaction={totalTransactionCount}
 						bookType={generalLedgerBook.key}
 					>
-						<Tabs defaultValue="transactions" className="gap-6">
+						<Tabs defaultValue="accounts" className="gap-6">
 							<TabsList>
-								<TabsTrigger value="transactions">Enhanced Ledger</TabsTrigger>
 								<TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
+								<TabsTrigger value="transactions">Enhanced Ledger</TabsTrigger>
 								<TabsTrigger value="transfer-history">
 									Transfer History
 								</TabsTrigger>
 								<TabsTrigger value="classic">Classic View</TabsTrigger>
 							</TabsList>
+
+							<TabsContent value="accounts">
+								<ChartOfAccounts />
+							</TabsContent>
 
 							<TabsContent value="transactions">
 								<EnhancedGeneralLedgerWithSidebar
@@ -360,10 +364,6 @@ function BooksPage() {
 									onTransferClick={() => setShowTransferDialog(true)}
 									onExportClick={() => console.log("Export clicked")}
 								/>
-							</TabsContent>
-
-							<TabsContent value="accounts">
-								<ChartOfAccounts />
 							</TabsContent>
 
 							<TabsContent value="transfer-history">
