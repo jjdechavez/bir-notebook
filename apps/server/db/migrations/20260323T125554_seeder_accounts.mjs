@@ -1,5 +1,5 @@
 import { Kysely } from "kysely"
-import { getAuth } from "../auth"
+import { getAuth } from "../auth.js"
 
 /**
  * @param {Kysely<any>} db
@@ -21,7 +21,7 @@ export async function up(db) {
 		const firstName = "Admin"
 		const lastName = "Acme"
 		const name = `${firstName} ${lastName}`
-		auth.api.createUser({
+		await auth.api.createUser({
 			body: {
 				email: adminEmail,
 				name: name,
