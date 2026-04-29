@@ -28,6 +28,7 @@ export async function up(db) {
 				email: adminEmail,
 				name: name,
 				role: "admin",
+				password: "admin@Acme",
 				emailVerified: true,
 				data: {
 					firstName,
