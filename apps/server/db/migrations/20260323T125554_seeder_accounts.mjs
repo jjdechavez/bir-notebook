@@ -1,4 +1,6 @@
+import { fileURLToPath } from "node:url"
 import { Kysely } from "kysely"
+import { loadAppConfig } from "../../config.js"
 import { getAuth } from "../auth.js"
 
 /**
