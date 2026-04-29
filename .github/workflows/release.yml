@@ -34,17 +34,6 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           push: true
-          build-args: |
-            PORT=3333
-            APP_KEY=dummy-key-for-build
-            HOST=0.0.0.0
-            LOG_LEVEL=info
-            DB_HOST=localhost
-            DB_PORT=5432
-            DB_USER=user
-            DB_PASSWORD=password
-            DB_DATABASE=db
-            FE_URL=http://localhost:80
           tags: |
             ghcr.io/${{ github.repository }}-web:latest
             ghcr.io/${{ github.repository }}-web:${{ steps.get_version.outputs.VERSION }}
@@ -60,44 +49,42 @@ jobs:
             ghcr.io/${{ github.repository }}-server:latest
             ghcr.io/${{ github.repository }}-server:${{ steps.get_version.outputs.VERSION }}
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # deploy:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Install SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+  #     - name: Install SSH Key
+  #       uses: webfactory/ssh-agent@v0.9.0
+  #       with:
+  #         ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
-      - name: Add Host to known_hosts
-        run: ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
+  #     - name: Add Host to known_hosts
+  #       run: ssh-keyscan -H ${{ secrets.DO_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Copy Docker Compose file
-        run: scp ${{ github.workspace }}/docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml
+  #     - name: Copy Docker Compose file
+  #       run: scp ${{ github.workspace }}/docker-compose.prod.yml root@${{ secrets.DO_HOST }}:/opt/bir-notebook/docker-compose.prod.yml
 
-      - name: Deploy to Digital Ocean
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          ssh root@${{ secrets.DO_HOST }} << EOF
-            cd /opt/bir-notebook
+  #     - name: Deploy to Digital Ocean
+  #       run: |
+  #         VERSION=${GITHUB_REF#refs/tags/}
+  #         ssh root@${{ secrets.DO_HOST }} << EOF
+  #           cd /opt/bir-notebook
             
-            echo "APP_VERSION=$VERSION" > .env
-            echo "NODE_ENV=production" >> .env
+  #           echo "APP_VERSION=$VERSION" > .env
+  #           echo "NODE_ENV=production" >> .env
             
-            # Update Server Secrets in .env
-            echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-            echo "FE_URL=${{ secrets.FE_URL }}" >> .env
+  #           # Update Server Secrets in .env
+  #           echo "DATABASE_URL=${{ secrets.DB_DATABASE }}" >> .env
+  #           echo "BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}" >> .env
+  #           echo "FE_URL=${{ secrets.FE_URL }}" >> .env
+  #           echo "CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}" >> .env
+  #           echo "AUTH_TRUSTED_ORIGINS=${{ secrets.AUTH_TRUSTED_ORIGINS }}" >> .env
             
-            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
-            docker system prune -f
-          EOF
+  #           docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+  #           docker compose -f docker-compose.prod.yml pull
+  #           docker compose -f docker-compose.prod.yml up -d
+  #           docker system prune -f
+  #         EOF
