@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { useAuth } from "../lib/auth"
+import { authClient } from "@/lib/auth-client"
 
 export const Route = createFileRoute("/")({
 	beforeLoad: ({ context }) => {
@@ -15,9 +15,9 @@ export const Route = createFileRoute("/")({
 })
 
 function HomeComponent() {
-	const { isAuthenticated } = useAuth()
+	const { data } = authClient.useSession()
 
-	if (isAuthenticated) {
+	if (data) {
 		return null // Will redirect via beforeLoad
 	}
 
