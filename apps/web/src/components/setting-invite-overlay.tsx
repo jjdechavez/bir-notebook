@@ -161,8 +161,7 @@ export function CopyInviteLinkAction({ inviteId }: { inviteId: string }) {
 			copyToClipboard(link.link)
 			toast.success("Link copied to clipboard")
 		},
-		onError: (e) => {
-			console.error(e)
+		onError: () => {
 			toast.error("Failed to generate invite link")
 		},
 	})

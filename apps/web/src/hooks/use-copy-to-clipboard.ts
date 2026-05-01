@@ -25,7 +25,7 @@ export function useCopyToClipboard({
 } = {}) {
 	const [isCopied, setIsCopied] = React.useState(false)
 
-	const copyToClipboard = (value: string) => {
+	const copyToClipboard = async (value: string) => {
 		if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
 			fallbackCopyTextToClipboard(value)
 			return
