@@ -263,7 +263,6 @@ export const completeInviteHandler = eventHandler(async (event) => {
 					lastName: payload.data.lastName,
 				},
 			},
-			headers: event.headers,
 		})
 	} catch {
 		throw createError({
