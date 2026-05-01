@@ -9,14 +9,8 @@ export const completeInviteSchema = z
 	.object({
 		firstName: z.string().max(180),
 		lastName: z.string().max(180),
-		password: z
-			.string()
-			.min(8)
-			.regex(/(?=.*\d)/),
-		password_confirmation: z
-			.string()
-			.min(8)
-			.regex(/(?=.*\d)/),
+		password: z.string().min(8),
+		password_confirmation: z.string().min(8),
 	})
 	.refine((data) => data.password === data.password_confirmation, {
 		message: "Passwords do not match",
