@@ -1,9 +1,32 @@
-import { SettingTab } from "@/components/setting-tab"
+import { formatOption } from "@bir-notebook/shared/models/common"
+import {
+	type InviteListQuery,
+	inviteStatusOptions,
+} from "@bir-notebook/shared/models/invite"
+import { userRoleOptions } from "@bir-notebook/shared/models/user"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute } from "@tanstack/react-router"
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	type PaginationState,
+	useReactTable,
+} from "@tanstack/react-table"
+import { MoreHorizontal } from "lucide-react"
+import { useState } from "react"
 import {
 	DataTable,
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/components/data-table"
+import { GenericErrorComponent } from "@/components/error-component"
+import { SettingPendingComponent } from "@/components/pending-component"
+import {
+	CopyInviteLinkAction,
+	CreateInvite,
+	EditInvite,
+} from "@/components/setting-invite-overlay"
+import { SettingTab } from "@/components/setting-tab"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
@@ -12,34 +35,11 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useFilters } from "@/hooks/use-filters"
-import type { Invite } from "@/types/invite"
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
-import {
-	getCoreRowModel,
-	useReactTable,
-	type ColumnDef,
-	type PaginationState,
-} from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
-import { userSettingTabs } from "./settings.users"
-import { DEFAULT_LIST_META } from "@/lib/api"
-import {
-	CopyInviteLinkAction,
-	CreateInvite,
-	EditInvite,
-} from "@/components/setting-invite-overlay"
-import { useState } from "react"
-import { SettingPendingComponent } from "@/components/pending-component"
-import { GenericErrorComponent } from "@/components/error-component"
 import { invitesOptions } from "@/hooks/api/invite"
-import {
-	inviteStatusOptions,
-	type InviteListQuery,
-} from "@bir-notebook/shared/models/invite"
-import { formatOption } from "@bir-notebook/shared/models/common"
-import { userRoleOptions } from "@bir-notebook/shared/models/user"
+import { useFilters } from "@/hooks/use-filters"
+import { DEFAULT_LIST_META } from "@/lib/api"
+import type { Invite } from "@/types/invite"
+import { userSettingTabs } from "./settings.users"
 
 export const Route = createFileRoute("/(app)/settings/invites")({
 	validateSearch: () => ({}) as Partial<PaginationState> & InviteListQuery,
@@ -95,31 +95,29 @@ const columns: ColumnDef<Invite>[] = [
 		cell: ({ row, table }) => {
 			const data = row.original
 			return (
-				<>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant={"ghost"}>
-								<span className="sr-only">Open menu</span>
-								<MoreHorizontal />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent>
-							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							{data.status !== "accepted" ? (
-								<>
-									<CopyInviteLinkAction inviteId={data.id.toString()} />
-									<DropdownMenuItem
-										onClick={() => table.options.meta?.setEdit?.(data)}
-									>
-										Edit
-									</DropdownMenuItem>
-								</>
-							) : (
-								<DropdownMenuItem>No Available Actions</DropdownMenuItem>
-							)}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant={"ghost"}>
+							<span className="sr-only">Open menu</span>
+							<MoreHorizontal />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent>
+						<DropdownMenuLabel>Actions</DropdownMenuLabel>
+						{data.status !== "accepted" ? (
+							<>
+								<CopyInviteLinkAction inviteId={data.id.toString()} />
+								<DropdownMenuItem
+									onClick={() => table.options.meta?.setEdit?.(data)}
+								>
+									Edit
+								</DropdownMenuItem>
+							</>
+						) : (
+							<DropdownMenuItem>No Available Actions</DropdownMenuItem>
+						)}
+					</DropdownMenuContent>
+				</DropdownMenu>
 			)
 		},
 	},

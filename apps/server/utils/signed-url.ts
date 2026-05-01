@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto"
+import { createHmac, timingSafeEqual } from "node:crypto"
 
 function hmacSignature(value: string, secret: string) {
 	return createHmac("sha256", secret).update(value).digest("hex")
