@@ -1,19 +1,23 @@
-import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router"
-import { PublicNotFound } from "@/components/public-not-found"
-import { useEffect, useState } from "react"
 import { useForm } from "@tanstack/react-form"
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router"
+import { GalleryVerticalEnd, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
 import { z } from "zod"
-
+import { PublicNotFound } from "@/components/public-not-found"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
 	Field,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field"
-import { GalleryVerticalEnd, Loader2 } from "lucide-react"
 import { Input, PasswordInput } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/api"
 import { authClient } from "@/lib/auth-client"
@@ -118,15 +122,15 @@ function LoginComponent() {
 					>
 						<FieldGroup>
 							<div className="flex flex-col items-center gap-2 text-center">
-								<a
-									href="#"
+								<Link
+									to="/"
 									className="flex flex-col items-center gap-2 font-medium"
 								>
 									<div className="flex size-8 items-center justify-center rounded-md">
 										<GalleryVerticalEnd className="size-6" />
 									</div>
 									<span className="sr-only">BIR Notebook</span>
-								</a>
+								</Link>
 								<h1 className="text-xl font-bold">Welcome to BIR Notebook</h1>
 								{setup === "success" && (
 									<Alert variant="success">
@@ -142,9 +146,8 @@ function LoginComponent() {
 									</Alert>
 								)}
 							</div>
-							<form.Field
-								name="email"
-								children={(field) => (
+							<form.Field name="email">
+								{(field) => (
 									<Field data-invalid={field.state.meta.errors.length > 0}>
 										<FieldLabel htmlFor={field.name}>Email</FieldLabel>
 										<Input
@@ -163,19 +166,18 @@ function LoginComponent() {
 										)}
 									</Field>
 								)}
-							/>
-							<form.Field
-								name="password"
-								children={(field) => (
+							</form.Field>
+							<form.Field name="password">
+								{(field) => (
 									<Field data-invalid={field.state.meta.errors.length > 0}>
 										<div className="flex items-center">
 											<FieldLabel htmlFor={field.name}>Password</FieldLabel>
-											<a
-												href="#"
+											<Link
+												to="/"
 												className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
 											>
 												Forgot your password?
-											</a>
+											</Link>
 										</div>
 										<PasswordInput
 											id={field.name}
@@ -190,7 +192,7 @@ function LoginComponent() {
 										)}
 									</Field>
 								)}
-							/>
+							</form.Field>
 							<Field>
 								<Button type="submit" form="login-form" disabled={isSubmitting}>
 									{isSubmitting ? (

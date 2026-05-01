@@ -1,3 +1,9 @@
+import { inviteCompleteInputSchema } from "@bir-notebook/shared/models/invite"
+import { useForm } from "@tanstack/react-form"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { GalleryVerticalEnd } from "lucide-react"
+import { toast } from "sonner"
 import PublicLayout from "@/components/public-layout"
 import { PublicNotFound } from "@/components/public-not-found"
 import { Button } from "@/components/ui/button"
@@ -8,15 +14,9 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import type { Invite } from "@/types/invite"
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { GalleryVerticalEnd } from "lucide-react"
-import { useForm } from "@tanstack/react-form"
-import { toast } from "sonner"
+import { Input, PasswordInput } from "@/components/ui/input"
 import { inviteOptions, useCompleteInvite } from "@/hooks/api/invite"
-import { inviteCompleteInputSchema } from "@bir-notebook/shared/models/invite"
+import type { Invite } from "@/types/invite"
 
 export const Route = createFileRoute("/(public)/invites/$inviteId/confirm")({
 	loader: ({ context, params }) => {
@@ -42,12 +42,12 @@ function InviteConfrim() {
 function CreatedAccount() {
 	return (
 		<PublicLayout>
-			<a href="#" className="flex flex-col items-center gap-2 font-medium">
+			<Link to="/" className="flex flex-col items-center gap-2 font-medium">
 				<div className="flex size-8 items-center justify-center rounded-md">
 					<GalleryVerticalEnd className="size-6" />
 				</div>
-				<span className="sr-only">Acme Inc.</span>
-			</a>
+				<span className="sr-only">BIR Notebook</span>
+			</Link>
 			<h1 className="text-xl font-bold">
 				Your account has been successfully set up
 			</h1>
@@ -107,15 +107,15 @@ function AccountForm({ invite }: { invite: Invite }) {
 			>
 				<FieldGroup>
 					<div className="flex flex-col items-center gap-2 text-center">
-						<a
-							href="#"
+						<Link
+							to="/login"
 							className="flex flex-col items-center gap-2 font-medium"
 						>
 							<div className="flex size-8 items-center justify-center rounded-md">
 								<GalleryVerticalEnd className="size-6" />
 							</div>
-							<span className="sr-only">Acme Inc.</span>
-						</a>
+							<span className="sr-only">BIR Notebook</span>
+						</Link>
 						<h1 className="text-xl font-bold">Setup your account.</h1>
 					</div>
 
@@ -130,9 +130,8 @@ function AccountForm({ invite }: { invite: Invite }) {
 						/>
 					</Field>
 
-					<form.Field
-						name="firstName"
-						children={(field) => (
+					<form.Field name="firstName">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>First Name</FieldLabel>
 								<Input
@@ -150,11 +149,10 @@ function AccountForm({ invite }: { invite: Invite }) {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="lastName"
-						children={(field) => (
+					<form.Field name="lastName">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
 								<Input
@@ -172,14 +170,13 @@ function AccountForm({ invite }: { invite: Invite }) {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="password"
-						children={(field) => (
+					<form.Field name="password">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Password</FieldLabel>
-								<Input
+								<PasswordInput
 									id={field.name}
 									name={field.name}
 									type="password"
@@ -194,16 +191,15 @@ function AccountForm({ invite }: { invite: Invite }) {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="password_confirmation"
-						children={(field) => (
+					<form.Field name="password_confirmation">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>
 									Password Confirmation
 								</FieldLabel>
-								<Input
+								<PasswordInput
 									id={field.name}
 									name={field.name}
 									type="password"
@@ -218,7 +214,7 @@ function AccountForm({ invite }: { invite: Invite }) {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
 					<Field>
 						<Button type="submit" form="complete-form">

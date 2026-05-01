@@ -1,3 +1,14 @@
+import { useForm } from "@tanstack/react-form"
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router"
+import { GalleryVerticalEnd } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { z } from "zod"
 import PublicLayout from "@/components/public-layout"
 import { PublicNotFound } from "@/components/public-not-found"
 import { Button } from "@/components/ui/button"
@@ -9,14 +20,8 @@ import {
 	FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
-import { GalleryVerticalEnd } from "lucide-react"
-import { useState } from "react"
-import { useForm } from "@tanstack/react-form"
-import { toast } from "sonner"
-import { z } from "zod"
-import { authClient } from "@/lib/auth-client"
 import { api } from "@/lib/api"
+import { authClient } from "@/lib/auth-client"
 
 const schema = z
 	.object({
@@ -94,12 +99,12 @@ function SetupPage() {
 		return (
 			<PublicLayout>
 				<div className="flex flex-col items-center gap-4 text-center">
-					<a href="#" className="flex flex-col items-center gap-2 font-medium">
+					<Link to="/" className="flex flex-col items-center gap-2 font-medium">
 						<div className="flex size-8 items-center justify-center rounded-md">
 							<GalleryVerticalEnd className="size-6" />
 						</div>
 						<span className="sr-only">BIR Notebook</span>
-					</a>
+					</Link>
 					<h1 className="text-xl font-bold">Setup Complete</h1>
 					<FieldDescription>
 						Your admin account has been created. Redirecting you to login...
@@ -121,24 +126,23 @@ function SetupPage() {
 			>
 				<FieldGroup>
 					<div className="flex flex-col items-center gap-2 text-center">
-						<a
-							href="#"
+						<Link
+							to="/"
 							className="flex flex-col items-center gap-2 font-medium"
 						>
 							<div className="flex size-8 items-center justify-center rounded-md">
 								<GalleryVerticalEnd className="size-6" />
 							</div>
 							<span className="sr-only">BIR Notebook</span>
-						</a>
+						</Link>
 						<h1 className="text-xl font-bold">Welcome to BIR Notebook</h1>
 						<FieldDescription>
 							Create your admin account to get started
 						</FieldDescription>
 					</div>
 
-					<form.Field
-						name="firstName"
-						children={(field) => (
+					<form.Field name="firstName">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>First Name</FieldLabel>
 								<Input
@@ -156,11 +160,10 @@ function SetupPage() {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="lastName"
-						children={(field) => (
+					<form.Field name="lastName">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
 								<Input
@@ -178,11 +181,10 @@ function SetupPage() {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="email"
-						children={(field) => (
+					<form.Field name="email">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Email</FieldLabel>
 								<Input
@@ -201,11 +203,10 @@ function SetupPage() {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="password"
-						children={(field) => (
+					<form.Field name="password">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Password</FieldLabel>
 								<Input
@@ -223,11 +224,10 @@ function SetupPage() {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
-					<form.Field
-						name="password_confirmation"
-						children={(field) => (
+					<form.Field name="password_confirmation">
+						{(field) => (
 							<Field data-invalid={field.state.meta.errors.length > 0}>
 								<FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
 								<Input
@@ -245,7 +245,7 @@ function SetupPage() {
 								)}
 							</Field>
 						)}
-					/>
+					</form.Field>
 
 					<Field>
 						<Button type="submit" form="setup-form">
