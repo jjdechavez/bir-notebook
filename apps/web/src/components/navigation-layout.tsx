@@ -1,10 +1,11 @@
 import { AppNavbar } from "@/components/app-navbar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { authClient } from "@/lib/auth-client"
 import { getNavigationItems } from "@/lib/navigation-data"
 import { useUserPreferencesContext } from "@/lib/user-preferences"
+import { Spinner } from "./ui/spinner"
 
 interface NavigationLayoutProps {
 	children: React.ReactNode
@@ -12,10 +13,16 @@ interface NavigationLayoutProps {
 
 export function NavigationLayout({ children }: NavigationLayoutProps) {
 	const { navigationLayout, isLoading } = useUserPreferencesContext()
-	const { data, isPending } = authClient.useSession()
+	const { data, isPending, isRefetching } = authClient.useSession()
 
-	if (isPending && !data?.user && isLoading) {
-		return null // or loading state
+	const fetchingSession = isPending || isRefetching
+
+	if (fetchingSession && !data?.user && isLoading) {
+		return (
+			<div className="flex min-h-svh w-full items-center justify-center">
+				<Spinner />
+			</div>
+		)
 	}
 
 	const navigationItems = getNavigationItems(data?.user)
