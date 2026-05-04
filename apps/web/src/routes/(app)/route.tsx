@@ -1,7 +1,7 @@
-import { UserPreferencesProvider } from "@/lib/user-preferences"
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
 import { NavigationLayout } from "@/components/navigation-layout"
 import { Spinner } from "@/components/ui/spinner"
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
+import { UserPreferencesProvider } from "@/lib/user-preferences"
 
 export const Route = createFileRoute("/(app)")({
 	beforeLoad: async ({ context, location }) => {

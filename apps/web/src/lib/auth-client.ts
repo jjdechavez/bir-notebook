@@ -34,6 +34,9 @@ export const authClient = createAuthClient({
 			if (token) setAuthToken(token)
 		},
 	},
+	sessionOptions: {
+		refetchOnWindowFocus: true,
+	},
 })
 
 export type SessionClient = (typeof authClient)["$Infer"]["Session"]

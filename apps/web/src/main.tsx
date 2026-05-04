@@ -44,8 +44,8 @@ function RouterWithAuth() {
 				...TanStackQueryProviderContext,
 				auth: {
 					user: auth.data?.user as SessionClient["user"],
-					isAuthenticated: !!auth.data?.session,
-					isLoading: auth.isPending,
+					isAuthenticated: !!auth.data?.session && !!auth.data?.user,
+					isLoading: auth.isPending || auth.isRefetching,
 				},
 			}}
 		/>

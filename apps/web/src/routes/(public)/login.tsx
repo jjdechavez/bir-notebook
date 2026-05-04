@@ -67,18 +67,16 @@ export const Route = createFileRoute("/(public)/login")({
 
 function LoginComponent() {
 	const navigate = useNavigate()
-	const { setup } = Route.useSearch()
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const { setup, redirect } = Route.useSearch()
 	const [loginError, setLoginError] = useState<string | null>(null)
 
 	const session = authClient.useSession()
 
 	useEffect(() => {
-		if (session.data?.session && isSubmitting) {
-			setIsSubmitting(false)
-			navigate({ to: "/dashboard" })
+		if (session.data?.session) {
+			navigate({ to: redirect || "/dashboard" })
 		}
-	}, [session.data, isSubmitting, navigate])
+	}, [session.data, navigate, redirect])
 
 	const form = useForm({
 		defaultValues: {
@@ -91,7 +89,6 @@ function LoginComponent() {
 			onBlur: schema,
 		},
 		onSubmit: async ({ value }) => {
-			setIsSubmitting(true)
 			setLoginError(null)
 			await authClient.signIn.email(
 				{
@@ -100,7 +97,6 @@ function LoginComponent() {
 				},
 				{
 					onError: (ctx) => {
-						setIsSubmitting(false)
 						setLoginError(ctx.error.message)
 					},
 				},
@@ -194,16 +190,24 @@ function LoginComponent() {
 								)}
 							</form.Field>
 							<Field>
-								<Button type="submit" form="login-form" disabled={isSubmitting}>
-									{isSubmitting ? (
-										<>
-											<Loader2 className="size-4 animate-spin" />
-											Logging in...
-										</>
-									) : (
-										"Login"
+								<form.Subscribe selector={(state) => [state.isSubmitting]}>
+									{([isSubmitting]) => (
+										<Button
+											type="submit"
+											form="login-form"
+											disabled={isSubmitting}
+										>
+											{isSubmitting ? (
+												<>
+													<Loader2 className="size-4 animate-spin" />
+													Logging in...
+												</>
+											) : (
+												"Login"
+											)}
+										</Button>
 									)}
-								</Button>
+								</form.Subscribe>
 							</Field>
 						</FieldGroup>
 					</form>

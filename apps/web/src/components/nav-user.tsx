@@ -3,9 +3,9 @@ import {
 	IconLogout,
 	IconUserCircle,
 } from "@tabler/icons-react"
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useNavigate } from "@tanstack/react-router"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -21,13 +21,14 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar"
-import { useNavigate } from "@tanstack/react-router"
+import { useAuthActions } from "@/hooks/use-auth-actions"
 import { authClient } from "@/lib/auth-client"
 
 export function NavUser() {
 	const { isMobile } = useSidebar()
 	const navigate = useNavigate()
 	const { data } = authClient.useSession()
+	const { signOut } = useAuthActions()
 
 	const user = {
 		name: data?.user.name,
@@ -89,12 +90,7 @@ export function NavUser() {
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							onClick={async () => {
-								await authClient.signOut()
-								navigate({ to: "/login" })
-							}}
-						>
+						<DropdownMenuItem onClick={() => signOut()}>
 							<IconLogout />
 							Log out
 						</DropdownMenuItem>
