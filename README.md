@@ -40,10 +40,23 @@ Available in `/books` with separate tabs per book:
 - **General Journal** — non-cash adjustments/corrections
 - **General Ledger** — account-by-account summary
 
+#### Columnar Book Layout
+
+To replicate actual columnar books, each book can be configured based on how many columns are needed:
+- **6 columns** = 4 user-defined columns + `Sundry` + `Sundry Amount`
+- **10 columns** = 8 user-defined columns + `Sundry` + `Sundry Amount`
+- **14 columns** = 12 user-defined columns + `Sundry` + `Sundry Amount`
+
+Rule:
+- The last two columns are always reserved for `Sundry` and `Sundry Amount`.
+
 #### Books Features
 
 - **Date range filtering** (From/To)
 - **Search and filtering** by description, reference, or amount
+- **Recording status indicator** to quickly see if a transaction is already posted in the selected book
+- **Status labels**: `Recorded` (posted to book) and `Not Recorded` (not yet posted)
+- **Filter by status** to review pending or unposted transactions faster
 - **Real-time totals** for debit/credit balances per book
 - **Export options**
   - PDF (BIR-ready format) (TODO)
