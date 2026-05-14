@@ -84,45 +84,37 @@ export function DataTable<TData, TValue>({
 
 	let rowContent = null
 	if (dataStatus === "pending") {
-		rowContent = (
-			<>
-				{Array.from({ length: 3 }).map((_, index) => (
-					<TableRow key={`skeleton-${index}`} className="animate-pulse">
-						{columns.map((_, cIndex) => (
-							<TableCell key={`skeleton-column-${cIndex}`}>
-								<div>
-									<div className="h-4 rounded bg-muted" />
-								</div>
-							</TableCell>
-						))}
-					</TableRow>
+		rowContent = Array.from({ length: 3 }).map((_, index) => (
+			<TableRow key={`skeleton-${index}`} className="animate-pulse">
+				{columns.map((_, cIndex) => (
+					<TableCell key={`skeleton-column-${cIndex}`}>
+						<div>
+							<div className="h-4 rounded bg-muted" />
+						</div>
+					</TableCell>
 				))}
-			</>
-		)
+			</TableRow>
+		))
 	} else if (table.getRowModel().rows.length > 0) {
-		rowContent = (
-			<>
-				{table.getRowModel().rows.map((row) => (
-					<TableRow
-						key={row.id}
-						data-state={row.getIsSelected() && "selected"}
-						className="hover:bg-muted/50"
-					>
-						{row.getVisibleCells().map((cell) => {
-							const actionColumn = cell.column.id === "actions"
-							return (
-								<TableCell
-									key={cell.id}
-									className={cn(actionColumn && "text-right", "p-3")}
-								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</TableCell>
-							)
-						})}
-					</TableRow>
-				))}
-			</>
-		)
+		rowContent = table.getRowModel().rows.map((row) => (
+			<TableRow
+				key={row.id}
+				data-state={row.getIsSelected() && "selected"}
+				className="divide-x divide-gray-3000 hover:bg-muted/50"
+			>
+				{row.getVisibleCells().map((cell) => {
+					const actionColumn = cell.column.id === "actions"
+					return (
+						<TableCell
+							key={cell.id}
+							className={cn(actionColumn && "text-right", "p-2")}
+						>
+							{flexRender(cell.column.columnDef.cell, cell.getContext())}
+						</TableCell>
+					)
+				})}
+			</TableRow>
+		))
 	} else if (table.getRowModel().rows.length === 0) {
 		rowContent = (
 			<TableRow>
@@ -135,11 +127,14 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className={cn(className)} {...props}>
-			<div className="overflow-hidden rounded-md border">
+			<div className="overflow-hidden border">
 				<Table>
-					<TableHeader className="bg-muted">
+					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
+							<TableRow
+								key={headerGroup.id}
+								className="bg-muted divide-x divide-gray-300"
+							>
 								{headerGroup.headers.map((header) => {
 									const actionColumn = header.id === "actions"
 									return (
