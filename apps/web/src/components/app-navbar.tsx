@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router"
+import { BookOpen } from "lucide-react"
 import { useState } from "react"
 import { NavUserNavbar } from "@/components/nav-user-navbar"
 import { Button } from "@/components/ui/button"
@@ -13,31 +14,46 @@ export function AppNavbar({ navigationItems }: AppNavbarProps) {
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-			<div className="container h-14 flex items-center px-4 md:px-0 mx-auto">
+			<div className="container flex items-center justify-between px-6 md:px-0 mx-auto py-4">
 				{/* Logo */}
 				<div className="mr-4 flex">
-					<a className="mr-6 flex items-center space-x-2" href="/">
-						<div className="h-6 w-6 bg-primary rounded"></div>
-						<span className="font-bold">BIR Notebook</span>
+					<a className="mr-6 flex items-center" href="/">
+						<BookOpen className="h-8 w-8 text-primary" />
 					</a>
+					<div>
+						<h1 className="text-xl font-semibold">BIR Notebook</h1>
+						<p className="text-sm text-gray-500 hidden md:block">
+							Philippine Bookkeeping for Freelancers
+						</p>
+					</div>
 				</div>
 
 				{/* Desktop Navigation */}
-				<nav className="hidden md:flex flex-1 items-center space-x-6 text-sm font-medium">
-					{navigationItems.map((item) => (
-						<Link
-							key={item.url}
-							to={item.url}
-							className="transition-colors hover:text-foreground/80 text-foreground/60"
-						>
-							{item.title}
-						</Link>
-					))}
-				</nav>
+				<div className="flex space-x-4">
+					<nav className="hidden md:flex flex-1 items-center space-x-4 text-sm font-medium">
+						{navigationItems.map((item) => {
+							const Icon = item.icon
 
-				{/* Account Menu */}
-				<div className="flex flex-1 items-center justify-end space-x-2">
-					<NavUserNavbar />
+							return (
+								<Link key={item.url} to={item.url}>
+									{({ isActive }) => (
+										<Button
+											variant={isActive ? "default" : "secondary"}
+											className="inline-flex items-center gap-2 transition-colors"
+										>
+											<Icon className="h-4 w-4" />
+											<span>{item.title}</span>
+										</Button>
+									)}
+								</Link>
+							)
+						})}
+					</nav>
+
+					{/* Account Menu */}
+					<div className="">
+						<NavUserNavbar />
+					</div>
 				</div>
 
 				{/* Mobile Menu Button */}

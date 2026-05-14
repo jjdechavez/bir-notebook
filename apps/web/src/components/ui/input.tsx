@@ -1,6 +1,6 @@
+import { EyeIcon, EyeOffIcon } from "lucide-react"
 import * as React from "react"
 import { useDebouncedCallback } from "use-debounce"
-import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import {
@@ -87,4 +87,4 @@ function PasswordInput({ className, ...props }: React.ComponentProps<"input">) {
 	)
 }
 
-export { Input, DebounceInput, PasswordInput }
+export { DebounceInput, Input, PasswordInput }
