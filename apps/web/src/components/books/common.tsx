@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select"
-import { getColorClasses } from "./utils"
+import { COLUMNAR_FIXED_COLUMNS, getColorClasses } from "./utils"
 
 type BookCountedColumnFilterProps = {
 	count: number
@@ -36,7 +36,8 @@ export function BookCountedColumnFilter(props: BookCountedColumnFilterProps) {
 				</Select>
 			</div>
 			<div className="text-sm text-muted-foreground">
-				{props.count} counted columns (Reference + Cash + {props.count - 3}{" "}
+				{props.count} counted columns (Reference + Cash +
+				 {props.count - COLUMNAR_FIXED_COLUMNS}{" "}
 				chart of accounts + Sundry + Sundry Amount)
 			</div>
 		</div>

@@ -1,36 +1,38 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import type { ColumnDef } from "@tanstack/react-table"
 import { createColumnHelper } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { TransactionActions } from "../transaction-actions"
-import { StatusBadge } from "../status-badge"
-import { getChartOfAccounts } from "../utils"
-import type { ColumnDef } from "@tanstack/react-table"
+import { cn } from "@/lib/utils"
 import type { Transaction } from "@/types/transaction"
+import { StatusBadge } from "../status-badge"
+import { TransactionActions } from "../transaction-actions"
+import {
+	COLUMNAR_FIXED_COLUMNS,
+	type ColumnarBookConfig,
+	getChartOfAccounts,
+} from "../utils"
 
 const columnHelper = createColumnHelper<Transaction>()
-
-const DEFAULT_COLUMN_COUNT = 6
 
 export const createCashReceiptsColumns = (
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void,
 	transactions: Transaction[],
-	columnCount: number = DEFAULT_COLUMN_COUNT,
+	config: ColumnarBookConfig,
 ): ColumnDef<Transaction>[] => {
 	const chartOfAccounts = getChartOfAccounts(transactions)
-	const cashAccount = chartOfAccounts.find(
-		(account) =>
-			account.name.toLowerCase().includes("cash") || account.code === "1000",
-	)
-	const otherAccounts = chartOfAccounts.filter(
-		(account) =>
-			(!account.name.toLowerCase().includes("cash") &&
-				account.code !== "1000") ||
-			account.id !== cashAccount?.id,
-	)
-
-	const accountColumnsToShow = columnCount - 3
-	const displayAccounts = otherAccounts.slice(0, accountColumnsToShow)
-	const remainingAccountSlots = accountColumnsToShow - displayAccounts.length
+	const configuredColumns = config.columnSize - COLUMNAR_FIXED_COLUMNS
+	const selectedCodes = config.columns.slice(0, configuredColumns)
+	const displayAccounts = selectedCodes.map((code, index) => {
+		const account = chartOfAccounts.find((entry) => entry.code === code)
+		return (
+			account ?? {
+				id: `configured-${code}-${index}`,
+				name: `Account ${code}`,
+				code,
+			}
+		)
+	})
+	const remainingAccountSlots = configuredColumns - displayAccounts.length
 	const placeholderAccounts = Array.from(
 		{ length: remainingAccountSlots },
 		(_, i) => ({
@@ -65,7 +67,10 @@ export const createCashReceiptsColumns = (
 
 		columnHelper.accessor("transactionDate", {
 			header: "Date",
-			cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+			cell: (info) =>
+				new Date(info.getValue()).toLocaleString("default", {
+					dateStyle: "medium",
+				}),
 		}),
 
 		columnHelper.display({
@@ -75,7 +80,6 @@ export const createCashReceiptsColumns = (
 				<div className="flex items-center gap-2">
 					<div className="flex-1">
 						<p className="font-medium">{row.original.description}</p>
-						<p className="text-sm text-muted-foreground">#{row.original.id}</p>
 					</div>
 					<StatusBadge recorded={!!row.original.recorded} />
 				</div>
@@ -88,34 +92,34 @@ export const createCashReceiptsColumns = (
 			cell: ({ row }) => row.original.referenceNumber || "-",
 		}),
 
-		columnHelper.display({
-			id: "debitCash",
-			header: () => <div className="text-right">Debit Cash</div>,
-			cell: ({ row }) => (
-				<div className="text-right font-medium text-success-foreground">
-					{row.original.debitAccount?.name?.toLowerCase().includes("cash")
-						? formatCentsToCurrency(row.original.amount)
-						: "-"}
-				</div>
-			),
-		}),
-
 		...allAccountColumns.map((account) =>
 			columnHelper.display({
-				id: `credit-${account.id}`,
+				id: `credit-${String(account.id)}`,
 				header: () => (
 					<div className="text-right text-xs">
 						<div>{account.name}</div>
-						<div className="text-gray-500">(Credit)</div>
 					</div>
 				),
-				cell: ({ row }) => (
-					<div className="text-right font-medium text-destructive-foreground">
-						{row.original.creditAccount?.id === account.id
-							? formatCentsToCurrency(row.original.amount)
-							: "-"}
-					</div>
-				),
+				cell: ({ row }) => {
+					const matchedCreditAccount =
+						row.original.creditAccount?.code === account.code
+					const matchedDebitAccount =
+						row.original.debitAccount?.code === account.code
+
+					const hasMatched = matchedCreditAccount || matchedDebitAccount
+
+					return (
+						<div
+							className={cn(
+								"text-right font-medium",
+								matchedCreditAccount && "text-destructive",
+								matchedDebitAccount && "text-success",
+							)}
+						>
+							{hasMatched ? formatCentsToCurrency(row.original.amount) : "-"}
+						</div>
+					)
+				},
 			}),
 		),
 
@@ -127,7 +131,7 @@ export const createCashReceiptsColumns = (
 					row.original.creditAccount?.name &&
 					!row.original.creditAccount.name.toLowerCase().includes("cash") &&
 					!allAccountColumns.some(
-						(acc) => acc.id === row.original.creditAccount?.id,
+						(acc) => acc.code === row.original.creditAccount?.code,
 					)
 				return (
 					<div className="text-right">
@@ -145,10 +149,10 @@ export const createCashReceiptsColumns = (
 					row.original.creditAccount?.name &&
 					!row.original.creditAccount.name.toLowerCase().includes("cash") &&
 					!allAccountColumns.some(
-						(acc) => acc.id === row.original.creditAccount?.id,
+						(acc) => acc.code === row.original.creditAccount?.code,
 					)
 				return (
-					<div className="text-right font-medium text-red-600">
+					<div className="text-right font-medium text-destructive">
 						{isSundry ? formatCentsToCurrency(row.original.amount) : "-"}
 					</div>
 				)
