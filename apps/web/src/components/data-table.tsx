@@ -100,7 +100,7 @@ export function DataTable<TData, TValue>({
 			<TableRow
 				key={row.id}
 				data-state={row.getIsSelected() && "selected"}
-				className="divide-x divide-gray-3000 hover:bg-muted/50"
+				className="divide-x divide-border hover:bg-muted/50"
 			>
 				{row.getVisibleCells().map((cell) => {
 					const actionColumn = cell.column.id === "actions"
@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow
 								key={headerGroup.id}
-								className="bg-muted divide-x divide-gray-300"
+								className="bg-muted divide-x divide-border"
 							>
 								{headerGroup.headers.map((header) => {
 									const actionColumn = header.id === "actions"
