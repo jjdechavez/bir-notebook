@@ -6,6 +6,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table"
 import { transactionsOptions } from "@/hooks/api/transaction"
+import { useColumnarBookConfig } from "@/hooks/use-columnar-book-config"
 import { useFilters } from "@/hooks/use-filters"
 import {
 	DEFAULT_LIST_META,
@@ -18,6 +19,7 @@ import type {
 } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
+import { ColumnConfigPanel } from "./column-config-panel"
 import { createGeneralJournalColumns } from "./columns/general-journal-columns"
 import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
@@ -31,7 +33,6 @@ export function GeneralJournal({
 	onRecordAction,
 }: GeneralJournalProps) {
 	const { setFilters } = useFilters("/(app)/books")
-
 	const { data: transactionsData, status } = useSuspenseQuery(
 		transactionsOptions({
 			...filters,

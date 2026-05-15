@@ -56,16 +56,12 @@ export const defaultColumnarConfigs: Record<
 	},
 	cash_disbursements: {
 		bookType: "cash_disbursements",
-		columnSize: 10,
+		columnSize: 6,
 		columns: [
-			"1000", // Cash on Hand
-			"1010", // Cash in Bank
-			"5000", // Rent Expense
-			"5100", // Utilities Expense
-			"5200", // Office Supplies Expense
-			"5300", // Communication Expense
-			"5400", // Transportation Expense
-			"5500", // Professional Fees Expense
+			"1101", // Cash on Hand
+			"1102", // Cash in Bank
+			"5302", // Utilities Expense
+			"5304", // Office Supplies Expense
 		],
 	},
 	general_journal: {

@@ -11,6 +11,7 @@ import {
 	useBulkRecordTransaction,
 	useBulkUndoRecordTransaction,
 } from "@/hooks/api/transaction"
+import { useColumnarBookConfig } from "@/hooks/use-columnar-book-config"
 import { useFilters } from "@/hooks/use-filters"
 import {
 	DEFAULT_LIST_META,
@@ -23,21 +24,22 @@ import type {
 } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
+import { ColumnConfigPanel } from "./column-config-panel"
 import { createCashDisbursementsColumns } from "./columns/cash-disbursements-columns"
 import { CashDisbursementsFooter } from "./footers/cash-disbursements-footer"
 
 interface CashDisbursementsJournalProps {
 	filters: TransactionListQueryParam
-	columnCount?: number
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
 export function CashDisbursementsJournal({
 	filters,
-	columnCount = 6,
 	onRecordAction,
 }: CashDisbursementsJournalProps) {
 	const { setFilters } = useFilters("/(app)/books")
+	const { config, setConfig, isEditing, openPanel, closePanel } =
+		useColumnarBookConfig("cash_disbursements")
 
 	const { data: transactionsData, status } = useSuspenseQuery(
 		transactionsOptions({
@@ -49,7 +51,7 @@ export function CashDisbursementsJournal({
 	const columns = createCashDisbursementsColumns(
 		onRecordAction,
 		transactionsData?.data || [],
-		columnCount,
+		config,
 	)
 
 	const table = useReactTable({
@@ -92,37 +94,58 @@ export function CashDisbursementsJournal({
 	})
 
 	return (
-		<BooksDataTable
-			columns={columns}
-			meta={transactionsData?.meta || DEFAULT_LIST_META}
-			table={table}
-			dataStatus={status}
-			footer={
-				<CashDisbursementsFooter
-					transactions={transactionsData?.data || []}
-					columnCount={columnCount}
-				/>
-			}
-			actions={
-				<BulkActionBar
-					selectedCount={table.getFilteredSelectedRowModel().rows.length}
-					onRecordSelected={() => {
-						const selectedRows = table.getSelectedRowModel().rows
-						const transactions = selectedRows.map((row) => row.original)
-						bulkRecordTransactionsMutation.mutate({
-							transactionIds: transactions.map((t) => t.id),
-						})
+		<>
+			<div className="flex justify-end">
+				<button
+					type="button"
+					onClick={openPanel}
+					className="px-3 py-2 text-sm bg-secondary/70 text-secondary-foreground border border-border rounded hover:bg-accent/40"
+				>
+					Configure Columns
+				</button>
+			</div>
+			{isEditing ? (
+				<ColumnConfigPanel
+					config={config}
+					onSave={(nextConfig) => {
+						setConfig(nextConfig)
+						closePanel()
 					}}
-					onUndoSelected={() => {
-						const selectedRows = table.getSelectedRowModel().rows
-						const transactions = selectedRows.map((row) => row.original)
-						bulkUndoRecordTransactionsMutation.mutate({
-							transactionIds: transactions.map((t) => t.id),
-						})
-					}}
-					onClearSelection={() => table.resetRowSelection()}
+					onCancel={closePanel}
 				/>
-			}
-		/>
+			) : null}
+			<BooksDataTable
+				columns={columns}
+				meta={transactionsData?.meta || DEFAULT_LIST_META}
+				table={table}
+				dataStatus={status}
+				footer={
+					<CashDisbursementsFooter
+						transactions={transactionsData?.data || []}
+						config={config}
+					/>
+				}
+				actions={
+					<BulkActionBar
+						selectedCount={table.getFilteredSelectedRowModel().rows.length}
+						onRecordSelected={() => {
+							const selectedRows = table.getSelectedRowModel().rows
+							const transactions = selectedRows.map((row) => row.original)
+							bulkRecordTransactionsMutation.mutate({
+								transactionIds: transactions.map((t) => t.id),
+							})
+						}}
+						onUndoSelected={() => {
+							const selectedRows = table.getSelectedRowModel().rows
+							const transactions = selectedRows.map((row) => row.original)
+							bulkUndoRecordTransactionsMutation.mutate({
+								transactionIds: transactions.map((t) => t.id),
+							})
+						}}
+						onClearSelection={() => table.resetRowSelection()}
+					/>
+				}
+			/>
+		</>
 	)
 }

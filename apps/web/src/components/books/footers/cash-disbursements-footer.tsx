@@ -1,57 +1,61 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
-import { getChartOfAccounts } from "../utils"
+import {
+	COLUMNAR_FIXED_COLUMNS,
+	getChartOfAccounts,
+	type ColumnarBookConfig,
+} from "../utils"
 import type { Transaction } from "@/types/transaction"
+import { cn } from "@/lib/utils"
 
 interface CashDisbursementsFooterProps {
 	transactions: Array<Transaction>
-	columnCount?: number
+	config: ColumnarBookConfig
 }
-
-const DEFAULT_COLUMN_COUNT = 6
 
 export function CashDisbursementsFooter({
 	transactions,
-	columnCount = DEFAULT_COLUMN_COUNT,
+	config,
 }: CashDisbursementsFooterProps) {
 	const chartOfAccounts = getChartOfAccounts(transactions)
-	const cashAccount = chartOfAccounts.find(
-		(account) =>
-			account.name.toLowerCase().includes("cash") || account.code === "1000",
-	)
-	const otherAccounts = chartOfAccounts.filter(
-		(account) =>
-			(!account.name.toLowerCase().includes("cash") &&
-				account.code !== "1000") ||
-			account.id !== cashAccount?.id,
-	)
-
-	const accountColumnsToShow = columnCount - 3
-	const displayAccounts = otherAccounts.slice(0, accountColumnsToShow)
-	const remainingAccountSlots = accountColumnsToShow - displayAccounts.length
+	const configuredColumns = config.columnSize - COLUMNAR_FIXED_COLUMNS
+	const selectedCodes = config.columns.slice(0, configuredColumns)
+	const displayAccounts = selectedCodes.map((code, index) => {
+		const account = chartOfAccounts.find((entry) => entry.code === code)
+		return (
+			account ?? {
+				id: `configured-${code}-${index}`,
+				name: `Account ${code}`,
+				code,
+			}
+		)
+	})
+	const remainingAccountSlots = configuredColumns - displayAccounts.length
 	const placeholderAccounts = Array.from(
 		{ length: remainingAccountSlots },
 		(_, i) => ({
 			id: `placeholder-${i}`,
 			name: `Account ${i + 1}`,
+			code: `000${i + 1}`,
 		}),
 	)
 
 	const allAccountColumns = [...displayAccounts, ...placeholderAccounts]
+	console.log(allAccountColumns)
 
 	// Calculate totals
-	const totalCreditCash = transactions
-		.filter(
-			(t) =>
-				t.creditAccount?.name?.toLowerCase().includes("cash") ||
-				t.creditAccount?.code === "1000",
-		)
-		.reduce((sum, t) => sum + t.amount, 0)
-
 	const accountTotals = allAccountColumns.map((account) => {
-		const total = transactions
-			.filter((t) => t.debitAccount?.id === account.id)
+		const totalDebit = transactions
+			.filter((t) => t.debitAccount?.code === account.code)
 			.reduce((sum, t) => sum + t.amount, 0)
-		return { account, total }
+
+		const totalCredit = transactions
+			.filter(
+				(t) =>
+					t.creditAccount?.name?.toLowerCase().includes("cash") ||
+					t.creditAccount?.code === "1101",
+			)
+			.reduce((sum, t) => sum + t.amount, 0)
+		return { account, totalDebit, totalCredit }
 	})
 
 	const sundryTotal = transactions
@@ -59,13 +63,9 @@ export function CashDisbursementsFooter({
 			(t) =>
 				t.debitAccount?.name &&
 				!t.debitAccount.name.toLowerCase().includes("cash") &&
-				!allAccountColumns.some((acc) => acc.id === t.debitAccount?.id),
+				!allAccountColumns.some((acc) => acc.code === t.debitAccount?.code),
 		)
 		.reduce((sum, t) => sum + t.amount, 0)
-
-	const totalDebitAccounts =
-		accountTotals.reduce((sum, { total }) => sum + total, 0) + sundryTotal
-	const grandTotal = totalCreditCash
 
 	// Calculate total number of columns for colspan
 	// Date + Description + Reference = 3 columns
@@ -79,47 +79,34 @@ export function CashDisbursementsFooter({
 					Totals:
 				</td>
 
-				{/* Credit Cash Total */}
-				<td className="p-2 text-right text-destructive-foreground">
-					{formatCentsToCurrency(totalCreditCash)}
-				</td>
-
 				{/* Debit Account Totals */}
-				{accountTotals.map(({ account, total }) => (
-					<td
-						key={account.id}
-						className="p-2 text-right text-success-foreground"
-					>
-						{formatCentsToCurrency(total)}
-					</td>
-				))}
+				{accountTotals.map(({ account, totalCredit, totalDebit }) => {
+					const matchedCreditAccount = account.code === "1101"
+					const matchedDebitAccount = account.code !== "1101"
+					return (
+						<td
+							key={String(account.id)}
+							className={cn(
+								"p-2 text-right",
+								matchedDebitAccount && "text-success",
+								matchedCreditAccount && "text-destructive",
+							)}
+						>
+							{matchedCreditAccount && formatCentsToCurrency(totalCredit)}
+							{matchedDebitAccount && formatCentsToCurrency(totalDebit)}
+						</td>
+					)
+				})}
 
 				{/* Debit Sundry Total */}
 				<td />
 
 				{/* Debit Sundry Amount Total */}
-				<td className="p-2 text-right text-success-foreground">
+				<td className="p-2 text-right text-success">
 					{formatCentsToCurrency(sundryTotal)}
 				</td>
 
 				{/* Actions column (empty) */}
-				<td></td>
-			</tr>
-
-			{/* Grand Total Verification Row */}
-			<tr className="bg-muted font-semibold border-t">
-				<td
-					colSpan={staticColumns + allAccountColumns.length + 2}
-					className="p-2 text-right"
-				>
-					Grand Total (Credit = Debit):
-				</td>
-				<td className="p-2 text-right text-destructive-foreground">
-					{formatCentsToCurrency(grandTotal)}
-				</td>
-				<td className="p-2 text-right text-success-foreground">
-					{formatCentsToCurrency(totalDebitAccounts)}
-				</td>
 				<td></td>
 			</tr>
 		</tfoot>

@@ -1,10 +1,10 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import type { ColumnDef } from "@tanstack/react-table"
 import { createColumnHelper } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { TransactionActions } from "../transaction-actions"
-import { StatusBadge } from "../status-badge"
-import type { ColumnDef } from "@tanstack/react-table"
 import type { Transaction } from "@/types/transaction"
+import { StatusBadge } from "../status-badge"
+import { TransactionActions } from "../transaction-actions"
 
 const columnHelper = createColumnHelper<Transaction>()
 
@@ -12,7 +12,6 @@ export const createGeneralJournalColumns = (
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void,
 ): ColumnDef<Transaction>[] => {
 	return [
-		// Selection column
 		columnHelper.display({
 			id: "select",
 			header: ({ table }) => (
@@ -32,40 +31,39 @@ export const createGeneralJournalColumns = (
 			enableSorting: false,
 			enableHiding: false,
 		}),
-
-		// Date column
 		columnHelper.accessor("transactionDate", {
 			header: "Date",
-			cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+			cell: (info) =>
+				new Date(info.getValue()).toLocaleString("default", {
+					dateStyle: "medium",
+				}),
 		}),
-
-		// Description with status badge
 		columnHelper.display({
 			id: "description",
 			header: "Description",
 			cell: ({ row }) => (
 				<div className="flex items-center gap-2">
 					<div className="flex-1">
-						<p className="font-medium">
-							{row.original.debitAccount?.name} /{" "}
+						<p className="font-medium text-sm">
+							{row.original.debitAccount?.name}
+						</p>
+						<p className="font-medium text-sm pl-4">
 							{row.original.creditAccount?.name}
 						</p>
-						<p className="text-sm text-gray-500 pl-4">
+						<p className="text-sm text-muted-foreground pl-8">
 							{row.original.description}
 						</p>
-						<p className="text-xs text-gray-400">#{row.original.id}</p>
 					</div>
 					<StatusBadge recorded={!!row.original.recorded} />
 				</div>
 			),
 		}),
 
-		// Debit column
 		columnHelper.display({
 			id: "debit",
 			header: () => <div className="text-right">Debit</div>,
 			cell: ({ row }) => (
-				<div className="text-right font-medium text-green-600">
+				<div className="text-right font-medium text-success">
 					{formatCentsToCurrency(row.original.amount)}
 				</div>
 			),
@@ -76,13 +74,12 @@ export const createGeneralJournalColumns = (
 			id: "credit",
 			header: () => <div className="text-right">Credit</div>,
 			cell: ({ row }) => (
-				<div className="text-right font-medium text-red-600">
+				<div className="text-right font-medium text-destructive">
 					{formatCentsToCurrency(row.original.amount)}
 				</div>
 			),
 		}),
 
-		// Actions column
 		columnHelper.display({
 			id: "actions",
 			header: () => <div className="text-center">Actions</div>,

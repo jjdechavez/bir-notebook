@@ -22,10 +22,9 @@ const sanitizeConfig = (
 		? config.columnSize
 		: fallback.columnSize
 	const maxColumns = columnSize - COLUMNAR_FIXED_COLUMNS
-	const columns = Array.from(new Set(config?.columns ?? fallback.columns)).slice(
-		0,
-		maxColumns,
-	)
+	const columns = Array.from(
+		new Set(config?.columns ?? fallback.columns),
+	).slice(0, maxColumns)
 
 	return {
 		bookType,
@@ -35,7 +34,10 @@ const sanitizeConfig = (
 }
 
 export const useColumnarBookConfig = (bookType: ColumnarBookType) => {
-	const storageKey = useMemo(() => `${STORAGE_KEY_PREFIX}:${bookType}`, [bookType])
+	const storageKey = useMemo(
+		() => `${STORAGE_KEY_PREFIX}:${bookType}`,
+		[bookType],
+	)
 	const [config, setConfigState] = useState<ColumnarBookConfig>(() =>
 		sanitizeConfig(bookType, defaultColumnarConfigs[bookType]),
 	)

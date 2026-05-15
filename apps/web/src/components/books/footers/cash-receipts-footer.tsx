@@ -70,7 +70,6 @@ export function CashReceiptsFooter({
 	const staticColumns = 3
 	// +4 for Debit Cash, Credit Sundry, Credit Sundry Amount, Actions
 
-	console.log(accountTotals)
 	return (
 		<tfoot>
 			<tr className="bg-muted font-bold border-t border-border">

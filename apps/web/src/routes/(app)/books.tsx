@@ -299,11 +299,6 @@ function BooksPage() {
 								count={columnCountFilter}
 								setCount={(count) => setFilters({ count })}
 							/>
-							<BookTransactionTotals
-								color={cashDisbursementJournalBook.color}
-								totalCredit={totalTransactionAmount}
-								totalDebit={totalTransactionAmount}
-							/>
 							<CashDisbursementsJournal
 								filters={filters}
 								onRecordAction={(action, transaction) => {
