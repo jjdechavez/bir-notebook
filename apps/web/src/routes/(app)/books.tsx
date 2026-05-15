@@ -241,79 +241,84 @@ function BooksPage() {
 				</CardContent>
 			</Card>
 
-			<Tabs
-				defaultValue={
-					filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal
-				}
-				className="space-y-4"
-				onValueChange={(value) =>
-					setFilters({ bookType: value as TransactionCategoryBookType })
-				}
-			>
-				<TabsList className="grid w-full grid-cols-4">
-					{bookTypes.map((book) => (
-						<TabsTrigger
-							key={book.key}
-							value={book.key}
-							className="flex items-center gap-2"
-						>
-							<span>{book.icon}</span>
-							<span className="hidden sm:inline">{book.label}</span>
-						</TabsTrigger>
-					))}
-				</TabsList>
-
-				<TabsContent value={cashReceiptJournalBook.key} className="space-y-4">
-					<BookView
-						title={cashReceiptJournalBook.label}
-						icon={cashReceiptJournalBook.icon}
-						totalTransaction={totalTransactionCount}
-						bookType={cashReceiptJournalBook.key}
-					>
-						<BookCountedColumnFilter
-							count={columnCountFilter}
-							setCount={(count) => setFilters({ count })}
-						/>
-						<BookTransactionTotals
-							color={cashReceiptJournalBook.color}
-							totalCredit={totalTransactionAmount}
-							totalDebit={totalTransactionAmount}
-						/>
-						<CashReceiptsJournal
-							filters={filters}
-							columnCount={columnCountFilter}
-							onRecordAction={(action, transaction) => {
-								if (action === "record") {
-									recordMutation.mutate(transaction.id)
-								} else if (action === "undo") {
-									undoRecordMutation.mutate(transaction.id)
-								}
-							}}
-						/>
-					</BookView>
-				</TabsContent>
-				<TabsContent
-					value={cashDisbursementJournalBook.key}
-					className="space-y-4"
+			<Card className="p-0">
+				<Tabs
+					defaultValue={
+						filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal
+					}
+					onValueChange={(value) =>
+						setFilters({ bookType: value as TransactionCategoryBookType })
+					}
 				>
-					<BookView
-						title={cashDisbursementJournalBook.label}
-						icon={cashDisbursementJournalBook.icon}
-						totalTransaction={totalTransactionCount}
-						bookType={cashDisbursementJournalBook.key}
+					<TabsList variant="line">
+						{bookTypes.map((book) => (
+							<TabsTrigger
+								key={book.key}
+								value={book.key}
+								className="flex items-center gap-2 px-6 py-3"
+							>
+								<span className="">{book.label}</span>
+							</TabsTrigger>
+						))}
+					</TabsList>
+
+					<TabsContent value={cashReceiptJournalBook.key} className="space-y-4">
+						<BookView
+							title={cashReceiptJournalBook.label}
+							icon={cashReceiptJournalBook.icon}
+							totalTransaction={totalTransactionCount}
+							bookType={cashReceiptJournalBook.key}
+						>
+							<BookCountedColumnFilter
+								count={columnCountFilter}
+								setCount={(count) => setFilters({ count })}
+							/>
+							<CashReceiptsJournal
+								filters={filters}
+								onRecordAction={(action, transaction) => {
+									if (action === "record") {
+										recordMutation.mutate(transaction.id)
+									} else if (action === "undo") {
+										undoRecordMutation.mutate(transaction.id)
+									}
+								}}
+							/>
+						</BookView>
+					</TabsContent>
+					<TabsContent
+						value={cashDisbursementJournalBook.key}
+						className="space-y-4"
 					>
-						<BookCountedColumnFilter
-							count={columnCountFilter}
-							setCount={(count) => setFilters({ count })}
-						/>
-						<BookTransactionTotals
-							color={cashDisbursementJournalBook.color}
-							totalCredit={totalTransactionAmount}
-							totalDebit={totalTransactionAmount}
-						/>
-						<CashDisbursementsJournal
-							filters={filters}
-							columnCount={columnCountFilter}
+						<BookView
+							title={cashDisbursementJournalBook.label}
+							icon={cashDisbursementJournalBook.icon}
+							totalTransaction={totalTransactionCount}
+							bookType={cashDisbursementJournalBook.key}
+						>
+							<BookCountedColumnFilter
+								count={columnCountFilter}
+								setCount={(count) => setFilters({ count })}
+							/>
+							<BookTransactionTotals
+								color={cashDisbursementJournalBook.color}
+								totalCredit={totalTransactionAmount}
+								totalDebit={totalTransactionAmount}
+							/>
+							<CashDisbursementsJournal
+								filters={filters}
+								onRecordAction={(action, transaction) => {
+									if (action === "record") {
+										recordMutation.mutate(transaction.id)
+									} else if (action === "undo") {
+										undoRecordMutation.mutate(transaction.id)
+									}
+								}}
+							/>
+						</BookView>
+					</TabsContent>
+					<TabsContent value={generalJournalBook.key} className="space-y-4">
+						<GeneralJournal
+							filters={{ ...filters, bookType: generalJournalBook.key }}
 							onRecordAction={(action, transaction) => {
 								if (action === "record") {
 									recordMutation.mutate(transaction.id)
@@ -322,65 +327,55 @@ function BooksPage() {
 								}
 							}}
 						/>
-					</BookView>
-				</TabsContent>
-				<TabsContent value={generalJournalBook.key} className="space-y-4">
-					<GeneralJournal
-						filters={{ ...filters, bookType: generalJournalBook.key }}
-						onRecordAction={(action, transaction) => {
-							if (action === "record") {
-								recordMutation.mutate(transaction.id)
-							} else if (action === "undo") {
-								undoRecordMutation.mutate(transaction.id)
-							}
-						}}
-					/>
-				</TabsContent>
-				<TabsContent value={generalLedgerBook.key} className="space-y-4">
-					<BookView
-						title={generalLedgerBook.label}
-						icon={generalLedgerBook.icon}
-						totalTransaction={totalTransactionCount}
-						bookType={generalLedgerBook.key}
-					>
-						<Tabs defaultValue="accounts" className="gap-6">
-							<TabsList>
-								<TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
-								<TabsTrigger value="transactions">Enhanced Ledger</TabsTrigger>
-								<TabsTrigger value="transfer-history">
-									Transfer History
-								</TabsTrigger>
-								<TabsTrigger value="classic">Classic View</TabsTrigger>
-							</TabsList>
+					</TabsContent>
+					<TabsContent value={generalLedgerBook.key} className="space-y-4">
+						<BookView
+							title={generalLedgerBook.label}
+							icon={generalLedgerBook.icon}
+							totalTransaction={totalTransactionCount}
+							bookType={generalLedgerBook.key}
+						>
+							<Tabs defaultValue="accounts" className="gap-6">
+								<TabsList variant="line">
+									<TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
+									<TabsTrigger value="transactions">
+										Enhanced Ledger
+									</TabsTrigger>
+									<TabsTrigger value="transfer-history">
+										Transfer History
+									</TabsTrigger>
+									<TabsTrigger value="classic">Classic View</TabsTrigger>
+								</TabsList>
 
-							<TabsContent value="accounts">
-								<ChartOfAccounts />
-							</TabsContent>
+								<TabsContent value="accounts">
+									<ChartOfAccounts />
+								</TabsContent>
 
-							<TabsContent value="transactions">
-								<EnhancedGeneralLedgerWithSidebar
-									dateFrom={filters.dateFrom as string | undefined}
-									dateTo={filters.dateTo as string | undefined}
-									onTransferClick={() => setShowTransferDialog(true)}
-									onExportClick={() => console.log("Export clicked")}
-								/>
-							</TabsContent>
+								<TabsContent value="transactions">
+									<EnhancedGeneralLedgerWithSidebar
+										dateFrom={filters.dateFrom as string | undefined}
+										dateTo={filters.dateTo as string | undefined}
+										onTransferClick={() => setShowTransferDialog(true)}
+										onExportClick={() => console.log("Export clicked")}
+									/>
+								</TabsContent>
 
-							<TabsContent value="transfer-history">
-								<TransferHistory />
-							</TabsContent>
+								<TabsContent value="transfer-history">
+									<TransferHistory />
+								</TabsContent>
 
-							<TabsContent value="classic">
-								{transactionsData.data.length === 0 ? (
-									<NoTransactionFound />
-								) : (
-									<GeneralLedger transactions={transactionsData.data} />
-								)}
-							</TabsContent>
-						</Tabs>
-					</BookView>
-				</TabsContent>
-			</Tabs>
+								<TabsContent value="classic">
+									{transactionsData.data.length === 0 ? (
+										<NoTransactionFound />
+									) : (
+										<GeneralLedger transactions={transactionsData.data} />
+									)}
+								</TabsContent>
+							</Tabs>
+						</BookView>
+					</TabsContent>
+				</Tabs>
+			</Card>
 
 			{showTransferDialog && (
 				<GeneralLedgerTransferDialog
@@ -410,27 +405,5 @@ function BookView({
 	children,
 	totalTransaction,
 }: BookViewProps & { bookType: string }) {
-	return (
-		<Card>
-			<CardHeader>
-				<div className="flex items-center justify-between">
-					<CardTitle className="flex items-center">
-						<span>{icon}</span>
-						{title}
-					</CardTitle>
-					<div className="flex items-center gap-4">
-						<div className="text-sm">
-							<span className="text-muted-foreground">Transactions: </span>
-							<span className="font-medium">{totalTransaction}</span>
-						</div>
-						<Button variant="outline" size="sm">
-							<Download className="h-4 w-4 mr-2" />
-							Export PDF
-						</Button>
-					</div>
-				</div>
-			</CardHeader>
-			<CardContent>{children}</CardContent>
-		</Card>
-	)
+	return <div className="px-6 py-4">{children}</div>
 }
