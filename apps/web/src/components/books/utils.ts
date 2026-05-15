@@ -24,3 +24,58 @@ export const getColorClasses = (color: string) => {
 	}
 	return colors[color as keyof typeof colors] || colors.blue
 }
+
+export type ColumnSize = 6 | 10 | 14
+export type ColumnarBookType =
+	| "cash_receipts"
+	| "cash_disbursements"
+	| "general_journal"
+
+// Counted columns include: Reference + Sundry + Sundry Amount
+export const COLUMNAR_FIXED_COLUMNS = 3
+
+export interface ColumnarBookConfig {
+	bookType: ColumnarBookType
+	columnSize: ColumnSize
+	columns: string[] // Account codes that get dedicated columns (4, 8, or 12)
+}
+
+export const defaultColumnarConfigs: Record<
+	ColumnarBookType,
+	ColumnarBookConfig
+> = {
+	cash_receipts: {
+		bookType: "cash_receipts",
+		columnSize: 6,
+		columns: [
+			"1101", // Cash on Hand
+			"1102", // Cash in Bank
+			"1201", // Accounts Receivable
+			"4105", // Commission Income
+		],
+	},
+	cash_disbursements: {
+		bookType: "cash_disbursements",
+		columnSize: 10,
+		columns: [
+			"1000", // Cash on Hand
+			"1010", // Cash in Bank
+			"5000", // Rent Expense
+			"5100", // Utilities Expense
+			"5200", // Office Supplies Expense
+			"5300", // Communication Expense
+			"5400", // Transportation Expense
+			"5500", // Professional Fees Expense
+		],
+	},
+	general_journal: {
+		bookType: "general_journal",
+		columnSize: 6,
+		columns: [
+			"5600", // Depreciation Expense
+			"1510", // Accumulated Depreciation
+			"3000", // Capital
+			"3200", // Drawings
+		],
+	},
+}

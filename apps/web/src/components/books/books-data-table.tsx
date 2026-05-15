@@ -55,11 +55,14 @@ export function BooksDataTable<TData>({
 			{actions && <div className="flex items-center gap-4">{actions}</div>}
 
 			{/* Table container with scroll */}
-			<div className="rounded-md border">
-				<Table>
+			<div className="border">
+				<Table className="text-sm">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
+							<TableRow
+								key={headerGroup.id}
+								className="bg-muted divide-x divide-border"
+							>
 								{headerGroup.headers.map((header) => (
 									<TableHead key={header.id}>
 										{flexRender(
@@ -75,7 +78,10 @@ export function BooksDataTable<TData>({
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
+								<TableRow
+									key={row.id}
+									className="divide-x divide-border hover:bg-muted/50"
+								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>
 											{flexRender(
