@@ -1,8 +1,8 @@
 import { defineEventHandler, getQuery } from "h3"
 
 import { requireAuth } from "../middleware/auth.js"
-import { getUsedChartOfAccounts } from "../services/transactions.js"
 import { serializeAccount } from "../serializers/account.js"
+import { getUsedChartOfAccounts } from "../services/transactions.js"
 
 export const listChartOfAccounts = defineEventHandler({
 	onRequest: [requireAuth()],
@@ -39,7 +39,7 @@ export const currentChartOfAccounts = defineEventHandler({
 	handler: async (event) => {
 		const accounts = await getUsedChartOfAccounts(
 			event.context.db,
-			event.context.currentUser!.id,
+			event.context.currentUser?.id as string,
 		)
 
 		return {
