@@ -43,8 +43,8 @@ code {
   --destructive: oklch(59% 0.22 25);
   --destructive-foreground: oklch(98.5% 0.01 255);
   --border: oklch(90.5% 0.01 255);
-  --input: transparent;
-  --input-background: oklch(97.4% 0.005 255);
+  --input: oklch(0.89 0.004 286.033);
+  --input-background: oklch(0.985 0.002 286.033);
   --switch-background: oklch(87.2% 0.014 255);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -75,7 +75,6 @@ code {
   --primary-800: oklch(40.2% 0.17 262.9);
   --primary-900: oklch(32.8% 0.13 262.9);
   --primary-950: oklch(25.1% 0.09 262.9);
-
 }
 
 .dark {
