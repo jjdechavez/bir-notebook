@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import type { Transaction } from "@/types/transaction"
 import { StatusBadge } from "../status-badge"
 import { TransactionActions } from "../transaction-actions"
+import { TransferedGLBadge } from "../transfered-gl-badge"
 import {
 	COLUMNAR_FIXED_COLUMNS,
 	type ColumnarBookConfig,
@@ -76,14 +77,18 @@ export const createCashDisbursementsColumns = (
 		columnHelper.display({
 			id: "description",
 			header: "Description",
-			cell: ({ row }) => (
-				<div className="flex items-center gap-2">
-					<div className="flex-1">
-						<p className="font-medium">{row.original.description}</p>
+			cell: ({ row }) => {
+				const glTransfered = !!row.original.transferredToGlAt
+				return (
+					<div className="flex items-center gap-2">
+						<div className="flex-1">
+							<p className="font-medium">{row.original.description}</p>
+						</div>
+						<StatusBadge recorded={!!row.original.recorded} />
+						{glTransfered ? <TransferedGLBadge /> : null}
 					</div>
-					<StatusBadge recorded={!!row.original.recorded} />
-				</div>
-			),
+				)
+			},
 		}),
 
 		columnHelper.display({
