@@ -36,10 +36,7 @@ export function EnhancedGeneralLedgerView({
 
 	const formatBalance = (balance: number, type: "debit" | "credit") => {
 		const absBalance = Math.abs(balance)
-		const color =
-			type === "debit"
-				? "text-success-foreground"
-				: "text-destructive-foreground"
+		const color = type === "debit" ? "text-success" : "text-destructive"
 		const sign = balance >= 0 ? "" : "-"
 
 		return (
@@ -80,18 +77,18 @@ export function EnhancedGeneralLedgerView({
 					<div className="grid grid-cols-3 gap-4">
 						<div className="text-center">
 							<p className="text-sm text-muted-foreground">Total Debits</p>
-							<p className="text-lg font-bold text-success-foreground">
+							<p className="text-lg font-bold text-success">
 								{formatCentsToCurrency(ledgerView.grandTotal.totalDebits)}
 							</p>
 						</div>
 						<div className="text-center">
 							<p className="text-sm text-muted-foreground">Total Credits</p>
-							<p className="text-lg font-bold text-destructive-foreground">
+							<p className="text-lg font-bold text-destructive">
 								{formatCentsToCurrency(ledgerView.grandTotal.totalCredits)}
 							</p>
 						</div>
-						<div className="text-center">
-							<p className="text-sm text-muted-foreground">Final Balance</p>
+						<div className="text-center text-muted-foreground">
+							<p className="text-sm">Final Balance</p>
 							<p className="text-lg font-bold">
 								{formatBalance(
 									ledgerView.grandTotal.finalBalance,
@@ -148,8 +145,8 @@ export function EnhancedGeneralLedgerView({
 							<CollapsibleContent className="mt-4">
 								<CardContent className="space-y-4">
 									{/* Opening Balance */}
-									<div className="flex justify-between items-center p-3 bg-info rounded">
-										<span className="font-medium text-blue-400 dark:text-info-foreground">
+									<div className="flex justify-between items-center p-3 bg-info/10 rounded">
+										<span className="font-medium text-foreground dark:text-info-foreground">
 											Opening Balance
 										</span>
 										<span className="font-medium">
@@ -168,7 +165,9 @@ export function EnhancedGeneralLedgerView({
 														<th className="text-left p-3">Date</th>
 														<th className="text-left p-3">Description</th>
 														<th className="text-left p-3">Reference</th>
-														<th className="text-left p-3">Counterpart Account</th>
+														<th className="text-left p-3">
+															Counterpart Account
+														</th>
 														<th className="text-right p-3">Debit</th>
 													</tr>
 												</thead>
@@ -176,9 +175,16 @@ export function EnhancedGeneralLedgerView({
 													{monthData.transactions
 														.filter((transaction) => !!transaction.debitAmount)
 														.map((transaction) => (
-															<tr key={`debit-${transaction.id}`} className="border-b">
-																<td className="p-3">{formatDate(transaction.date)}</td>
-																<td className="p-3">{transaction.description}</td>
+															<tr
+																key={`debit-${transaction.id}`}
+																className="border-b"
+															>
+																<td className="p-3">
+																	{formatDate(transaction.date)}
+																</td>
+																<td className="p-3">
+																	{transaction.description}
+																</td>
 																<td className="p-3 text-sm">
 																	{transaction.referenceNumber || "-"}
 																</td>
@@ -192,8 +198,10 @@ export function EnhancedGeneralLedgerView({
 																		</div>
 																	</div>
 																</td>
-																<td className="p-3 text-right font-medium text-success-foreground">
-																	{formatCentsToCurrency(transaction.debitAmount || 0)}
+																<td className="p-3 text-right font-medium text-success">
+																	{formatCentsToCurrency(
+																		transaction.debitAmount || 0,
+																	)}
 																</td>
 															</tr>
 														))}
@@ -220,7 +228,9 @@ export function EnhancedGeneralLedgerView({
 														<th className="text-left p-3">Date</th>
 														<th className="text-left p-3">Description</th>
 														<th className="text-left p-3">Reference</th>
-														<th className="text-left p-3">Counterpart Account</th>
+														<th className="text-left p-3">
+															Counterpart Account
+														</th>
 														<th className="text-right p-3">Credit</th>
 													</tr>
 												</thead>
@@ -228,9 +238,16 @@ export function EnhancedGeneralLedgerView({
 													{monthData.transactions
 														.filter((transaction) => !!transaction.creditAmount)
 														.map((transaction) => (
-															<tr key={`credit-${transaction.id}`} className="border-b">
-																<td className="p-3">{formatDate(transaction.date)}</td>
-																<td className="p-3">{transaction.description}</td>
+															<tr
+																key={`credit-${transaction.id}`}
+																className="border-b"
+															>
+																<td className="p-3">
+																	{formatDate(transaction.date)}
+																</td>
+																<td className="p-3">
+																	{transaction.description}
+																</td>
 																<td className="p-3 text-sm">
 																	{transaction.referenceNumber || "-"}
 																</td>
@@ -244,8 +261,10 @@ export function EnhancedGeneralLedgerView({
 																		</div>
 																	</div>
 																</td>
-																<td className="p-3 text-right font-medium text-destructive-foreground">
-																	{formatCentsToCurrency(transaction.creditAmount || 0)}
+																<td className="p-3 text-right font-medium text-destructive">
+																	{formatCentsToCurrency(
+																		transaction.creditAmount || 0,
+																	)}
 																</td>
 															</tr>
 														))}
@@ -275,7 +294,7 @@ export function EnhancedGeneralLedgerView({
 											<div className="space-y-1 text-sm">
 												<div className="flex justify-between">
 													<span>Total Debits:</span>
-													<span className="text-success-foreground font-medium">
+													<span className="text-success font-medium">
 														{formatCentsToCurrency(
 															monthData.periodClosing.totalDebits,
 														)}
@@ -283,7 +302,7 @@ export function EnhancedGeneralLedgerView({
 												</div>
 												<div className="flex justify-between">
 													<span>Total Credits:</span>
-													<span className="text-destructive-foreground font-medium">
+													<span className="text-destructive font-medium">
 														{formatCentsToCurrency(
 															monthData.periodClosing.totalCredits,
 														)}
@@ -341,7 +360,7 @@ export function EnhancedGeneralLedgerView({
 							<h4 className="font-medium text-sm text-muted-foreground mb-1">
 								Total Debits
 							</h4>
-							<p className="text-lg font-bold text-success-foreground">
+							<p className="text-lg font-bold text-success">
 								{formatCentsToCurrency(ledgerView.grandTotal.totalDebits)}
 							</p>
 						</div>
@@ -349,7 +368,7 @@ export function EnhancedGeneralLedgerView({
 							<h4 className="font-medium text-sm text-muted-foreground mb-1">
 								Total Credits
 							</h4>
-							<p className="text-lg font-bold text-destructive-foreground">
+							<p className="text-lg font-bold text-destructive">
 								{formatCentsToCurrency(ledgerView.grandTotal.totalCredits)}
 							</p>
 						</div>
