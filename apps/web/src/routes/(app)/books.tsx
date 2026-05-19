@@ -9,10 +9,7 @@ import { Search } from "lucide-react"
 import { useState } from "react"
 import { CashDisbursementsJournal } from "@/components/books/cash-disbursements-journal"
 import { CashReceiptsJournal } from "@/components/books/cash-receipts-journal"
-import {
-	BookCountedColumnFilter,
-	NoTransactionFound,
-} from "@/components/books/common"
+import { NoTransactionFound } from "@/components/books/common"
 import { GeneralJournal } from "@/components/books/general-journal"
 import {
 	ChartOfAccounts,
@@ -109,7 +106,6 @@ const bookTypes = [
 
 function BooksPage() {
 	const { filters, setFilters } = useFilters(Route.id)
-	const columnCountFilter = filters?.count || 6
 	const [showTransferDialog, setShowTransferDialog] = useState(false)
 
 	const { data: transactionsData } = useSuspenseQuery(
@@ -190,7 +186,7 @@ function BooksPage() {
 							/>
 						</BookView>
 					</TabsContent>
-					<TabsContent value={generalJournalBook.key} className="space-y-4">
+					<TabsContent value={generalJournalBook.key} className="px-6 py-4">
 						<GeneralJournal
 							filters={{ ...filters, bookType: generalJournalBook.key }}
 							onRecordAction={(action, transaction) => {

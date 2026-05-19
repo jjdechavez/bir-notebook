@@ -5,8 +5,12 @@ import {
 	getPaginationRowModel,
 	useReactTable,
 } from "@tanstack/react-table"
-import { transactionsOptions } from "@/hooks/api/transaction"
-import { useColumnarBookConfig } from "@/hooks/use-columnar-book-config"
+import { toast } from "sonner"
+import {
+	transactionsOptions,
+	useBulkRecordTransaction,
+	useBulkUndoRecordTransaction,
+} from "@/hooks/api/transaction"
 import { useFilters } from "@/hooks/use-filters"
 import {
 	DEFAULT_LIST_META,
@@ -19,7 +23,6 @@ import type {
 } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
-import { ColumnConfigPanel } from "./column-config-panel"
 import { createGeneralJournalColumns } from "./columns/general-journal-columns"
 import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
@@ -69,6 +72,18 @@ export function GeneralJournal({
 		getRowId: (row) => row.id.toString(),
 	})
 
+	const bulkRecordTransactionsMutation = useBulkRecordTransaction({
+		onSuccess: () => {
+			toast.success("Transactions has been recorded")
+		},
+	})
+
+	const bulkUndoRecordTransactionsMutation = useBulkUndoRecordTransaction({
+		onSuccess: () => {
+			toast.success("Transactions record has been undo")
+		},
+	})
+
 	return (
 		<BooksDataTable
 			columns={columns}
@@ -84,12 +99,14 @@ export function GeneralJournal({
 					onRecordSelected={() => {
 						const selectedRows = table.getSelectedRowModel().rows
 						const transactions = selectedRows.map((row) => row.original)
-						console.log("Bulk record:", transactions)
+						const transactionIds = transactions.map((t) => t.id)
+						bulkRecordTransactionsMutation.mutate({ transactionIds })
 					}}
 					onUndoSelected={() => {
 						const selectedRows = table.getSelectedRowModel().rows
 						const transactions = selectedRows.map((row) => row.original)
-						console.log("Bulk undo:", transactions)
+						const transactionIds = transactions.map((t) => t.id)
+						bulkUndoRecordTransactionsMutation.mutate({ transactionIds })
 					}}
 					onClearSelection={() => table.resetRowSelection()}
 				/>
