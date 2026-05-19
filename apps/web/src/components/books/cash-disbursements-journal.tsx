@@ -18,13 +18,13 @@ import {
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/lib/constants"
+import { BookColumnarFilter } from "@/routes/(app)/books"
 import type { Transaction } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
 import { ColumnConfigPanel } from "./column-config-panel"
 import { createCashDisbursementsColumns } from "./columns/cash-disbursements-columns"
 import { CashDisbursementsFooter } from "./footers/cash-disbursements-footer"
-import { BookColumnarFilter } from "@/routes/(app)/books"
 
 interface CashDisbursementsJournalProps {
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void

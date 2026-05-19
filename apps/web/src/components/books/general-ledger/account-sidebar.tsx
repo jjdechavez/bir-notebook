@@ -138,7 +138,7 @@ export function AccountSidebar({
 								</Badge>
 							</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-2">
+						<CardContent className="space-y-2 space-x-2">
 							{group.accounts.map((account) => (
 								<button
 									key={account.id}
@@ -156,9 +156,6 @@ export function AccountSidebar({
 												<span className="font-mono text-sm font-medium">
 													{account.code}
 												</span>
-												<Badge variant="outline" className="text-xs">
-													{account.type}
-												</Badge>
 											</div>
 											<p className="font-medium text-sm">{account.name}</p>
 										</div>
