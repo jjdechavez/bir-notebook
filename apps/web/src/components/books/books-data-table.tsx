@@ -31,6 +31,7 @@ import {
 	TableRow,
 } from "@/components/ui/table"
 import type { ListMeta } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 interface BooksDataTableProps<TData> {
 	columns: ColumnDef<TData>[]
@@ -77,21 +78,23 @@ export function BooksDataTable<TData>({
 
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									className="divide-x divide-border hover:bg-muted/50"
-								>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
-								</TableRow>
-							))
+							table.getRowModel().rows.map((row) => {
+								return (
+									<TableRow
+										key={row.id}
+										className={cn("divide-x divide-border hover:bg-muted/50")}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id}>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+								)
+							})
 						) : dataStatus === "pending" ? (
 							// Skeleton loading rows
 							Array.from({ length: 5 }).map((_, i) => (

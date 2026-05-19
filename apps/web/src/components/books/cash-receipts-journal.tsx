@@ -18,26 +18,22 @@ import {
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/lib/constants"
-import type {
-	Transaction,
-	TransactionListQueryParam,
-} from "@/types/transaction"
+import { BookColumnarFilter } from "@/routes/(app)/books"
+import type { Transaction } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
+import { ColumnConfigPanel } from "./column-config-panel"
 import { createCashReceiptsColumns } from "./columns/cash-receipts-columns"
 import { CashReceiptsFooter } from "./footers/cash-receipts-footer"
-import { ColumnConfigPanel } from "./column-config-panel"
 
 type CashReceiptsJournalProps = {
-	filters: TransactionListQueryParam
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
 export function CashReceiptsJournal({
-	filters,
 	onRecordAction,
 }: CashReceiptsJournalProps) {
-	const { setFilters } = useFilters("/(app)/books")
+	const { filters, setFilters } = useFilters("/(app)/books")
 	const { config, setConfig, isEditing, openPanel, closePanel } =
 		useColumnarBookConfig("cash_receipts")
 
@@ -95,25 +91,28 @@ export function CashReceiptsJournal({
 
 	return (
 		<>
-			<div className="flex justify-end">
-				<button
-					type="button"
-					onClick={openPanel}
-					className="px-3 py-2 text-sm bg-secondary/70 text-secondary-foreground border border-border rounded hover:bg-accent/40"
-				>
-					Configure Columns
-				</button>
+			<div className="space-y-4">
+				<div className="flex items-center space-x-2">
+					<BookColumnarFilter />
+					<button
+						type="button"
+						onClick={openPanel}
+						className="px-3 py-2 text-sm text-secondary-foreground border border-border rounded hover:bg-accent/40"
+					>
+						Configure Columns
+					</button>
+				</div>
+				{isEditing ? (
+					<ColumnConfigPanel
+						config={config}
+						onSave={(nextConfig) => {
+							setConfig(nextConfig)
+							closePanel()
+						}}
+						onCancel={closePanel}
+					/>
+				) : null}
 			</div>
-			{isEditing ? (
-				<ColumnConfigPanel
-					config={config}
-					onSave={(nextConfig) => {
-						setConfig(nextConfig)
-						closePanel()
-					}}
-					onCancel={closePanel}
-				/>
-			) : null}
 			<BooksDataTable
 				columns={columns}
 				meta={transactionsData?.meta || DEFAULT_LIST_META}

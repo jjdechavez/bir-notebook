@@ -5,13 +5,12 @@ import {
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { PaginationState } from "@tanstack/react-table"
-import { Calendar, Download, Filter, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { useState } from "react"
 import { CashDisbursementsJournal } from "@/components/books/cash-disbursements-journal"
 import { CashReceiptsJournal } from "@/components/books/cash-receipts-journal"
 import {
 	BookCountedColumnFilter,
-	BookTransactionTotals,
 	NoTransactionFound,
 } from "@/components/books/common"
 import { GeneralJournal } from "@/components/books/general-journal"
@@ -25,8 +24,7 @@ import { TransferHistory } from "@/components/books/general-ledger/transfer-hist
 import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from "@/components/data-table"
 import { GenericErrorComponent } from "@/components/error-component"
 import { SettingPendingComponent } from "@/components/pending-component"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
 	InputGroup,
@@ -125,12 +123,6 @@ function BooksPage() {
 		}),
 	)
 
-	const totalTransactionCount = transactionsData.meta.total
-	const totalTransactionAmount = transactionsData.data.reduce(
-		(total, t) => total + t.amount,
-		0,
-	)
-
 	const queryClient = useQueryClient()
 
 	const recordMutation = useRecordTransaction()
@@ -147,99 +139,6 @@ function BooksPage() {
 					transaction recording
 				</p>
 			</div>
-
-			{/* Filters */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Filter className="h-5 w-5" />
-						Filters
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-						<div>
-							<label
-								htmlFor="dateFrom"
-								className="block text-sm font-medium mb-2"
-							>
-								Date From
-							</label>
-							<Input
-								type="date"
-								value={filters.dateFrom || ""}
-								onChange={(e) => setFilters({ dateFrom: e.target.value })}
-							/>
-						</div>
-						<div>
-							<label
-								htmlFor="dateTo"
-								className="block text-sm font-medium mb-2"
-							>
-								Date To
-							</label>
-							<Input
-								type="date"
-								value={filters.dateTo || ""}
-								onChange={(e) => setFilters({ dateTo: e.target.value })}
-							/>
-						</div>
-
-						<div>
-							<label
-								htmlFor="search"
-								className="block text-sm font-medium mb-2"
-							>
-								Search
-							</label>
-							<InputGroup>
-								<InputGroupDebounceInput
-									placeholder="Search transactions..."
-									value={filters.search || ""}
-									onChange={(e) => setFilters({ search: e.toString() })}
-								/>
-								<InputGroupAddon>
-									<Search className="text-gray-400 h-4 w-4" />
-								</InputGroupAddon>
-							</InputGroup>
-						</div>
-						<div>
-							<label
-								htmlFor="status"
-								className="block text-sm font-medium mb-2"
-							>
-								Status
-							</label>
-							<Select
-								value={filters.record || ""}
-								onValueChange={(value) =>
-									setFilters({ record: value || undefined })
-								}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="All status" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All</SelectItem>
-									<SelectItem value="draft">Draft</SelectItem>
-									<SelectItem value="recorded">Recorded</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-
-						<div className="flex items-end gap-2">
-							<Button variant="outline" className="flex-1">
-								<Download className="h-4 w-4 mr-2" />
-								Export
-							</Button>
-							<Button>
-								<Calendar className="h-4 w-4 mr-2" />
-								This Month
-							</Button>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
 
 			<Card className="p-0">
 				<Tabs
@@ -263,18 +162,8 @@ function BooksPage() {
 					</TabsList>
 
 					<TabsContent value={cashReceiptJournalBook.key} className="space-y-4">
-						<BookView
-							title={cashReceiptJournalBook.label}
-							icon={cashReceiptJournalBook.icon}
-							totalTransaction={totalTransactionCount}
-							bookType={cashReceiptJournalBook.key}
-						>
-							<BookCountedColumnFilter
-								count={columnCountFilter}
-								setCount={(count) => setFilters({ count })}
-							/>
+						<BookView bookType={cashReceiptJournalBook.key}>
 							<CashReceiptsJournal
-								filters={filters}
 								onRecordAction={(action, transaction) => {
 									if (action === "record") {
 										recordMutation.mutate(transaction.id)
@@ -289,18 +178,8 @@ function BooksPage() {
 						value={cashDisbursementJournalBook.key}
 						className="space-y-4"
 					>
-						<BookView
-							title={cashDisbursementJournalBook.label}
-							icon={cashDisbursementJournalBook.icon}
-							totalTransaction={totalTransactionCount}
-							bookType={cashDisbursementJournalBook.key}
-						>
-							<BookCountedColumnFilter
-								count={columnCountFilter}
-								setCount={(count) => setFilters({ count })}
-							/>
+						<BookView bookType={cashDisbursementJournalBook.key}>
 							<CashDisbursementsJournal
-								filters={filters}
 								onRecordAction={(action, transaction) => {
 									if (action === "record") {
 										recordMutation.mutate(transaction.id)
@@ -324,12 +203,7 @@ function BooksPage() {
 						/>
 					</TabsContent>
 					<TabsContent value={generalLedgerBook.key} className="space-y-4">
-						<BookView
-							title={generalLedgerBook.label}
-							icon={generalLedgerBook.icon}
-							totalTransaction={totalTransactionCount}
-							bookType={generalLedgerBook.key}
-						>
+						<BookView bookType={generalLedgerBook.key}>
 							<Tabs defaultValue="accounts" className="gap-6">
 								<TabsList variant="line">
 									<TabsTrigger value="accounts">Chart of Accounts</TabsTrigger>
@@ -388,17 +262,60 @@ function BooksPage() {
 }
 
 type BookViewProps = {
-	title: string
-	icon: string
-	totalTransaction: number
 	children: React.ReactNode
 }
 
-function BookView({
-	title,
-	icon,
-	children,
-	totalTransaction,
-}: BookViewProps & { bookType: string }) {
+function BookView({ children }: BookViewProps & { bookType: string }) {
 	return <div className="px-6 py-4">{children}</div>
+}
+
+export function BookColumnarFilter() {
+	const { filters, setFilters } = useFilters(Route.id)
+
+	return (
+		<div className="flex gap-x-4">
+			<div>
+				<InputGroup>
+					<InputGroupDebounceInput
+						placeholder="Search transactions..."
+						value={filters.search || ""}
+						onChange={(e) => setFilters({ search: e.toString() })}
+					/>
+					<InputGroupAddon>
+						<Search className="text-gray-400 h-4 w-4" />
+					</InputGroupAddon>
+				</InputGroup>
+			</div>
+			<div>
+				<Input
+					type="date"
+					value={filters.dateFrom || ""}
+					onChange={(e) => setFilters({ dateFrom: e.target.value })}
+				/>
+			</div>
+			<div>
+				<Input
+					type="date"
+					value={filters.dateTo || ""}
+					onChange={(e) => setFilters({ dateTo: e.target.value })}
+				/>
+			</div>
+
+			<div>
+				<Select
+					value={filters.record || ""}
+					onValueChange={(value) => setFilters({ record: value || undefined })}
+				>
+					<SelectTrigger>
+						<SelectValue placeholder="All status" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All status</SelectItem>
+						<SelectItem value="draft">Draft</SelectItem>
+						<SelectItem value="recorded">Recorded</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+		</div>
+	)
 }

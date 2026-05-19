@@ -44,7 +44,8 @@ code {
   --destructive-foreground: oklch(98.5% 0.01 255);
   --border: oklch(90.5% 0.01 255);
   --input: oklch(0.89 0.004 286.033);
-  --input-background: oklch(0.985 0.002 286.033);
+  /* --input-background: oklch(0.985 0.002 286.033); */
+  --input-background: transparent;
   --switch-background: oklch(87.2% 0.014 255);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
