@@ -101,8 +101,8 @@ code {
   --warning-foreground: oklch(20% 0.01 255);
   --info: oklch(60% 0.17 235);
   --info-foreground: oklch(20% 0.01 255);
-  --highlight: oklch(71.4% 0.203 305.5);
-  --highlight-foreground: oklch(20% 0.01 255);
+  --highlight: oklch(82.7% 0.119 306.383);
+  --highlight-foreground: oklch(49.6% 0.265 301.924);
   --destructive: oklch(59% 0.22 25);
   --destructive-foreground: oklch(20% 0.01 255);
   --border: oklch(32% 0.012 255);
