@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import type { Transaction } from "@/types/transaction"
 import { StatusBadge } from "../status-badge"
 import { TransactionActions } from "../transaction-actions"
+import { TransferedGLBadge } from "../transfered-gl-badge"
 
 const columnHelper = createColumnHelper<Transaction>()
 
@@ -41,22 +42,26 @@ export const createGeneralJournalColumns = (
 		columnHelper.display({
 			id: "description",
 			header: "Description",
-			cell: ({ row }) => (
-				<div className="flex items-center gap-2">
-					<div className="flex-1">
-						<p className="font-medium text-sm">
-							{row.original.debitAccount?.name}
-						</p>
-						<p className="font-medium text-sm pl-4">
-							{row.original.creditAccount?.name}
-						</p>
-						<p className="text-sm text-muted-foreground pl-8">
-							{row.original.description}
-						</p>
+			cell: ({ row }) => {
+				const glTransfered = !!row.original.transferredToGlAt
+				return (
+					<div className="flex items-center gap-2">
+						<div className="flex-1">
+							<p className="font-medium text-sm">
+								{row.original.debitAccount?.name}
+							</p>
+							<p className="font-medium text-sm pl-4">
+								{row.original.creditAccount?.name}
+							</p>
+							<p className="text-sm text-muted-foreground pl-8">
+								{row.original.description}
+							</p>
+						</div>
+						<StatusBadge recorded={!!row.original.recorded} />
+						{glTransfered ? <TransferedGLBadge /> : null}
 					</div>
-					<StatusBadge recorded={!!row.original.recorded} />
-				</div>
-			),
+				)
+			},
 		}),
 
 		columnHelper.display({

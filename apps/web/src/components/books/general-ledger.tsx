@@ -72,14 +72,14 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 							>
 								<td className="p-3 font-medium">{account.code}</td>
 								<td className="p-3">{account.name}</td>
-								<td className="p-3 text-right font-medium text-success-foreground">
+								<td className="p-3 text-right font-medium text-success">
 									{formatCentsToCurrency(account.debit)}
 								</td>
-								<td className="p-3 text-right font-medium text-destructive-foreground">
+								<td className="p-3 text-right font-medium text-destructive">
 									{formatCentsToCurrency(account.credit)}
 								</td>
 								<td
-									className={`p-3 text-right font-medium ${balance >= 0 ? "text-success-foreground" : "text-destructive-foreground"}`}
+									className={`p-3 text-right font-medium ${balance >= 0 ? "text-success" : "text-destructive"}`}
 								>
 									{formatCentsToCurrency(Math.abs(balance))}
 								</td>
@@ -92,12 +92,12 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 						<td colSpan={2} className="p-3 text-right">
 							Grand Totals:
 						</td>
-						<td className="p-3 text-right text-success-foreground">
+						<td className="p-3 text-right text-success">
 							{formatCentsToCurrency(
 								accountsArray.reduce((sum, acc) => sum + acc.debit, 0),
 							)}
 						</td>
-						<td className="p-3 text-right text-destructive-foreground">
+						<td className="p-3 text-right text-destructive">
 							{formatCentsToCurrency(
 								accountsArray.reduce((sum, acc) => sum + acc.credit, 0),
 							)}
