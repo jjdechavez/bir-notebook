@@ -37,6 +37,11 @@ export function CashDisbursementsJournal({
 	const { config, setConfig, isEditing, openPanel, closePanel } =
 		useColumnarBookConfig("cash_disbursements")
 
+	const query = {
+		page: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+		limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
+	}
+
 	const { data: transactionsData, status } = useSuspenseQuery(
 		transactionsOptions({
 			...filters,
@@ -59,8 +64,8 @@ export function CashDisbursementsJournal({
 		rowCount: Number(transactionsData?.meta.total || 0),
 		state: {
 			pagination: {
-				pageIndex: filters?.page ? +filters.page : DEFAULT_PAGE_INDEX,
-				pageSize: filters?.limit ? +filters.limit : DEFAULT_PAGE_SIZE,
+				pageIndex: query.page,
+				pageSize: query.limit,
 			},
 		},
 		onPaginationChange: (updater) => {
