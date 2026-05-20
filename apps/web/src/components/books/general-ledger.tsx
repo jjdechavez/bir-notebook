@@ -1,12 +1,25 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import { transactionCategoryBookTypes } from "@bir-notebook/shared/models/transaction"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { useCurrentChartOfAccounts } from "@/hooks/api/chart-of-account"
+import { transactionsOptions } from "@/hooks/api/transaction"
+import { useFilters } from "@/hooks/use-filters"
+import { Route } from "@/routes/(app)/books"
 import type { Transaction } from "@/types/transaction"
+import { NoTransactionFound } from "./common"
 
-type GeneralLedgerProps = {
-	transactions: Transaction[]
-}
+export function GeneralLedger() {
+	const { filters } = useFilters(Route.id)
+	const { data: transactions } = useSuspenseQuery(
+		transactionsOptions({
+			dateFrom: filters.dateFrom,
+			dateTo: filters.dateTo,
+			bookType: transactionCategoryBookTypes.generalLedger,
+			search: filters?.search || "",
+			record: filters?.record || "",
+		}),
+	)
 
-export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 	const calculateAccountTotals = (transactions: Transaction[]) => {
 		const totals: Record<
 			string,
@@ -44,11 +57,15 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 		return totals
 	}
 
-	const accountTotals = calculateAccountTotals(transactions)
+	const accountTotals = calculateAccountTotals(transactions.data)
 	const accountsArray = Object.entries(accountTotals).map(([id, data]) => ({
 		id,
 		...data,
 	}))
+
+	if (transactions.data.length === 0) {
+		return <NoTransactionFound />
+	}
 
 	return (
 		<div className="overflow-x-auto">

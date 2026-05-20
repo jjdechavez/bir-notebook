@@ -2,14 +2,13 @@ import {
 	type TransactionCategoryBookType,
 	transactionCategoryBookTypes,
 } from "@bir-notebook/shared/models/transaction"
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { PaginationState } from "@tanstack/react-table"
 import { Search } from "lucide-react"
 import { useState } from "react"
 import { CashDisbursementsJournal } from "@/components/books/cash-disbursements-journal"
 import { CashReceiptsJournal } from "@/components/books/cash-receipts-journal"
-import { NoTransactionFound } from "@/components/books/common"
 import { GeneralJournal } from "@/components/books/general-journal"
 import {
 	ChartOfAccounts,
@@ -108,17 +107,6 @@ function BooksPage() {
 	const { filters, setFilters } = useFilters(Route.id)
 	const [showTransferDialog, setShowTransferDialog] = useState(false)
 
-	const { data: transactionsData } = useSuspenseQuery(
-		transactionsOptions({
-			dateFrom: filters.dateFrom,
-			dateTo: filters.dateTo,
-			bookType:
-				filters?.bookType || transactionCategoryBookTypes.cashReceiptJournal,
-			search: filters?.search || "",
-			record: filters?.record || "",
-		}),
-	)
-
 	const queryClient = useQueryClient()
 
 	const recordMutation = useRecordTransaction()
@@ -188,7 +176,6 @@ function BooksPage() {
 					</TabsContent>
 					<TabsContent value={generalJournalBook.key} className="px-6 py-4">
 						<GeneralJournal
-							filters={{ ...filters, bookType: generalJournalBook.key }}
 							onRecordAction={(action, transaction) => {
 								if (action === "record") {
 									recordMutation.mutate(transaction.id)
@@ -230,11 +217,7 @@ function BooksPage() {
 								</TabsContent>
 
 								<TabsContent value="classic">
-									{transactionsData.data.length === 0 ? (
-										<NoTransactionFound />
-									) : (
-										<GeneralLedger transactions={transactionsData.data} />
-									)}
+									<GeneralLedger />
 								</TabsContent>
 							</Tabs>
 						</BookView>
