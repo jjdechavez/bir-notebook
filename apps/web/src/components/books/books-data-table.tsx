@@ -158,8 +158,10 @@ export function BooksDataTable<TData>({
 						{getPaginationRange(meta.currentPage, meta.lastPage)?.map(
 							(page, index) => {
 								const pageNumber = +page
+								const tsPageIndex = pageNumber - 1
 								const isCurrentPage =
-									table.getState().pagination.pageIndex === pageNumber
+									table.getState().pagination.pageIndex === tsPageIndex
+
 								if (page === DOTS) {
 									return (
 										<PaginationItem>
