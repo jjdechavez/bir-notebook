@@ -1,12 +1,25 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import { transactionCategoryBookTypes } from "@bir-notebook/shared/models/transaction"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { useCurrentChartOfAccounts } from "@/hooks/api/chart-of-account"
+import { transactionsOptions } from "@/hooks/api/transaction"
+import { useFilters } from "@/hooks/use-filters"
+import { Route } from "@/routes/(app)/books"
 import type { Transaction } from "@/types/transaction"
+import { NoTransactionFound } from "./common"
 
-type GeneralLedgerProps = {
-	transactions: Transaction[]
-}
+export function GeneralLedger() {
+	const { filters } = useFilters(Route.id)
+	const { data: transactions } = useSuspenseQuery(
+		transactionsOptions({
+			dateFrom: filters.dateFrom,
+			dateTo: filters.dateTo,
+			bookType: transactionCategoryBookTypes.generalLedger,
+			search: filters?.search || "",
+			record: filters?.record || "",
+		}),
+	)
 
-export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 	const calculateAccountTotals = (transactions: Transaction[]) => {
 		const totals: Record<
 			string,
@@ -44,11 +57,15 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 		return totals
 	}
 
-	const accountTotals = calculateAccountTotals(transactions)
+	const accountTotals = calculateAccountTotals(transactions.data)
 	const accountsArray = Object.entries(accountTotals).map(([id, data]) => ({
 		id,
 		...data,
 	}))
+
+	if (transactions.data.length === 0) {
+		return <NoTransactionFound />
+	}
 
 	return (
 		<div className="overflow-x-auto">
@@ -72,14 +89,14 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 							>
 								<td className="p-3 font-medium">{account.code}</td>
 								<td className="p-3">{account.name}</td>
-								<td className="p-3 text-right font-medium text-success-foreground">
+								<td className="p-3 text-right font-medium text-success">
 									{formatCentsToCurrency(account.debit)}
 								</td>
-								<td className="p-3 text-right font-medium text-destructive-foreground">
+								<td className="p-3 text-right font-medium text-destructive">
 									{formatCentsToCurrency(account.credit)}
 								</td>
 								<td
-									className={`p-3 text-right font-medium ${balance >= 0 ? "text-success-foreground" : "text-destructive-foreground"}`}
+									className={`p-3 text-right font-medium ${balance >= 0 ? "text-success" : "text-destructive"}`}
 								>
 									{formatCentsToCurrency(Math.abs(balance))}
 								</td>
@@ -92,12 +109,12 @@ export function GeneralLedger({ transactions }: GeneralLedgerProps) {
 						<td colSpan={2} className="p-3 text-right">
 							Grand Totals:
 						</td>
-						<td className="p-3 text-right text-success-foreground">
+						<td className="p-3 text-right text-success">
 							{formatCentsToCurrency(
 								accountsArray.reduce((sum, acc) => sum + acc.debit, 0),
 							)}
 						</td>
-						<td className="p-3 text-right text-destructive-foreground">
+						<td className="p-3 text-right text-destructive">
 							{formatCentsToCurrency(
 								accountsArray.reduce((sum, acc) => sum + acc.credit, 0),
 							)}

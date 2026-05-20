@@ -5,36 +5,41 @@ import {
 	getPaginationRowModel,
 	useReactTable,
 } from "@tanstack/react-table"
-import { transactionsOptions } from "@/hooks/api/transaction"
+import { toast } from "sonner"
+import {
+	transactionsOptions,
+	useBulkRecordTransaction,
+	useBulkUndoRecordTransaction,
+} from "@/hooks/api/transaction"
 import { useFilters } from "@/hooks/use-filters"
 import {
 	DEFAULT_LIST_META,
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/lib/constants"
-import type {
-	Transaction,
-	TransactionListQueryParam,
-} from "@/types/transaction"
+import type { Transaction } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
 import { createGeneralJournalColumns } from "./columns/general-journal-columns"
 import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
 interface GeneralJournalProps {
-	filters: TransactionListQueryParam
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
-export function GeneralJournal({
-	filters,
-	onRecordAction,
-}: GeneralJournalProps) {
-	const { setFilters } = useFilters("/(app)/books")
+export function GeneralJournal({ onRecordAction }: GeneralJournalProps) {
+	const { filters, setFilters } = useFilters("/(app)/books")
+
+	const query = {
+		page: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+		limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
+	}
 
 	const { data: transactionsData, status } = useSuspenseQuery(
 		transactionsOptions({
 			...filters,
+			page: query.page + 1,
+			limit: query.limit,
 			bookType: transactionCategoryBookTypes.generalJournal,
 		}),
 	)
@@ -68,6 +73,18 @@ export function GeneralJournal({
 		getRowId: (row) => row.id.toString(),
 	})
 
+	const bulkRecordTransactionsMutation = useBulkRecordTransaction({
+		onSuccess: () => {
+			toast.success("Transactions has been recorded")
+		},
+	})
+
+	const bulkUndoRecordTransactionsMutation = useBulkUndoRecordTransaction({
+		onSuccess: () => {
+			toast.success("Transactions record has been undo")
+		},
+	})
+
 	return (
 		<BooksDataTable
 			columns={columns}
@@ -83,12 +100,14 @@ export function GeneralJournal({
 					onRecordSelected={() => {
 						const selectedRows = table.getSelectedRowModel().rows
 						const transactions = selectedRows.map((row) => row.original)
-						console.log("Bulk record:", transactions)
+						const transactionIds = transactions.map((t) => t.id)
+						bulkRecordTransactionsMutation.mutate({ transactionIds })
 					}}
 					onUndoSelected={() => {
 						const selectedRows = table.getSelectedRowModel().rows
 						const transactions = selectedRows.map((row) => row.original)
-						console.log("Bulk undo:", transactions)
+						const transactionIds = transactions.map((t) => t.id)
+						bulkUndoRecordTransactionsMutation.mutate({ transactionIds })
 					}}
 					onClearSelection={() => table.resetRowSelection()}
 				/>

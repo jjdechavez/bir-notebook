@@ -1,15 +1,14 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
 import type { Transaction } from "@/types/transaction"
 
-interface GeneralJournalFooterProps {
+type GeneralJournalFooterProps = {
 	transactions: Transaction[]
 }
 
 export function GeneralJournalFooter({
 	transactions,
 }: GeneralJournalFooterProps) {
-	const totalDebits = transactions.reduce((sum, t) => sum + t.amount, 0)
-	const totalCredits = transactions.reduce((sum, t) => sum + t.amount, 0)
+	const total = transactions.reduce((sum, t) => sum + t.amount, 0)
 
 	return (
 		<tfoot>
@@ -17,11 +16,11 @@ export function GeneralJournalFooter({
 				<td colSpan={3} className="p-2 text-right">
 					Totals:
 				</td>
-				<td className="p-2 text-right text-success-foreground">
-					{formatCentsToCurrency(totalDebits)}
+				<td className="p-2 text-right text-success">
+					{formatCentsToCurrency(total)}
 				</td>
-				<td className="p-2 text-right text-destructive-foreground">
-					{formatCentsToCurrency(totalCredits)}
+				<td className="p-2 text-right text-destructive">
+					{formatCentsToCurrency(total)}
 				</td>
 				<td />
 			</tr>

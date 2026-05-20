@@ -27,8 +27,8 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import {
-	useBulkTransferTransactionToGeneralLedger,
 	transactionsOptions,
+	useBulkTransferTransactionToGeneralLedger,
 	useTransferTransactionToGeneralLedger,
 	useValidateTransferTransaction,
 } from "@/hooks/api/transaction"
@@ -256,7 +256,9 @@ function MonthAssignmentStep({
 	const monthOptions = generateMonthOptions()
 	const accountGroupEntries = Object.entries(accountGroups)
 	const hasMultipleGroups = accountGroupEntries.length > 1
-	const effectiveDescriptionMode = hasMultipleGroups ? descriptionMode : "single"
+	const effectiveDescriptionMode = hasMultipleGroups
+		? descriptionMode
+		: "single"
 
 	return (
 		<div className="space-y-4">
@@ -301,15 +303,17 @@ function MonthAssignmentStep({
 								</Button>
 								<Button
 									type="button"
-									variant={descriptionMode === "perGroup" ? "default" : "outline"}
+									variant={
+										descriptionMode === "perGroup" ? "default" : "outline"
+									}
 									onClick={() => onDescriptionModeChange("perGroup")}
 								>
 									Different per group
 								</Button>
 							</div>
 							<p className="text-sm text-muted-foreground">
-								Choose if all account groups share one description or each
-								group needs its own.
+								Choose if all account groups share one description or each group
+								needs its own.
 							</p>
 						</div>
 					)}
@@ -350,7 +354,10 @@ function MonthAssignmentStep({
 								group(s) based on account pairs:
 							</p>
 							{accountGroupEntries.map(([groupKey, group]) => (
-								<div key={groupKey} className="p-3 bg-muted rounded-md space-y-3">
+								<div
+									key={groupKey}
+									className="p-3 bg-muted rounded-md space-y-3"
+								>
 									<div className="flex justify-between items-center">
 										<div>
 											<div className="text-sm font-medium">
@@ -456,7 +463,9 @@ function ConfirmationStep({
 	}
 
 	const hasMultipleGroups = Object.keys(accountGroups).length > 1
-	const effectiveDescriptionMode = hasMultipleGroups ? descriptionMode : "single"
+	const effectiveDescriptionMode = hasMultipleGroups
+		? descriptionMode
+		: "single"
 
 	return (
 		<div className="space-y-4">
@@ -496,7 +505,7 @@ function ConfirmationStep({
 			<Card>
 				<CardHeader>
 					<CardTitle className="text-base flex items-center gap-2">
-						<Check className="h-5 w-5 text-success-foreground" />
+						<Check className="h-5 w-5 text-success" />
 						Transfer Ready
 					</CardTitle>
 				</CardHeader>
@@ -506,7 +515,7 @@ function ConfirmationStep({
 							<p className="text-sm text-muted-foreground">
 								Eligible Transactions
 							</p>
-							<p className="text-lg font-semibold text-success-foreground">
+							<p className="text-lg font-semibold text-success">
 								{validation.eligibleTransactions.length}
 							</p>
 						</div>
@@ -532,7 +541,8 @@ function ConfirmationStep({
 										className="p-2 bg-muted rounded-md text-sm"
 									>
 										<div className="text-xs text-muted-foreground mb-1">
-											{group.debitAccount?.code} -&gt; {group.creditAccount?.code}
+											{group.debitAccount?.code} -&gt;{" "}
+											{group.creditAccount?.code}
 										</div>
 										{groupDescriptions[groupKey]}
 									</div>
@@ -616,11 +626,14 @@ export function GeneralLedgerTransferDialog({
 	})
 
 	const selectedTransactionsData =
-		transactionsData?.data?.filter((t) => selectedTransactions.includes(t.id)) || []
+		transactionsData?.data?.filter((t) =>
+			selectedTransactions.includes(t.id),
+		) || []
 
 	const accountGroups = groupTransactionsByAccounts(selectedTransactionsData)
 	const hasMultipleGroups = Object.keys(accountGroups).length > 1
-	const usePerGroupDescription = descriptionMode === "perGroup" && hasMultipleGroups
+	const usePerGroupDescription =
+		descriptionMode === "perGroup" && hasMultipleGroups
 
 	const isAssignStepValid =
 		targetMonth.trim().length > 0 &&

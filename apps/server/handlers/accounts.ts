@@ -1,11 +1,11 @@
 import { createError, defineEventHandler, readValidatedBody } from "h3"
 import { requireAuth } from "../middleware/auth.js"
+import { getUserWithProfile } from "../services/users.js"
+import { toValidationError } from "../utils/validation.js"
 import {
 	changePasswordSchema,
 	updateAccountSchema,
 } from "../validators/account.js"
-import { getUserWithProfile } from "../services/users.js"
-import { toValidationError } from "../utils/validation.js"
 
 export const updateAccount = defineEventHandler({
 	onRequest: [requireAuth()],

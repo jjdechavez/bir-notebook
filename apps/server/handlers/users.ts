@@ -7,10 +7,10 @@ import {
 	readValidatedBody,
 } from "h3"
 import { requireAuth } from "../middleware/auth.js"
-import { userListSchema, updateUserSchema } from "../validators/user.js"
-import { listUsers, getUserWithProfile } from "../services/users.js"
+import { getUserWithProfile, listUsers } from "../services/users.js"
 import { buildPaginationMeta } from "../utils/pagination.js"
 import { toValidationError } from "../utils/validation.js"
+import { updateUserSchema, userListSchema } from "../validators/user.js"
 
 export const listUsersHandler = defineEventHandler({
 	onRequest: [requireAuth()],

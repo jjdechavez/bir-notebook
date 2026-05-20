@@ -123,11 +123,10 @@ const columns: ColumnDef<Transaction>[] = [
 			return (
 				<button
 					type="button"
-					className="text-primary text-start underline-offset-4 hover:underline cursor-pointer"
+					className="text-sm text-foreground text-start underline-offset-4 hover:underline cursor-pointer"
 					onClick={() => table.options.meta?.setEdit?.(row.original)}
 				>
 					<p className="font-medium">{transaction.description}</p>
-					<p className="text-sm text-muted-foreground">ID: {transaction.id}</p>
 				</button>
 			)
 		},

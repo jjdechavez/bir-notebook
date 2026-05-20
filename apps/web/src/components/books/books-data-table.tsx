@@ -31,6 +31,7 @@ import {
 	TableRow,
 } from "@/components/ui/table"
 import type { ListMeta } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 interface BooksDataTableProps<TData> {
 	columns: ColumnDef<TData>[]
@@ -55,11 +56,14 @@ export function BooksDataTable<TData>({
 			{actions && <div className="flex items-center gap-4">{actions}</div>}
 
 			{/* Table container with scroll */}
-			<div className="rounded-md border">
-				<Table>
+			<div className="border">
+				<Table className="text-sm">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
+							<TableRow
+								key={headerGroup.id}
+								className="bg-muted divide-x divide-border"
+							>
 								{headerGroup.headers.map((header) => (
 									<TableHead key={header.id}>
 										{flexRender(
@@ -74,18 +78,23 @@ export function BooksDataTable<TData>({
 
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
-								</TableRow>
-							))
+							table.getRowModel().rows.map((row) => {
+								return (
+									<TableRow
+										key={row.id}
+										className={cn("divide-x divide-border hover:bg-muted/50")}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id}>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+								)
+							})
 						) : dataStatus === "pending" ? (
 							// Skeleton loading rows
 							Array.from({ length: 5 }).map((_, i) => (
@@ -149,8 +158,10 @@ export function BooksDataTable<TData>({
 						{getPaginationRange(meta.currentPage, meta.lastPage)?.map(
 							(page, index) => {
 								const pageNumber = +page
+								const tsPageIndex = pageNumber - 1
 								const isCurrentPage =
-									table.getState().pagination.pageIndex === pageNumber
+									table.getState().pagination.pageIndex === tsPageIndex
+
 								if (page === DOTS) {
 									return (
 										<PaginationItem>

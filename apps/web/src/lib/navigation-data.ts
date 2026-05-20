@@ -1,10 +1,6 @@
-import {
-	IconBook,
-	IconDashboard,
-	IconSettings,
-	IconUsers,
-} from "@tabler/icons-react"
-import type { User } from "@/lib/auth"
+import { IconDashboard, IconSettings, IconUsers } from "@tabler/icons-react"
+import { BookOpen } from "lucide-react"
+import type { SessionClient } from "@/lib/auth-client"
 
 export interface NavItem {
 	title: string
@@ -13,7 +9,7 @@ export interface NavItem {
 	requireAdmin?: boolean
 }
 
-export function getNavigationItems(user: User): NavItem[] {
+export function getNavigationItems(user: SessionClient["user"]): NavItem[] {
 	const items: NavItem[] = [
 		{
 			title: "Dashboard",
@@ -23,7 +19,7 @@ export function getNavigationItems(user: User): NavItem[] {
 		{
 			title: "Books",
 			url: "/books",
-			icon: IconBook,
+			icon: BookOpen,
 		},
 	]
 

@@ -1,11 +1,11 @@
-import { Badge } from "@/components/ui/badge"
+import { formatAmountToCurrency } from "@bir-notebook/shared/helpers/currency"
+import { formatOption } from "@bir-notebook/shared/models/common"
 import {
 	calculateVatAmount,
 	transactionCategoryBookTypeOptions,
 	transactionVatTypeOptions,
 } from "@bir-notebook/shared/models/transaction"
-import { formatAmountToCurrency } from "@bir-notebook/shared/helpers/currency"
-import { formatOption } from "@bir-notebook/shared/models/common"
+import { Badge } from "@/components/ui/badge"
 import { useTransactionCategory } from "@/hooks/api/transaction"
 import type { TransactionFormData } from "./transaction-form"
 
@@ -55,7 +55,7 @@ export function TransactionPreview({
 								<p className="text-sm text-muted-foreground">
 									{selectedCategory?.defaultDebitAccount?.code || "N/A"}
 								</p>
-								<p className="text-lg font-bold text-success-foreground mt-2">
+								<p className="text-lg font-bold text-success mt-2">
 									{formatAmountToCurrency(formData.amount)}
 								</p>
 							</div>
@@ -69,7 +69,7 @@ export function TransactionPreview({
 								<p className="text-sm text-muted-foreground">
 									{selectedCategory?.defaultCreditAccount?.code || "N/A"}
 								</p>
-								<p className="text-lg font-bold text-destructive-foreground mt-2">
+								<p className="text-lg font-bold text-destructive mt-2">
 									{formatAmountToCurrency(formData.amount)}
 								</p>
 							</div>
