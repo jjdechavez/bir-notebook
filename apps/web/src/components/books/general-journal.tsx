@@ -17,28 +17,29 @@ import {
 	DEFAULT_PAGE_INDEX,
 	DEFAULT_PAGE_SIZE,
 } from "@/lib/constants"
-import type {
-	Transaction,
-	TransactionListQueryParam,
-} from "@/types/transaction"
+import type { Transaction } from "@/types/transaction"
 import { BooksDataTable } from "./books-data-table"
 import { BulkActionBar } from "./bulk-action-bar"
 import { createGeneralJournalColumns } from "./columns/general-journal-columns"
 import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
 interface GeneralJournalProps {
-	filters: TransactionListQueryParam
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
-export function GeneralJournal({
-	filters,
-	onRecordAction,
-}: GeneralJournalProps) {
-	const { setFilters } = useFilters("/(app)/books")
+export function GeneralJournal({ onRecordAction }: GeneralJournalProps) {
+	const { filters, setFilters } = useFilters("/(app)/books")
+
+	const query = {
+		page: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+		limit: filters?.pageSize || DEFAULT_PAGE_SIZE,
+	}
+
 	const { data: transactionsData, status } = useSuspenseQuery(
 		transactionsOptions({
 			...filters,
+			page: query.page + 1,
+			limit: query.limit,
 			bookType: transactionCategoryBookTypes.generalJournal,
 		}),
 	)
