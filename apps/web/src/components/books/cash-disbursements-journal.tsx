@@ -27,10 +27,12 @@ import { createCashDisbursementsColumns } from "./columns/cash-disbursements-col
 import { CashDisbursementsFooter } from "./footers/cash-disbursements-footer"
 
 interface CashDisbursementsJournalProps {
+	onEdit: (transaction: Transaction) => void
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
 export function CashDisbursementsJournal({
+	onEdit,
 	onRecordAction,
 }: CashDisbursementsJournalProps) {
 	const { filters, setFilters } = useFilters("/(app)/books")
@@ -50,6 +52,7 @@ export function CashDisbursementsJournal({
 	)
 
 	const columns = createCashDisbursementsColumns(
+		onEdit,
 		onRecordAction,
 		transactionsData?.data || [],
 		config,

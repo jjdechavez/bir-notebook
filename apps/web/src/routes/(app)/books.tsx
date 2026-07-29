@@ -18,6 +18,7 @@ import { EnhancedGeneralLedgerWithSidebar } from "@/components/books/general-led
 import { GeneralLedgerTransferDialog } from "@/components/books/general-ledger/transfer-dialog"
 import { TransferHistory } from "@/components/books/general-ledger/transfer-history"
 import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from "@/components/data-table"
+import { EditTransaction } from "@/components/edit-transaction"
 import { GenericErrorComponent } from "@/components/error-component"
 import { SettingPendingComponent } from "@/components/pending-component"
 import { Card } from "@/components/ui/card"
@@ -42,7 +43,10 @@ import {
 	useUndoRecordTransaction,
 } from "@/hooks/api/transaction"
 import { useFilters } from "@/hooks/use-filters"
-import type { TransactionListQueryParam } from "@/types/transaction"
+import type {
+	Transaction,
+	TransactionListQueryParam,
+} from "@/types/transaction"
 
 export const Route = createFileRoute("/(app)/books")({
 	validateSearch: () =>
@@ -106,6 +110,8 @@ const bookTypes = [
 function BooksPage() {
 	const { filters, setFilters } = useFilters(Route.id)
 	const [showTransferDialog, setShowTransferDialog] = useState(false)
+	const [selectedTransaction, setSelectedTransaction] =
+		useState<Transaction | null>(null)
 
 	const queryClient = useQueryClient()
 
@@ -148,6 +154,7 @@ function BooksPage() {
 					<TabsContent value={cashReceiptJournalBook.key} className="space-y-4">
 						<BookView bookType={cashReceiptJournalBook.key}>
 							<CashReceiptsJournal
+								onEdit={setSelectedTransaction}
 								onRecordAction={(action, transaction) => {
 									if (action === "record") {
 										recordMutation.mutate(transaction.id)
@@ -164,6 +171,7 @@ function BooksPage() {
 					>
 						<BookView bookType={cashDisbursementJournalBook.key}>
 							<CashDisbursementsJournal
+								onEdit={setSelectedTransaction}
 								onRecordAction={(action, transaction) => {
 									if (action === "record") {
 										recordMutation.mutate(transaction.id)
@@ -176,6 +184,7 @@ function BooksPage() {
 					</TabsContent>
 					<TabsContent value={generalJournalBook.key} className="px-6 py-4">
 						<GeneralJournal
+							onEdit={setSelectedTransaction}
 							onRecordAction={(action, transaction) => {
 								if (action === "record") {
 									recordMutation.mutate(transaction.id)
@@ -270,6 +279,15 @@ function BooksPage() {
 							queryKey: transactionKeys.all,
 						})
 					}}
+				/>
+			)}
+
+			{selectedTransaction && (
+				<EditTransaction
+					transaction={selectedTransaction}
+					open
+					onToggleOpen={() => setSelectedTransaction(null)}
+					onSuccess={() => setSelectedTransaction(null)}
 				/>
 			)}
 		</div>

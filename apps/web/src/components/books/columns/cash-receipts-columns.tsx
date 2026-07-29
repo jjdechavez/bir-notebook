@@ -16,6 +16,7 @@ import {
 const columnHelper = createColumnHelper<Transaction>()
 
 export const createCashReceiptsColumns = (
+	onEdit: (transaction: Transaction) => void,
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void,
 	transactions: Transaction[],
 	config: ColumnarBookConfig,
@@ -171,6 +172,7 @@ export const createCashReceiptsColumns = (
 				<div className="flex justify-center">
 					<TransactionActions
 						transaction={row.original}
+						onEdit={() => onEdit(row.original)}
 						onRecord={() => onRecordAction("record", row.original)}
 						onUndo={() => onRecordAction("undo", row.original)}
 					/>
