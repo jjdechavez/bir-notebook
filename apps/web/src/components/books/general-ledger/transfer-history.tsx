@@ -1,11 +1,11 @@
 import { formatCentsToCurrency } from "@bir-notebook/shared/helpers/currency"
+import type { TransferHistoryItem } from "@bir-notebook/shared/models/general-ledger"
 import { ArrowRight, Clock, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import { useTransactionTransferHistory } from "@/hooks/api/transaction"
 import { formatDate, formatDateTime } from "@/lib/general-ledger-helpers"
-import type { TransferHistoryItem } from "@/types/general-ledger"
 
 type TransferHistoryProps = {
 	transferGroupId?: string
@@ -87,7 +87,7 @@ export function TransferHistory({ transferGroupId }: TransferHistoryProps) {
 					<CardContent>
 						<div className="space-y-3">
 							{/* Transfer summary */}
-							<div className="bg-blue-50 p-3 rounded-lg">
+							<div className="bg-info/10 p-3 rounded-lg">
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 									<div>
 										<span className="text-muted-foreground">
@@ -132,7 +132,7 @@ export function TransferHistory({ transferGroupId }: TransferHistoryProps) {
 								{groupTransfers.map((transfer) => (
 									<div
 										key={transfer.id}
-										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+										className="flex items-center justify-between p-3 bg-muted rounded-lg"
 									>
 										<div className="flex-1">
 											<div className="flex items-center gap-3">
