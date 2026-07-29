@@ -1,6 +1,7 @@
 import type {
 	BulkTransferToGeneralLedgerInput,
 	BulkTransferToGeneralLedgerResponse,
+	GeneralLedgerEntriesQueryParam,
 	GeneralLedgerViewResult,
 	TransactionTransferHistoryList,
 } from "@bir-notebook/shared/models/general-ledger"
@@ -332,6 +333,17 @@ export const generalLedgerViewOptions = (query: GeneralLedgerViewQueryParam) =>
 			query,
 		),
 		queryFn: () => api.transaction.generalLedger.view(query),
+	})
+
+export const generalLedgerEntriesOptions = (
+	query: GeneralLedgerEntriesQueryParam,
+) =>
+	queryOptions({
+		queryKey: transactionGeneralLedgerKeys.detailWithFilter(
+			`entries-${query.accountId}-${query.month}`,
+			query,
+		),
+		queryFn: () => api.transaction.generalLedger.entries(query),
 	})
 
 export const useGeneralLedgerView = (

@@ -27,6 +27,7 @@ import {
 	bulkUndoRecordTransactionHandler,
 	createTransactionHandler,
 	generalLedgerViewHandler,
+	generalLedgerEntriesHandler,
 	listTransactions,
 	recordTransactionHandler,
 	showTransaction,
@@ -91,6 +92,10 @@ export function createApiRouter() {
 	)
 	apiRouter.get("/transactions/transfer-history", transferHistoryHandler)
 	apiRouter.get("/transactions/general-ledger/view", generalLedgerViewHandler)
+	apiRouter.get(
+		"/transactions/general-ledger/entries",
+		generalLedgerEntriesHandler,
+	)
 	apiRouter.put("/transactions/general-ledger/:id", updateGlDescriptionHandler)
 	apiRouter.get("/transactions/:id", showTransaction)
 	apiRouter.put("/transactions/:id", updateTransactionHandler)

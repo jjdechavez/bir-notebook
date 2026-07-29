@@ -60,7 +60,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 							onClick={() => setIsSidebarOpen(true)}
 						>
 							<Menu className="h-4 w-4 mr-2" />
-							Accounts
+							Account list
 						</Button>
 					)}
 
@@ -72,7 +72,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 						>
 							<div className="space-y-4">
 								<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-									<h2 className="text-lg font-semibold">Accounts</h2>
+									<h2 className="text-lg font-semibold">Chart of Accounts</h2>
 									<div className="flex gap-2">
 										<Button
 											variant="outline"
@@ -80,7 +80,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 											onClick={handleClearSelection}
 											disabled={!selectedAccountId}
 										>
-											Clear
+											Clear selection
 										</Button>
 										{onTransferClick && (
 											<Button onClick={onTransferClick} size="sm">
@@ -109,7 +109,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 				>
 					<div className="max-w-full">
 						<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-							<h2 className="text-lg font-semibold">Accounts</h2>
+							<h2 className="text-lg font-semibold">Chart of Accounts</h2>
 							<div className="flex gap-2">
 								<Button
 									variant="outline"
@@ -117,7 +117,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 									onClick={handleClearSelection}
 									disabled={!selectedAccountId}
 								>
-									Clear
+									Clear selection
 								</Button>
 								{onTransferClick && (
 									<Button onClick={onTransferClick} size="sm">
@@ -163,7 +163,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 								onClick={handleBackToAccounts}
 								className="mb-0"
 							>
-								← Back to Accounts
+								← All accounts
 							</Button>
 							{onExportClick && (
 								<Button
@@ -213,7 +213,7 @@ export function EnhancedGeneralLedgerWithSidebar({
 						className="fixed bottom-4 right-4 z-10 hidden md:flex"
 					>
 						<Menu className="h-4 w-4 mr-2" />
-						Show Accounts
+						Open account list
 					</Button>
 				)}
 			</div>

@@ -204,6 +204,42 @@ function BooksPage() {
 								</TabsContent>
 
 								<TabsContent value="transactions">
+									<div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border bg-muted/20 p-4">
+										<div>
+											<label
+												htmlFor="ledger-date-from"
+												className="mb-1 block text-xs font-medium text-muted-foreground"
+											>
+												From
+											</label>
+											<Input
+												id="ledger-date-from"
+												type="date"
+												value={filters.dateFrom || ""}
+												onChange={(e) =>
+													setFilters({ dateFrom: e.target.value })
+												}
+											/>
+										</div>
+										<div>
+											<label
+												htmlFor="ledger-date-to"
+												className="mb-1 block text-xs font-medium text-muted-foreground"
+											>
+												To
+											</label>
+											<Input
+												id="ledger-date-to"
+												type="date"
+												value={filters.dateTo || ""}
+												onChange={(e) => setFilters({ dateTo: e.target.value })}
+											/>
+										</div>
+										<p className="pb-2 text-xs text-muted-foreground">
+											Balances are calculated from the selected period and prior
+											posted ledger months.
+										</p>
+									</div>
 									<EnhancedGeneralLedgerWithSidebar
 										dateFrom={filters.dateFrom as string | undefined}
 										dateTo={filters.dateTo as string | undefined}

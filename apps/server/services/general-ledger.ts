@@ -27,7 +27,7 @@ export interface LedgerTransaction {
 export interface GeneralLedgerMonth {
 	month: string
 	openingBalance: number
-	transactions: LedgerTransaction[]
+	transactionCount: number
 	periodClosing: {
 		totalDebits: number
 		totalCredits: number
@@ -92,16 +92,10 @@ function getMonthsInRange(dateFrom: Date, dateTo: Date) {
 }
 
 function calculatePeriodClosing(
-	transactions: LedgerTransaction[],
+	totals: { totalDebits: number; totalCredits: number },
 	openingBalance: number,
 ) {
-	const totalDebits = transactions
-		.filter((t) => t.debitAmount)
-		.reduce((sum, t) => sum + (t.debitAmount ?? 0), 0)
-
-	const totalCredits = transactions
-		.filter((t) => t.creditAmount)
-		.reduce((sum, t) => sum + (t.creditAmount ?? 0), 0)
+	const { totalDebits, totalCredits } = totals
 
 	const netAmount = totalDebits - totalCredits
 	const runningBalance = openingBalance + netAmount
@@ -150,19 +144,9 @@ async function getOpeningBalance(
 		.selectFrom("transactions")
 		.selectAll()
 		.where("user_id", "=", userId)
-		.where((eb) =>
-			eb.or([
-				eb.and([
-					eb("recorded_at", "is not", null),
-					eb("transaction_date", "<", asOfDate),
-				]),
-				eb.and([
-					eb("book_type", "=", transactionCategoryBookTypes.generalLedger),
-					eb("gl_id", "is", null),
-					eb("created_at", "<", asOfDate),
-				]),
-			]),
-		)
+		.where("book_type", "=", transactionCategoryBookTypes.generalLedger)
+		.where("gl_id", "is", null)
+		.where("gl_posting_month", "<", formatYearMonth(asOfDate))
 		.where((eb) =>
 			eb.or([
 				eb("debit_account_id", "=", accountId),
@@ -190,8 +174,9 @@ async function getMonthTransactions(
 	accountId: number,
 	month: string,
 	userId: string,
+	options?: { limit?: number; offset?: number },
 ) {
-	const transactions = await db
+	let query = db
 		.selectFrom("transactions as t")
 		.leftJoin("chart_of_accounts as debit", "debit.id", "t.debit_account_id")
 		.leftJoin("chart_of_accounts as credit", "credit.id", "t.credit_account_id")
@@ -201,6 +186,8 @@ async function getMonthTransactions(
 			"t.credit_account_id as credit_account_id",
 			"t.amount as amount",
 			"t.description as description",
+			"t.reference_number as reference_number",
+			"t.transaction_date as transaction_date",
 			"t.created_at as created_at",
 			"debit.code as debit_code",
 			"debit.name as debit_name",
@@ -219,7 +206,11 @@ async function getMonthTransactions(
 		.where("t.gl_id", "is", null)
 		.orderBy("t.created_at", "asc")
 		.orderBy("t.id", "asc")
-		.execute()
+
+	if (options?.limit !== undefined) query = query.limit(options.limit)
+	if (options?.offset !== undefined) query = query.offset(options.offset)
+
+	const transactions = await query.execute()
 
 	return transactions.map((transaction) => {
 		const isDebit = transaction.debit_account_id === accountId
@@ -232,8 +223,13 @@ async function getMonthTransactions(
 
 		const ledgerItem: LedgerTransaction = {
 			id: transaction.id,
-			date: transaction.created_at.toISOString(),
+			date: (
+				transaction.transaction_date ?? transaction.created_at
+			).toISOString(),
 			description: transaction.description ?? "",
+			...(transaction.reference_number
+				? { referenceNumber: transaction.reference_number }
+				: {}),
 			...(isDebit
 				? { debitAmount: transaction.amount }
 				: { creditAmount: transaction.amount }),
@@ -248,6 +244,56 @@ async function getMonthTransactions(
 
 		return ledgerItem
 	})
+}
+
+async function getMonthTransactionStats(
+	db: Kysely<DB>,
+	accountId: number,
+	month: string,
+	userId: string,
+) {
+	const result = await db
+		.selectFrom("transactions as t")
+		.select((eb) => [
+			eb.fn.count<number>("t.id").as("transaction_count"),
+			eb.fn
+				.sum<number>(
+					eb
+						.case()
+						.when("t.debit_account_id", "=", accountId)
+						.then(eb.ref("t.amount"))
+						.else(0)
+						.end(),
+				)
+				.as("total_debits"),
+			eb.fn
+				.sum<number>(
+					eb
+						.case()
+						.when("t.credit_account_id", "=", accountId)
+						.then(eb.ref("t.amount"))
+						.else(0)
+						.end(),
+				)
+				.as("total_credits"),
+		])
+		.where("t.user_id", "=", userId)
+		.where("t.gl_posting_month", "=", month)
+		.where("t.book_type", "=", transactionCategoryBookTypes.generalLedger)
+		.where("t.gl_id", "is", null)
+		.where((eb) =>
+			eb.or([
+				eb("t.debit_account_id", "=", accountId),
+				eb("t.credit_account_id", "=", accountId),
+			]),
+		)
+		.executeTakeFirst()
+
+	return {
+		transactionCount: Number(result?.transaction_count ?? 0),
+		totalDebits: Number(result?.total_debits ?? 0),
+		totalCredits: Number(result?.total_credits ?? 0),
+	}
 }
 
 export async function getGeneralLedgerView(
@@ -275,21 +321,13 @@ export async function getGeneralLedgerView(
 	let runningBalance = await getOpeningBalance(db, accountId, dateFrom, userId)
 
 	for (const month of months) {
-		const monthTransactions = await getMonthTransactions(
-			db,
-			accountId,
-			month,
-			userId,
-		)
-		const periodClosing = calculatePeriodClosing(
-			monthTransactions,
-			runningBalance,
-		)
+		const stats = await getMonthTransactionStats(db, accountId, month, userId)
+		const periodClosing = calculatePeriodClosing(stats, runningBalance)
 
 		monthData.push({
 			month,
 			openingBalance: runningBalance,
-			transactions: monthTransactions,
+			transactionCount: stats.transactionCount,
 			periodClosing,
 		})
 
@@ -306,6 +344,33 @@ export async function getGeneralLedgerView(
 			},
 			months: monthData,
 			grandTotal: calculateGrandTotal(monthData, runningBalance),
+		},
+	}
+}
+
+export async function getGeneralLedgerEntries(
+	db: Kysely<DB>,
+	accountId: number,
+	month: string,
+	userId: string,
+	page: number,
+	limit: number,
+) {
+	const stats = await getMonthTransactionStats(db, accountId, month, userId)
+	const start = (page - 1) * limit
+	const entries = await getMonthTransactions(db, accountId, month, userId, {
+		limit,
+		offset: start,
+	})
+
+	return {
+		status: "success" as const,
+		data: entries,
+		meta: {
+			total: stats.transactionCount,
+			page,
+			limit,
+			totalPages: Math.ceil(stats.transactionCount / limit),
 		},
 	}
 }
