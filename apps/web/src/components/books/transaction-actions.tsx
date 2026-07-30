@@ -1,3 +1,4 @@
+import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
 	DropdownMenu,
@@ -5,17 +6,18 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from "lucide-react"
 import type { Transaction } from "@/types/transaction"
 
 interface TransactionActionsProps {
 	transaction: Transaction
+	onEdit: () => void
 	onRecord: () => void
 	onUndo: () => void
 }
 
 export function TransactionActions({
 	transaction,
+	onEdit,
 	onRecord,
 	onUndo,
 }: TransactionActionsProps) {
@@ -27,6 +29,7 @@ export function TransactionActions({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
+				<DropdownMenuItem onClick={onEdit}>Edit transaction</DropdownMenuItem>
 				{transaction.recorded ? (
 					<DropdownMenuItem onClick={onUndo}>Undo Record</DropdownMenuItem>
 				) : (

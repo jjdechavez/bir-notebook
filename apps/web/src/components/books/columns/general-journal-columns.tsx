@@ -10,6 +10,7 @@ import { TransferedGLBadge } from "../transfered-gl-badge"
 const columnHelper = createColumnHelper<Transaction>()
 
 export const createGeneralJournalColumns = (
+	onEdit: (transaction: Transaction) => void,
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void,
 ): ColumnDef<Transaction>[] => {
 	return [
@@ -92,6 +93,7 @@ export const createGeneralJournalColumns = (
 				<div className="flex justify-center">
 					<TransactionActions
 						transaction={row.original}
+						onEdit={() => onEdit(row.original)}
 						onRecord={() => onRecordAction("record", row.original)}
 						onUndo={() => onRecordAction("undo", row.original)}
 					/>

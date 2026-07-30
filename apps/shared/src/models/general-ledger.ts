@@ -69,8 +69,19 @@ export const generalLedgerViewSchema = z.object({
 	dateTo: z.string(),
 })
 
+export const generalLedgerEntriesSchema = z.object({
+	accountId: z.coerce.number().int(),
+	month: z.string().regex(/^\d{4}-\d{2}$/),
+	page: z.coerce.number().int().positive().optional(),
+	limit: z.coerce.number().int().positive().max(100).optional(),
+})
+
 export type GeneralLedgerViewQueryParam = z.infer<
 	typeof generalLedgerViewSchema
+>
+
+export type GeneralLedgerEntriesQueryParam = z.infer<
+	typeof generalLedgerEntriesSchema
 >
 
 export type LedgerTransaction = {
@@ -92,13 +103,24 @@ export type LedgerTransaction = {
 export type GeneralLedgerMonth = {
 	month: string // '2024-01'
 	openingBalance: number
-	transactions: LedgerTransaction[]
+	transactionCount: number
 	periodClosing: {
 		totalDebits: number
 		totalCredits: number
 		netAmount: number // positive for debit, negative for credit
 		runningBalance: number
 		balanceType: "debit" | "credit"
+	}
+}
+
+export type GeneralLedgerEntriesResult = {
+	status: "success"
+	data: LedgerTransaction[]
+	meta: {
+		total: number
+		page: number
+		limit: number
+		totalPages: number
 	}
 }
 

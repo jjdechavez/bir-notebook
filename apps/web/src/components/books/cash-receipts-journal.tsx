@@ -27,10 +27,12 @@ import { createCashReceiptsColumns } from "./columns/cash-receipts-columns"
 import { CashReceiptsFooter } from "./footers/cash-receipts-footer"
 
 type CashReceiptsJournalProps = {
+	onEdit: (transaction: Transaction) => void
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
 export function CashReceiptsJournal({
+	onEdit,
 	onRecordAction,
 }: CashReceiptsJournalProps) {
 	const { filters, setFilters } = useFilters("/(app)/books")
@@ -52,6 +54,7 @@ export function CashReceiptsJournal({
 	)
 
 	const columns = createCashReceiptsColumns(
+		onEdit,
 		onRecordAction,
 		transactionsData?.data || [],
 		config,

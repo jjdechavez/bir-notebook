@@ -2,6 +2,8 @@ import type {
 	BulkTransferToGeneralLedgerInput,
 	BulkTransferToGeneralLedgerResponse,
 	GeneralLedgerViewQueryParam,
+	GeneralLedgerEntriesQueryParam,
+	GeneralLedgerEntriesResult,
 	GeneralLedgerViewResult,
 	TransactionTransferHistoryList,
 } from "@bir-notebook/shared/models/general-ledger"
@@ -121,6 +123,13 @@ export const transaction = {
 			const qs = cleanEmptyParams(query)
 			return requestApi<GeneralLedgerViewResult>(
 				`${TRANSACTION_ENDPOINT}/general-ledger/view`,
+				{ method: "GET", query: qs },
+			)
+		},
+		entries: async (query: GeneralLedgerEntriesQueryParam) => {
+			const qs = cleanEmptyParams(query)
+			return requestApi<GeneralLedgerEntriesResult>(
+				`${TRANSACTION_ENDPOINT}/general-ledger/entries`,
 				{ method: "GET", query: qs },
 			)
 		},

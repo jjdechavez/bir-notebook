@@ -24,10 +24,14 @@ import { createGeneralJournalColumns } from "./columns/general-journal-columns"
 import { GeneralJournalFooter } from "./footers/general-journal-footer"
 
 interface GeneralJournalProps {
+	onEdit: (transaction: Transaction) => void
 	onRecordAction: (action: "record" | "undo", transaction: Transaction) => void
 }
 
-export function GeneralJournal({ onRecordAction }: GeneralJournalProps) {
+export function GeneralJournal({
+	onEdit,
+	onRecordAction,
+}: GeneralJournalProps) {
 	const { filters, setFilters } = useFilters("/(app)/books")
 
 	const query = {
@@ -44,7 +48,7 @@ export function GeneralJournal({ onRecordAction }: GeneralJournalProps) {
 		}),
 	)
 
-	const columns = createGeneralJournalColumns(onRecordAction)
+	const columns = createGeneralJournalColumns(onEdit, onRecordAction)
 
 	const table = useReactTable({
 		data: transactionsData?.data || [],
