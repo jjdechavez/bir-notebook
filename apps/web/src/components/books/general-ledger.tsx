@@ -6,6 +6,16 @@ import { transactionsOptions } from "@/hooks/api/transaction"
 import { useFilters } from "@/hooks/use-filters"
 import { Route } from "@/routes/(app)/books"
 import type { Transaction } from "@/types/transaction"
+import { Skeleton } from "../ui/skeleton"
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableFooter,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "../ui/table"
 import { NoTransactionFound } from "./common"
 
 export function GeneralLedger() {
@@ -69,67 +79,66 @@ export function GeneralLedger() {
 
 	return (
 		<div className="overflow-x-auto">
-			<table className="w-full border-collapse">
-				<thead>
-					<tr className="border-b bg-gray-50">
-						<th className="text-left p-3">Account Code</th>
-						<th className="text-left p-3">Account Name</th>
-						<th className="text-right p-3">Total Debits</th>
-						<th className="text-right p-3">Total Credits</th>
-						<th className="text-right p-3">Balance</th>
-					</tr>
-				</thead>
-				<tbody>
-					{accountsArray.map((account, index) => {
+			<Table>
+				<TableHeader>
+					<TableRow className="border-b bg-muted">
+						<TableHead className="text-left p-3">Account Code</TableHead>
+						<TableHead className="text-left p-3">Account Name</TableHead>
+						<TableHead className="text-right p-3">Total Debits</TableHead>
+						<TableHead className="text-right p-3">Total Credits</TableHead>
+						<TableHead className="text-right p-3">Balance</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{accountsArray.map((account) => {
 						const balance = account.debit - account.credit
 						return (
-							<tr
-								key={account.id}
-								className={`border-b ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
-							>
-								<td className="p-3 font-medium">{account.code}</td>
-								<td className="p-3">{account.name}</td>
-								<td className="p-3 text-right font-medium text-success">
+							<TableRow key={account.id} className="odd:bg-muted">
+								<TableCell className="p-3 font-medium">
+									{account.code}
+								</TableCell>
+								<TableCell className="p-3">{account.name}</TableCell>
+								<TableCell className="p-3 text-right font-medium text-success">
 									{formatCentsToCurrency(account.debit)}
-								</td>
-								<td className="p-3 text-right font-medium text-destructive">
+								</TableCell>
+								<TableCell className="p-3 text-right font-medium text-destructive">
 									{formatCentsToCurrency(account.credit)}
-								</td>
-								<td
+								</TableCell>
+								<TableCell
 									className={`p-3 text-right font-medium ${balance >= 0 ? "text-success" : "text-destructive"}`}
 								>
 									{formatCentsToCurrency(Math.abs(balance))}
-								</td>
-							</tr>
+								</TableCell>
+							</TableRow>
 						)
 					})}
-				</tbody>
-				<tfoot>
-					<tr className="border-t-2 border-gray-300 bg-gray-100 font-bold">
-						<td colSpan={2} className="p-3 text-right">
+				</TableBody>
+				<TableFooter>
+					<TableRow className="font-bold">
+						<TableCell colSpan={2} className="p-3 text-right">
 							Grand Totals:
-						</td>
-						<td className="p-3 text-right text-success">
+						</TableCell>
+						<TableCell className="p-3 text-right text-success">
 							{formatCentsToCurrency(
 								accountsArray.reduce((sum, acc) => sum + acc.debit, 0),
 							)}
-						</td>
-						<td className="p-3 text-right text-destructive">
+						</TableCell>
+						<TableCell className="p-3 text-right text-destructive">
 							{formatCentsToCurrency(
 								accountsArray.reduce((sum, acc) => sum + acc.credit, 0),
 							)}
-						</td>
-						<td className="p-3 text-right">
+						</TableCell>
+						<TableCell className="p-3 text-right">
 							{formatCentsToCurrency(
 								Math.abs(
 									accountsArray.reduce((sum, acc) => sum + acc.debit, 0) -
 										accountsArray.reduce((sum, acc) => sum + acc.credit, 0),
 								),
 							)}
-						</td>
-					</tr>
-				</tfoot>
-			</table>
+						</TableCell>
+					</TableRow>
+				</TableFooter>
+			</Table>
 		</div>
 	)
 }
@@ -142,13 +151,13 @@ export function ChartOfAccounts(_: ChartOfAccountsProps) {
 	if (status === "pending") {
 		return (
 			<div className="space-y-4">
-				<div className="animate-pulse">
-					<div className="h-4 bg-gray-300 rounded w-1/4 mb-4"></div>
-					<div className="space-y-2">
-						{[...Array(5)].map((_, i) => (
-							<div key={i} className="h-3 bg-gray-200 rounded"></div>
-						))}
-					</div>
+				<Skeleton className="h-4 rounded w-1/4 mb-4" />
+				<div className="space-y-2">
+					<Skeleton className="h-3 rounded" />
+					<Skeleton className="h-3 rounded" />
+					<Skeleton className="h-3 rounded" />
+					<Skeleton className="h-3 rounded" />
+					<Skeleton className="h-3 rounded" />
 				</div>
 			</div>
 		)
