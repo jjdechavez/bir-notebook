@@ -19,5 +19,10 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.4.12",
 		"typescript": "^6.0.3"
+	},
+	"pnpm": {
+		"overrides": {
+			"@opentelemetry/semantic-conventions": "file:./patches/otel-semconv-stub"
+		}
 	}
 }
