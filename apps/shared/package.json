@@ -55,6 +55,11 @@
 			"types": "./dist/models/general-ledger.d.ts",
 			"import": "./dist/models/general-ledger.js",
 			"require": "./dist/models/general-ledger.cjs"
+		},
+		"./models/cor": {
+			"types": "./dist/models/cor.d.ts",
+			"import": "./dist/models/cor.js",
+			"require": "./dist/models/cor.cjs"
 		}
 	},
 	"devDependencies": {

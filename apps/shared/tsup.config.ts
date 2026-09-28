@@ -10,6 +10,7 @@ export default defineConfig({
 		"src/models/system.ts",
 		"src/models/user.ts",
 		"src/models/general-ledger.ts",
+		"src/models/cor.ts",
 	],
 	format: ["esm", "cjs"],
 	outDir: "dist",

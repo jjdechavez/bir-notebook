@@ -11,8 +11,24 @@ import {
 	showInviteHandler,
 	updateInviteHandler,
 } from "../handlers/invites.js"
+import {
+	confirmCor,
+	deleteCorDoc,
+	extractCor,
+	getTaxProfile,
+	initCorUpload,
+	listCorDocs,
+	previewCorDoc,
+	uploadCorProxy,
+} from "../handlers/onboarding.js"
 import readyHandler from "../handlers/ready.js"
 import { systemHasBeenSetup } from "../handlers/setup.js"
+import {
+	getWorksheet,
+	listFilings,
+	markFiled,
+	saveWorksheet,
+} from "../handlers/tax.js"
 import {
 	currentChartOfAccounts,
 	listChartOfAccounts,
@@ -26,8 +42,8 @@ import {
 	bulkTransferToGeneralLedgerHandler,
 	bulkUndoRecordTransactionHandler,
 	createTransactionHandler,
-	generalLedgerViewHandler,
 	generalLedgerEntriesHandler,
+	generalLedgerViewHandler,
 	listTransactions,
 	recordTransactionHandler,
 	showTransaction,
@@ -112,6 +128,20 @@ export function createApiRouter() {
 	apiRouter.put("/preferences", updateUserPreferences)
 
 	apiRouter.get("/setup", systemHasBeenSetup)
+
+	apiRouter.post("/onboarding/cor/init", initCorUpload)
+	apiRouter.post("/onboarding/cor/upload", uploadCorProxy)
+	apiRouter.post("/onboarding/cor/extract", extractCor)
+	apiRouter.post("/onboarding/cor/confirm", confirmCor)
+	apiRouter.get("/tax-profile", getTaxProfile)
+	apiRouter.get("/cor-documents", listCorDocs)
+	apiRouter.get("/cor-documents/:id/preview", previewCorDoc)
+	apiRouter.delete("/cor-documents/:id", deleteCorDoc)
+
+	apiRouter.get("/tax/worksheet", getWorksheet)
+	apiRouter.post("/tax/worksheet/save", saveWorksheet)
+	apiRouter.post("/tax/worksheet/mark-filed", markFiled)
+	apiRouter.get("/tax/filings", listFilings)
 
 	router.use("/api/**", useBase("/api", apiRouter.handler))
 

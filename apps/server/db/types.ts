@@ -133,12 +133,82 @@ export interface Verification {
 	value: string
 }
 
+export interface TaxProfiles {
+	atc: string
+	books_type: string | null
+	branch_code: string
+	created_at: Generated<Timestamp>
+	eight_pct_year: number | null
+	has_employees: boolean
+	is_8pct_current_year: boolean
+	is_vat: boolean
+	line_of_business: string | null
+	psic: string | null
+	rdo_code: string
+	registered_address: string
+	registered_name: string
+	registration_date: string
+	taxpayer_type: string
+	tin: string
+	tin_issuance_date: string | null
+	trade_name: string | null
+	updated_at: Generated<Timestamp>
+	user_id: string
+	zip: string | null
+}
+
+export interface TaxObligations {
+	created_at: Generated<Timestamp>
+	end_date: string | null
+	form_type: string
+	frequency: string
+	id: Generated<number>
+	is_active: Generated<boolean>
+	start_date: string
+	tax_type: string
+	user_id: string
+}
+
+export interface CorDocuments {
+	created_at: Generated<Timestamp>
+	id: Generated<number>
+	mime: string
+	ocn: string | null
+	original_filename: string | null
+	r2_key_display: string | null
+	r2_key_json: string | null
+	r2_key_original: string
+	size_bytes: number
+	status: Generated<string>
+	tax_year: number | null
+	user_id: string
+}
+
+export interface TaxFilings {
+	computed: unknown | null
+	created_at: Generated<Timestamp>
+	filed_at: Timestamp | null
+	form_type: string
+	id: Generated<number>
+	inputs: unknown | null
+	payment_ref: string | null
+	quarter: number | null
+	status: Generated<string>
+	updated_at: Generated<Timestamp>
+	user_id: string
+	year: number
+}
+
 export interface DB {
 	account: Account
 	chart_of_accounts: ChartOfAccounts
+	cor_documents: CorDocuments
 	invites: Invites
 	jwks: Jwks
 	session: Session
+	tax_filings: TaxFilings
+	tax_obligations: TaxObligations
+	tax_profiles: TaxProfiles
 	transaction_categories: TransactionCategories
 	transactions: Transactions
 	user: User
