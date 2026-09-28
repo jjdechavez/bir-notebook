@@ -1,5 +1,6 @@
 import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from "@/components/data-table"
 import { chartOfAccount } from "./api/chart-of-account"
+import { cor, tax } from "./api/cor"
 import { invite } from "./api/invite"
 import { systems } from "./api/systems"
 import { transaction } from "./api/transaction"
@@ -77,4 +78,6 @@ export const api = {
 	invite,
 	transaction,
 	chartOfAccount,
+	cor,
+	tax,
 }

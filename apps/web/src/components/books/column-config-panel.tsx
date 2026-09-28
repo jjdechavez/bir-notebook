@@ -65,8 +65,8 @@ export function ColumnConfigPanel({
 									: "bg-secondary/70 text-secondary-foreground border border-border"
 							}`}
 						>
-							{size} columns ({size - COLUMNAR_FIXED_COLUMNS} configurable +
-							 4 fixed)
+							{size} columns ({size - COLUMNAR_FIXED_COLUMNS} configurable + 4
+							fixed)
 						</button>
 					))}
 				</div>

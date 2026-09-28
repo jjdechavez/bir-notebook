@@ -1,6 +1,7 @@
 import { AppNavbar } from "@/components/app-navbar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
+import { TaxProfileNudge } from "@/components/tax-profile-nudge"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { authClient } from "@/lib/auth-client"
 import { getNavigationItems } from "@/lib/navigation-data"
@@ -31,7 +32,10 @@ export function NavigationLayout({ children }: NavigationLayoutProps) {
 		return (
 			<div className="min-h-screen">
 				<AppNavbar navigationItems={navigationItems} />
-				<main className="container mx-auto py-6">{children}</main>
+				<main className="container mx-auto space-y-4 py-6">
+					<TaxProfileNudge />
+					{children}
+				</main>
 			</div>
 		)
 	}
@@ -51,7 +55,10 @@ export function NavigationLayout({ children }: NavigationLayoutProps) {
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex flex-1 flex-col gap-2">
 						<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-							<div className="px-4">{children}</div>
+							<div className="space-y-4 px-4">
+								<TaxProfileNudge />
+								{children}
+							</div>
 						</div>
 					</div>
 				</div>

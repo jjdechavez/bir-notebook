@@ -37,8 +37,8 @@ export function BookCountedColumnFilter(props: BookCountedColumnFilterProps) {
 			</div>
 			<div className="text-sm text-muted-foreground">
 				{props.count} counted columns (Reference + Cash +
-				 {props.count - COLUMNAR_FIXED_COLUMNS}{" "}
-				chart of accounts + Sundry + Sundry Amount)
+				{props.count - COLUMNAR_FIXED_COLUMNS} chart of accounts + Sundry +
+				Sundry Amount)
 			</div>
 		</div>
 	)

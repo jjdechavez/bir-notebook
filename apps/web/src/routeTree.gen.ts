@@ -13,14 +13,17 @@ import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as publicSetupRouteImport } from './routes/(public)/setup'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
+import { Route as appTaxesRouteImport } from './routes/(app)/taxes'
 import { Route as appSettingsRouteImport } from './routes/(app)/settings'
 import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
 import { Route as appBooksRouteImport } from './routes/(app)/books'
 import { Route as appSettingsIndexRouteImport } from './routes/(app)/settings.index'
 import { Route as appSettingsUsersRouteImport } from './routes/(app)/settings.users'
+import { Route as appSettingsTaxProfileRouteImport } from './routes/(app)/settings.tax-profile'
 import { Route as appSettingsPreferencesRouteImport } from './routes/(app)/settings.preferences'
 import { Route as appSettingsInvitesRouteImport } from './routes/(app)/settings.invites'
 import { Route as appSettingsAccountsRouteImport } from './routes/(app)/settings.accounts'
+import { Route as appOnboardingCorRouteImport } from './routes/(app)/onboarding.cor'
 import { Route as publicInvitesInviteIdConfirmRouteImport } from './routes/(public)/invites.$inviteId.confirm'
 
 const appRouteRoute = appRouteRouteImport.update({
@@ -41,6 +44,11 @@ const publicLoginRoute = publicLoginRouteImport.update({
   id: '/(public)/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const appTaxesRoute = appTaxesRouteImport.update({
+  id: '/taxes',
+  path: '/taxes',
+  getParentRoute: () => appRouteRoute,
 } as any)
 const appSettingsRoute = appSettingsRouteImport.update({
   id: '/settings',
@@ -67,6 +75,11 @@ const appSettingsUsersRoute = appSettingsUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => appSettingsRoute,
 } as any)
+const appSettingsTaxProfileRoute = appSettingsTaxProfileRouteImport.update({
+  id: '/tax-profile',
+  path: '/tax-profile',
+  getParentRoute: () => appSettingsRoute,
+} as any)
 const appSettingsPreferencesRoute = appSettingsPreferencesRouteImport.update({
   id: '/preferences',
   path: '/preferences',
@@ -82,6 +95,11 @@ const appSettingsAccountsRoute = appSettingsAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => appSettingsRoute,
 } as any)
+const appOnboardingCorRoute = appOnboardingCorRouteImport.update({
+  id: '/onboarding/cor',
+  path: '/onboarding/cor',
+  getParentRoute: () => appRouteRoute,
+} as any)
 const publicInvitesInviteIdConfirmRoute =
   publicInvitesInviteIdConfirmRouteImport.update({
     id: '/(public)/invites/$inviteId/confirm',
@@ -94,11 +112,14 @@ export interface FileRoutesByFullPath {
   '/books': typeof appBooksRoute
   '/dashboard': typeof appDashboardRoute
   '/settings': typeof appSettingsRouteWithChildren
+  '/taxes': typeof appTaxesRoute
   '/login': typeof publicLoginRoute
   '/setup': typeof publicSetupRoute
+  '/onboarding/cor': typeof appOnboardingCorRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
   '/settings/preferences': typeof appSettingsPreferencesRoute
+  '/settings/tax-profile': typeof appSettingsTaxProfileRoute
   '/settings/users': typeof appSettingsUsersRoute
   '/settings/': typeof appSettingsIndexRoute
   '/invites/$inviteId/confirm': typeof publicInvitesInviteIdConfirmRoute
@@ -107,11 +128,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/books': typeof appBooksRoute
   '/dashboard': typeof appDashboardRoute
+  '/taxes': typeof appTaxesRoute
   '/login': typeof publicLoginRoute
   '/setup': typeof publicSetupRoute
+  '/onboarding/cor': typeof appOnboardingCorRoute
   '/settings/accounts': typeof appSettingsAccountsRoute
   '/settings/invites': typeof appSettingsInvitesRoute
   '/settings/preferences': typeof appSettingsPreferencesRoute
+  '/settings/tax-profile': typeof appSettingsTaxProfileRoute
   '/settings/users': typeof appSettingsUsersRoute
   '/settings': typeof appSettingsIndexRoute
   '/invites/$inviteId/confirm': typeof publicInvitesInviteIdConfirmRoute
@@ -123,11 +147,14 @@ export interface FileRoutesById {
   '/(app)/books': typeof appBooksRoute
   '/(app)/dashboard': typeof appDashboardRoute
   '/(app)/settings': typeof appSettingsRouteWithChildren
+  '/(app)/taxes': typeof appTaxesRoute
   '/(public)/login': typeof publicLoginRoute
   '/(public)/setup': typeof publicSetupRoute
+  '/(app)/onboarding/cor': typeof appOnboardingCorRoute
   '/(app)/settings/accounts': typeof appSettingsAccountsRoute
   '/(app)/settings/invites': typeof appSettingsInvitesRoute
   '/(app)/settings/preferences': typeof appSettingsPreferencesRoute
+  '/(app)/settings/tax-profile': typeof appSettingsTaxProfileRoute
   '/(app)/settings/users': typeof appSettingsUsersRoute
   '/(app)/settings/': typeof appSettingsIndexRoute
   '/(public)/invites/$inviteId/confirm': typeof publicInvitesInviteIdConfirmRoute
@@ -139,11 +166,14 @@ export interface FileRouteTypes {
     | '/books'
     | '/dashboard'
     | '/settings'
+    | '/taxes'
     | '/login'
     | '/setup'
+    | '/onboarding/cor'
     | '/settings/accounts'
     | '/settings/invites'
     | '/settings/preferences'
+    | '/settings/tax-profile'
     | '/settings/users'
     | '/settings/'
     | '/invites/$inviteId/confirm'
@@ -152,11 +182,14 @@ export interface FileRouteTypes {
     | '/'
     | '/books'
     | '/dashboard'
+    | '/taxes'
     | '/login'
     | '/setup'
+    | '/onboarding/cor'
     | '/settings/accounts'
     | '/settings/invites'
     | '/settings/preferences'
+    | '/settings/tax-profile'
     | '/settings/users'
     | '/settings'
     | '/invites/$inviteId/confirm'
@@ -167,11 +200,14 @@ export interface FileRouteTypes {
     | '/(app)/books'
     | '/(app)/dashboard'
     | '/(app)/settings'
+    | '/(app)/taxes'
     | '/(public)/login'
     | '/(public)/setup'
+    | '/(app)/onboarding/cor'
     | '/(app)/settings/accounts'
     | '/(app)/settings/invites'
     | '/(app)/settings/preferences'
+    | '/(app)/settings/tax-profile'
     | '/(app)/settings/users'
     | '/(app)/settings/'
     | '/(public)/invites/$inviteId/confirm'
@@ -215,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(app)/taxes': {
+      id: '/(app)/taxes'
+      path: '/taxes'
+      fullPath: '/taxes'
+      preLoaderRoute: typeof appTaxesRouteImport
+      parentRoute: typeof appRouteRoute
+    }
     '/(app)/settings': {
       id: '/(app)/settings'
       path: '/settings'
@@ -250,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appSettingsUsersRouteImport
       parentRoute: typeof appSettingsRoute
     }
+    '/(app)/settings/tax-profile': {
+      id: '/(app)/settings/tax-profile'
+      path: '/tax-profile'
+      fullPath: '/settings/tax-profile'
+      preLoaderRoute: typeof appSettingsTaxProfileRouteImport
+      parentRoute: typeof appSettingsRoute
+    }
     '/(app)/settings/preferences': {
       id: '/(app)/settings/preferences'
       path: '/preferences'
@@ -271,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appSettingsAccountsRouteImport
       parentRoute: typeof appSettingsRoute
     }
+    '/(app)/onboarding/cor': {
+      id: '/(app)/onboarding/cor'
+      path: '/onboarding/cor'
+      fullPath: '/onboarding/cor'
+      preLoaderRoute: typeof appOnboardingCorRouteImport
+      parentRoute: typeof appRouteRoute
+    }
     '/(public)/invites/$inviteId/confirm': {
       id: '/(public)/invites/$inviteId/confirm'
       path: '/invites/$inviteId/confirm'
@@ -285,6 +342,7 @@ interface appSettingsRouteChildren {
   appSettingsAccountsRoute: typeof appSettingsAccountsRoute
   appSettingsInvitesRoute: typeof appSettingsInvitesRoute
   appSettingsPreferencesRoute: typeof appSettingsPreferencesRoute
+  appSettingsTaxProfileRoute: typeof appSettingsTaxProfileRoute
   appSettingsUsersRoute: typeof appSettingsUsersRoute
   appSettingsIndexRoute: typeof appSettingsIndexRoute
 }
@@ -293,6 +351,7 @@ const appSettingsRouteChildren: appSettingsRouteChildren = {
   appSettingsAccountsRoute: appSettingsAccountsRoute,
   appSettingsInvitesRoute: appSettingsInvitesRoute,
   appSettingsPreferencesRoute: appSettingsPreferencesRoute,
+  appSettingsTaxProfileRoute: appSettingsTaxProfileRoute,
   appSettingsUsersRoute: appSettingsUsersRoute,
   appSettingsIndexRoute: appSettingsIndexRoute,
 }
@@ -305,12 +364,16 @@ interface appRouteRouteChildren {
   appBooksRoute: typeof appBooksRoute
   appDashboardRoute: typeof appDashboardRoute
   appSettingsRoute: typeof appSettingsRouteWithChildren
+  appTaxesRoute: typeof appTaxesRoute
+  appOnboardingCorRoute: typeof appOnboardingCorRoute
 }
 
 const appRouteRouteChildren: appRouteRouteChildren = {
   appBooksRoute: appBooksRoute,
   appDashboardRoute: appDashboardRoute,
   appSettingsRoute: appSettingsRouteWithChildren,
+  appTaxesRoute: appTaxesRoute,
+  appOnboardingCorRoute: appOnboardingCorRoute,
 }
 
 const appRouteRouteWithChildren = appRouteRoute._addFileChildren(

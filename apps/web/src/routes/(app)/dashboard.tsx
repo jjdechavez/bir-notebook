@@ -17,6 +17,7 @@ import {
 import { BookOpen, FileText, TrendingDown, TrendingUp } from "lucide-react"
 import { useState } from "react"
 import { CreateTransaction } from "@/components/create-transaction"
+import { FilingReminders } from "@/components/tax/filing-reminders"
 import {
 	DataTable,
 	DEFAULT_PAGE_INDEX,
@@ -67,6 +68,7 @@ function DashboardComponent() {
 				</p>
 
 				<TransactionSummary />
+				<FilingReminders />
 				<TransactionList />
 			</div>
 		</div>

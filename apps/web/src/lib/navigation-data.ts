@@ -1,5 +1,5 @@
 import { IconDashboard, IconSettings, IconUsers } from "@tabler/icons-react"
-import { BookOpen } from "lucide-react"
+import { BookOpen, FileBadge, ReceiptText } from "lucide-react"
 import type { SessionClient } from "@/lib/auth-client"
 
 export interface NavItem {
@@ -9,7 +9,9 @@ export interface NavItem {
 	requireAdmin?: boolean
 }
 
-export function getNavigationItems(user: SessionClient["user"]): NavItem[] {
+export function getNavigationItems(
+	user: SessionClient["user"] | undefined | null,
+): NavItem[] {
 	const items: NavItem[] = [
 		{
 			title: "Dashboard",
@@ -20,6 +22,16 @@ export function getNavigationItems(user: SessionClient["user"]): NavItem[] {
 			title: "Books",
 			url: "/books",
 			icon: BookOpen,
+		},
+		{
+			title: "Taxes",
+			url: "/taxes",
+			icon: ReceiptText,
+		},
+		{
+			title: "Onboarding",
+			url: "/onboarding/cor",
+			icon: FileBadge,
 		},
 	]
 

@@ -1,5 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { LayoutIcon, SettingsIcon, UsersIcon } from "lucide-react"
+import {
+	FileBadgeIcon,
+	LayoutIcon,
+	SettingsIcon,
+	UsersIcon,
+} from "lucide-react"
 import {
 	Item,
 	ItemContent,
@@ -59,6 +64,17 @@ function SettingComponent() {
 						<ItemContent>
 							<ItemTitle>Account</ItemTitle>
 							<ItemDescription>Manage account information</ItemDescription>
+						</ItemContent>
+					</Link>
+				</Item>
+				<Item variant="outline" asChild>
+					<Link to="/settings/tax-profile">
+						<ItemMedia variant="image">
+							<FileBadgeIcon className="size-6" />
+						</ItemMedia>
+						<ItemContent>
+							<ItemTitle>Tax Profile</ItemTitle>
+							<ItemDescription>View COR-derived filing profile</ItemDescription>
 						</ItemContent>
 					</Link>
 				</Item>
