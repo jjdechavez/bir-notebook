@@ -27,6 +27,7 @@ import {
 	getWorksheet,
 	listFilings,
 	markFiled,
+	savePacket,
 	saveWorksheet,
 } from "../handlers/tax.js"
 import {
@@ -141,6 +142,7 @@ export function createApiRouter() {
 	apiRouter.get("/tax/worksheet", getWorksheet)
 	apiRouter.post("/tax/worksheet/save", saveWorksheet)
 	apiRouter.post("/tax/worksheet/mark-filed", markFiled)
+	apiRouter.post("/tax/filings/packet", savePacket)
 	apiRouter.get("/tax/filings", listFilings)
 
 	router.use("/api/**", useBase("/api", apiRouter.handler))

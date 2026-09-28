@@ -72,4 +72,24 @@ export const worksheetQuerySchema = z.object({
 
 export const markFiledSchema = z.object({
 	paymentRef: z.string().max(120).nullable().optional(),
+	ecrRef: z.string().max(120).nullable().optional(),
+	paidAt: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.nullable()
+		.optional(),
+	paidAmount: z.coerce.number().nonnegative().nullable().optional(),
+})
+
+export const savePacketSchema = z.object({
+	year: z.coerce.number().int().min(2000).max(2100),
+	quarter: z.coerce.number().int().min(1).max(3),
+	ecrRef: z.string().max(120).nullable().optional(),
+	paymentRef: z.string().max(120).nullable().optional(),
+	paidAt: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.nullable()
+		.optional(),
+	paidAmount: z.coerce.number().nonnegative().nullable().optional(),
 })

@@ -1,8 +1,17 @@
-import { defineEventHandler, getValidatedQuery, readValidatedBody } from "h3"
+import {
+	createError,
+	defineEventHandler,
+	getValidatedQuery,
+	readValidatedBody,
+} from "h3"
 import { requireAuth } from "../middleware/auth.js"
 import { compute8PctWorksheet } from "../services/tax-worksheet.js"
 import { toValidationError } from "../utils/validation.js"
-import { markFiledSchema, worksheetQuerySchema } from "../validators/cor.js"
+import {
+	markFiledSchema,
+	savePacketSchema,
+	worksheetQuerySchema,
+} from "../validators/cor.js"
 
 export const getWorksheet = defineEventHandler({
 	onRequest: [requireAuth()],
@@ -118,6 +127,12 @@ export const markFiled = defineEventHandler({
 				status: "filed",
 				filed_at: new Date(),
 				payment_ref: body.data.paymentRef ?? null,
+				ecr_ref: body.data.ecrRef ?? null,
+				paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
+				paid_amount:
+					body.data.paidAmount != null
+						? Math.round(body.data.paidAmount * 100)
+						: null,
 				inputs: JSON.stringify(q),
 				computed: JSON.stringify(result.items),
 				updated_at: new Date(),
@@ -138,6 +153,12 @@ export const markFiled = defineEventHandler({
 					status: "filed",
 					filed_at: new Date(),
 					payment_ref: body.data.paymentRef ?? null,
+					ecr_ref: body.data.ecrRef ?? null,
+					paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
+					paid_amount:
+						body.data.paidAmount != null
+							? Math.round(body.data.paidAmount * 100)
+							: null,
 					inputs: JSON.stringify(q),
 					computed: JSON.stringify(result.items),
 				})
@@ -146,6 +167,12 @@ export const markFiled = defineEventHandler({
 						status: "filed",
 						filed_at: new Date(),
 						payment_ref: body.data.paymentRef ?? null,
+						ecr_ref: body.data.ecrRef ?? null,
+						paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
+						paid_amount:
+							body.data.paidAmount != null
+								? Math.round(body.data.paidAmount * 100)
+								: null,
 						inputs: JSON.stringify(q),
 						computed: JSON.stringify(result.items),
 						updated_at: new Date(),
@@ -154,6 +181,42 @@ export const markFiled = defineEventHandler({
 				.execute()
 		}
 		return { status: "success", data: { filed: true } }
+	},
+})
+
+export const savePacket = defineEventHandler({
+	onRequest: [requireAuth()],
+	handler: async (event) => {
+		const body = await readValidatedBody(event, (data) =>
+			savePacketSchema.safeParse(data ?? {}),
+		)
+		if (!body.success) throw toValidationError(body.error)
+		const userId: string = event.context.currentUser?.id as string
+		const updated = await event.context.db
+			.updateTable("tax_filings")
+			.set({
+				ecr_ref: body.data.ecrRef ?? null,
+				payment_ref: body.data.paymentRef ?? null,
+				paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
+				paid_amount:
+					body.data.paidAmount != null
+						? Math.round(body.data.paidAmount * 100)
+						: null,
+				updated_at: new Date(),
+			})
+			.where("user_id", "=", userId)
+			.where("form_type", "=", "1701Q")
+			.where("year", "=", body.data.year)
+			.where("quarter", "=", body.data.quarter)
+			.executeTakeFirst()
+		if (updated.numUpdatedRows === 0n) {
+			throw createError({
+				statusCode: 404,
+				message:
+					"No filing found for that quarter — compute and mark it filed first",
+			})
+		}
+		return { status: "success", data: { saved: true } }
 	},
 })
 

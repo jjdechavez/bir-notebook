@@ -187,10 +187,13 @@ export interface CorDocuments {
 export interface TaxFilings {
 	computed: unknown | null
 	created_at: Generated<Timestamp>
+	ecr_ref: string | null
 	filed_at: Timestamp | null
 	form_type: string
 	id: Generated<number>
 	inputs: unknown | null
+	paid_amount: number | null
+	paid_at: Timestamp | null
 	payment_ref: string | null
 	quarter: number | null
 	status: Generated<string>
