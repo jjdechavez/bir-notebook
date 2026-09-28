@@ -8,8 +8,10 @@ WORKDIR /app
 
 # 1. Copy workspace manifests
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
+COPY patches ./patches
 COPY apps/shared/package.json ./apps/shared/
 COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
 
 # 2. Install dependencies (Cached)
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
