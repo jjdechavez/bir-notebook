@@ -167,6 +167,7 @@ export function CreateTransaction({
 									type="button"
 									variant="secondary"
 									disabled={isSubmitting}
+									onClick={() => setOpen((prev) => !prev)}
 								>
 									Cancel
 								</Button>

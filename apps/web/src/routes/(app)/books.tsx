@@ -47,6 +47,7 @@ import type {
 	Transaction,
 	TransactionListQueryParam,
 } from "@/types/transaction"
+import { CreateTransaction } from "@/components/create-transaction"
 
 export const Route = createFileRoute("/(app)/books")({
 	validateSearch: () =>
@@ -122,12 +123,15 @@ function BooksPage() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div>
-				<h1 className="text-xl font-bold">BIR Books of Accounts</h1>
-				<p className="text-muted-foreground mt-2">
-					View and manage your BIR-compliant books of accounts with proper
-					transaction recording
-				</p>
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-xl font-bold">BIR Books of Accounts</h1>
+					<p className="text-muted-foreground mt-2">
+						View and manage your BIR-compliant books of accounts with proper
+						transaction recording
+					</p>
+				</div>
+				<CreateTransaction />
 			</div>
 
 			<Card className="p-0">
