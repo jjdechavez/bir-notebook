@@ -229,7 +229,7 @@ export function BooksDataTable<TData>({
 											onClick={() =>
 												isCurrentPage
 													? undefined
-													: table.setPageIndex(pageNumber)
+													: table.setPageIndex(tsPageIndex)
 											}
 											isActive={isCurrentPage}
 										>

@@ -59,19 +59,19 @@ export function GeneralJournal({
 		rowCount: Number(transactionsData?.meta.total || 0),
 		state: {
 			pagination: {
-				pageIndex: filters?.page ? +filters.page : DEFAULT_PAGE_INDEX,
-				pageSize: filters?.limit ? +filters.limit : DEFAULT_PAGE_SIZE,
+				pageIndex: query.page,
+				pageSize: query.limit,
 			},
 		},
 		onPaginationChange: (updater) => {
-			const pagination =
+			const state =
 				typeof updater === "function"
-					? updater(table.getState().pagination)
+					? updater({
+							pageIndex: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+							pageSize: filters?.pageSize || DEFAULT_PAGE_SIZE,
+						})
 					: updater
-			setFilters({
-				page: pagination.pageIndex,
-				limit: pagination.pageSize,
-			})
+			setFilters({ pageIndex: state.pageIndex, pageSize: state.pageSize })
 		},
 		enableRowSelection: true,
 		getRowId: (row) => row.id.toString(),

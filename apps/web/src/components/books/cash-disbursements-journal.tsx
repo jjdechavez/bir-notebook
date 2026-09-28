@@ -47,6 +47,8 @@ export function CashDisbursementsJournal({
 	const { data: transactionsData, status } = useSuspenseQuery(
 		transactionsOptions({
 			...filters,
+			page: query.page + 1,
+			limit: query.limit,
 			bookType: transactionCategoryBookTypes.cashDisbursementJournal,
 		}),
 	)
@@ -72,14 +74,14 @@ export function CashDisbursementsJournal({
 			},
 		},
 		onPaginationChange: (updater) => {
-			const pagination =
+			const state =
 				typeof updater === "function"
-					? updater(table.getState().pagination)
+					? updater({
+							pageIndex: filters?.pageIndex || DEFAULT_PAGE_INDEX,
+							pageSize: filters?.pageSize || DEFAULT_PAGE_SIZE,
+						})
 					: updater
-			setFilters({
-				page: pagination.pageIndex,
-				limit: pagination.pageSize,
-			})
+			setFilters({ pageIndex: state.pageIndex, pageSize: state.pageSize })
 		},
 		enableRowSelection: true,
 		getRowId: (row) => row.id.toString(),
