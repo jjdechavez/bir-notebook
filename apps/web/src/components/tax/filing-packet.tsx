@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { getServerMessage } from "@/lib/api-error";
 import type { FilingItem } from "@/lib/api/cor";
 import type { QuarterMeta } from "./quarterly-worksheet";
 
@@ -82,7 +83,7 @@ export function FilingPacket({
       onSaved();
       toast.success("Filing packet saved");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+      toast.error(getServerMessage(e, "Couldn't save the packet. Check your connection and try again."));
     } finally {
       setSaving(false);
     }

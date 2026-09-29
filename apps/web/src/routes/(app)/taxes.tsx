@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useFilings } from "@/hooks/api/cor"
 import { api } from "@/lib/api"
+import { getServerMessage } from "@/lib/api-error"
 import type { FilingItem } from "@/lib/api/cor"
 
 export const Route = createFileRoute("/(app)/taxes")({
@@ -208,7 +209,7 @@ export function TaxesPage() {
 			setItems(res.data.items)
 			setSources(res.data.sources)
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Compute failed")
+			toast.error(getServerMessage(e, "Couldn't compute the worksheet. Try again."))
 		} finally {
 			setLoading(false)
 		}
@@ -220,7 +221,7 @@ export function TaxesPage() {
 			refetchFilings()
 			toast.success("Draft saved")
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Save failed")
+			toast.error(getServerMessage(e, "Couldn't save your draft. Check your connection and try again."))
 		}
 	}
 
@@ -232,7 +233,7 @@ export function TaxesPage() {
 			refetchFilings()
 			toast.success("Marked as filed — keep your eBIRForms email")
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Update failed")
+			toast.error(getServerMessage(e, "Couldn't update the filing. Try again."))
 		}
 	}
 
