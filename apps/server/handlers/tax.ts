@@ -6,6 +6,7 @@ import {
 } from "h3"
 import { requireAuth } from "../middleware/auth.js"
 import { compute8PctWorksheet } from "../services/tax-worksheet.js"
+import { toDbError } from "../utils/db-errors.js"
 import { toValidationError } from "../utils/validation.js"
 import {
 	markFiledSchema,
@@ -60,39 +61,44 @@ export const saveWorksheet = defineEventHandler({
 		if (!query.success) throw toValidationError(query.error)
 		const userId: string = event.context.currentUser?.id as string
 		const q = query.data
-		const result = await compute8PctWorksheet(event.context.db, userId, {
-			year: q.year,
-			quarter: q.quarter,
-			priorCumulative51: q.priorCumulative51,
-			priorPaid: q.priorPaid,
-			withheld2307: q.withheld2307,
-			nonOperating: q.nonOperating,
-			grossOverride: q.grossOverride,
-			penaltySurcharge: q.penaltySurcharge,
-			penaltyInterest: q.penaltyInterest,
-			penaltyCompromise: q.penaltyCompromise,
-		})
-		await event.context.db
-			.insertInto("tax_filings")
-			.values({
-				user_id: userId,
-				form_type: "1701Q",
+		try {
+			const result = await compute8PctWorksheet(event.context.db, userId, {
 				year: q.year,
 				quarter: q.quarter,
-				status: "draft",
-				inputs: JSON.stringify(q),
-				computed: JSON.stringify(result.items),
+				priorCumulative51: q.priorCumulative51,
+				priorPaid: q.priorPaid,
+				withheld2307: q.withheld2307,
+				nonOperating: q.nonOperating,
+				grossOverride: q.grossOverride,
+				penaltySurcharge: q.penaltySurcharge,
+				penaltyInterest: q.penaltyInterest,
+				penaltyCompromise: q.penaltyCompromise,
 			})
-			.onConflict((oc) =>
-				oc.columns(["user_id", "form_type", "year", "quarter"]).doUpdateSet({
+			await event.context.db
+				.insertInto("tax_filings")
+				.values({
+					user_id: userId,
+					form_type: "1701Q",
+					year: q.year,
+					quarter: q.quarter,
 					status: "draft",
 					inputs: JSON.stringify(q),
 					computed: JSON.stringify(result.items),
-					updated_at: new Date(),
-				}),
-			)
-			.execute()
-		return { status: "success", data: result }
+				})
+				.onConflict((oc) =>
+					oc.columns(["user_id", "form_type", "year", "quarter"]).doUpdateSet({
+						status: "draft",
+						inputs: JSON.stringify(q),
+						computed: JSON.stringify(result.items),
+						updated_at: new Date(),
+					}),
+				)
+				.execute()
+			return { status: "success", data: result }
+		} catch (e) {
+			console.error(e)
+			throw toDbError(e, event.context.requestId)
+		}
 	},
 })
 
@@ -109,47 +115,22 @@ export const markFiled = defineEventHandler({
 		)
 		if (!query.success) throw toValidationError(query.error)
 		const q = query.data
-		const result = await compute8PctWorksheet(event.context.db, userId, {
-			year: q.year,
-			quarter: q.quarter,
-			priorCumulative51: q.priorCumulative51,
-			priorPaid: q.priorPaid,
-			withheld2307: q.withheld2307,
-			nonOperating: q.nonOperating,
-			grossOverride: q.grossOverride,
-			penaltySurcharge: q.penaltySurcharge,
-			penaltyInterest: q.penaltyInterest,
-			penaltyCompromise: q.penaltyCompromise,
-		})
-		const updated = await event.context.db
-			.updateTable("tax_filings")
-			.set({
-				status: "filed",
-				filed_at: new Date(),
-				payment_ref: body.data.paymentRef ?? null,
-				ecr_ref: body.data.ecrRef ?? null,
-				paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
-				paid_amount:
-					body.data.paidAmount != null
-						? Math.round(body.data.paidAmount * 100)
-						: null,
-				inputs: JSON.stringify(q),
-				computed: JSON.stringify(result.items),
-				updated_at: new Date(),
+		try {
+			const result = await compute8PctWorksheet(event.context.db, userId, {
+				year: q.year,
+				quarter: q.quarter,
+				priorCumulative51: q.priorCumulative51,
+				priorPaid: q.priorPaid,
+				withheld2307: q.withheld2307,
+				nonOperating: q.nonOperating,
+				grossOverride: q.grossOverride,
+				penaltySurcharge: q.penaltySurcharge,
+				penaltyInterest: q.penaltyInterest,
+				penaltyCompromise: q.penaltyCompromise,
 			})
-			.where("user_id", "=", userId)
-			.where("form_type", "=", "1701Q")
-			.where("year", "=", q.year)
-			.where("quarter", "=", q.quarter)
-			.executeTakeFirst()
-		if (updated.numUpdatedRows === 0n) {
-			await event.context.db
-				.insertInto("tax_filings")
-				.values({
-					user_id: userId,
-					form_type: "1701Q",
-					year: q.year,
-					quarter: q.quarter,
+			const updated = await event.context.db
+				.updateTable("tax_filings")
+				.set({
 					status: "filed",
 					filed_at: new Date(),
 					payment_ref: body.data.paymentRef ?? null,
@@ -161,9 +142,21 @@ export const markFiled = defineEventHandler({
 							: null,
 					inputs: JSON.stringify(q),
 					computed: JSON.stringify(result.items),
+					updated_at: new Date(),
 				})
-				.onConflict((oc) =>
-					oc.columns(["user_id", "form_type", "year", "quarter"]).doUpdateSet({
+				.where("user_id", "=", userId)
+				.where("form_type", "=", "1701Q")
+				.where("year", "=", q.year)
+				.where("quarter", "=", q.quarter)
+				.executeTakeFirst()
+			if (updated.numUpdatedRows === 0n) {
+				await event.context.db
+					.insertInto("tax_filings")
+					.values({
+						user_id: userId,
+						form_type: "1701Q",
+						year: q.year,
+						quarter: q.quarter,
 						status: "filed",
 						filed_at: new Date(),
 						payment_ref: body.data.paymentRef ?? null,
@@ -175,12 +168,31 @@ export const markFiled = defineEventHandler({
 								: null,
 						inputs: JSON.stringify(q),
 						computed: JSON.stringify(result.items),
-						updated_at: new Date(),
-					}),
-				)
-				.execute()
+					})
+					.onConflict((oc) =>
+						oc
+							.columns(["user_id", "form_type", "year", "quarter"])
+							.doUpdateSet({
+								status: "filed",
+								filed_at: new Date(),
+								payment_ref: body.data.paymentRef ?? null,
+								ecr_ref: body.data.ecrRef ?? null,
+								paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
+								paid_amount:
+									body.data.paidAmount != null
+										? Math.round(body.data.paidAmount * 100)
+										: null,
+								inputs: JSON.stringify(q),
+								computed: JSON.stringify(result.items),
+								updated_at: new Date(),
+							}),
+					)
+					.execute()
+			}
+			return { status: "success", data: { filed: true } }
+		} catch (e) {
+			throw toDbError(e, event.context.requestId)
 		}
-		return { status: "success", data: { filed: true } }
 	},
 })
 
@@ -192,31 +204,35 @@ export const savePacket = defineEventHandler({
 		)
 		if (!body.success) throw toValidationError(body.error)
 		const userId: string = event.context.currentUser?.id as string
-		const updated = await event.context.db
-			.updateTable("tax_filings")
-			.set({
-				ecr_ref: body.data.ecrRef ?? null,
-				payment_ref: body.data.paymentRef ?? null,
-				paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
-				paid_amount:
-					body.data.paidAmount != null
-						? Math.round(body.data.paidAmount * 100)
-						: null,
-				updated_at: new Date(),
-			})
-			.where("user_id", "=", userId)
-			.where("form_type", "=", "1701Q")
-			.where("year", "=", body.data.year)
-			.where("quarter", "=", body.data.quarter)
-			.executeTakeFirst()
-		if (updated.numUpdatedRows === 0n) {
-			throw createError({
-				statusCode: 404,
-				message:
-					"No filing found for that quarter — compute and mark it filed first",
-			})
+		try {
+			const updated = await event.context.db
+				.updateTable("tax_filings")
+				.set({
+					ecr_ref: body.data.ecrRef ?? null,
+					payment_ref: body.data.paymentRef ?? null,
+					paid_at: body.data.paidAt ? new Date(body.data.paidAt) : null,
+					paid_amount:
+						body.data.paidAmount != null
+							? Math.round(body.data.paidAmount * 100)
+							: null,
+					updated_at: new Date(),
+				})
+				.where("user_id", "=", userId)
+				.where("form_type", "=", "1701Q")
+				.where("year", "=", body.data.year)
+				.where("quarter", "=", body.data.quarter)
+				.executeTakeFirst()
+			if (updated.numUpdatedRows === 0n) {
+				throw createError({
+					statusCode: 404,
+					message:
+						"No filing found for that quarter — compute and mark it filed first",
+				})
+			}
+			return { status: "success", data: { saved: true } }
+		} catch (e) {
+			throw toDbError(e, event.context.requestId)
 		}
-		return { status: "success", data: { saved: true } }
 	},
 })
 

@@ -149,6 +149,7 @@ export async function up(db) {
 
 	await db.schema
 		.createIndex("uq_tax_filings_user_form_year_quarter")
+		.unique()
 		.on("tax_filings")
 		.columns(["user_id", "form_type", "year", "quarter"])
 		.execute()

@@ -14,12 +14,27 @@ export function createApiApp(config: AppConfig) {
 					? Number((error as { statusCode?: number }).statusCode)
 					: 500
 
+			// Full technical detail stays server-side; the client only gets
+			// a safe message plus the request id for support lookups.
+			event.context.logger?.error("unhandled request error", {
+				requestId,
+				message: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack : undefined,
+			})
+
 			setResponseStatus(event, statusCode || 500)
 			setResponseHeader(event, "content-type", "application/json")
 
+			const clientMessage =
+				statusCode >= 500
+					? "Something went wrong on our end. Please try again."
+					: error instanceof Error
+						? error.message
+						: "Unhandled error"
+
 			return {
 				code: statusCode >= 500 ? "INTERNAL_ERROR" : "REQUEST_ERROR",
-				message: error instanceof Error ? error.message : "Unhandled error",
+				message: clientMessage,
 				requestId,
 			}
 		},
